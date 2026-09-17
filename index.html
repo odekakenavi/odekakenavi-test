@@ -111,7 +111,7 @@
     border-bottom:1px solid var(--line);
     display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
   }
-  header > div:first-child{flex:1;}
+  header > div.header-info{flex:1;}
   header h1{margin:0 0 4px; font-size:20px; font-weight:900; letter-spacing:.02em; line-height:1.4;}
   header h1 span{color:var(--coral);}
   .header-share-btn{
@@ -121,6 +121,47 @@
     border-radius:8px; gap:4px; transition:all 0.2s; font-weight:700;
   }
   .header-share-btn:hover{background:#F5F0E8; color:var(--coral); border-color:var(--coral);}
+  /* ☰ ハンバーガーメニュー（既存ヘッダーの機能・レイアウトは変更せず、先頭に1項目追加するだけ） */
+  .hamburger-btn{
+    flex:0 0 auto; border:1px solid var(--line); background:var(--paper); padding:6px 10px;
+    cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center;
+    width:auto; height:auto; min-width:44px; min-height:44px; color:var(--ink);
+    border-radius:8px; transition:all 0.2s;
+  }
+  .hamburger-btn:hover{background:#F5F0E8; border-color:var(--coral);}
+  .drawer-overlay{
+    position:fixed; inset:0; background:rgba(43,38,32,.45); z-index:300;
+    opacity:0; pointer-events:none; transition:opacity 0.2s;
+  }
+  .drawer-overlay.open{opacity:1; pointer-events:auto;}
+  .drawer-panel{
+    position:fixed; top:0; left:0; bottom:0; width:82%; max-width:340px;
+    background:var(--cream); z-index:301; box-shadow:2px 0 16px rgba(0,0,0,.18);
+    transform:translateX(-100%); transition:transform 0.25s ease;
+    overflow-y:auto; padding:16px 0 40px;
+  }
+  .drawer-panel.open{transform:translateX(0);}
+  .drawer-header{display:flex; align-items:center; justify-content:space-between; padding:4px 16px 14px; border-bottom:1px solid var(--line);}
+  .drawer-title{font-size:17px; font-weight:900; color:var(--ink);}
+  .drawer-close-btn{border:none; background:transparent; font-size:22px; cursor:pointer; color:var(--ink-soft); width:40px; height:40px; border-radius:8px;}
+  .drawer-close-btn:hover{background:#F5F0E8;}
+  .drawer-section{padding:14px 16px 4px;}
+  .drawer-section-title{font-size:13px; font-weight:700; color:var(--ink-soft); margin-bottom:8px;}
+  .drawer-link-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .drawer-link, .drawer-genre-btn{
+    display:block; background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    padding:10px 12px; text-decoration:none; color:var(--ink); font-size:13.5px; font-weight:700;
+    cursor:pointer; text-align:left; width:100%; font-family:inherit;
+  }
+  .drawer-link:hover, .drawer-genre-btn:hover{border-color:var(--coral); background:#FFF6EF;}
+  .drawer-season-row{display:flex; flex-direction:column; gap:8px;}
+  .drawer-season-link{
+    display:flex; align-items:center; gap:8px; background:var(--paper); border:1px solid var(--line);
+    border-radius:10px; padding:10px 12px; text-decoration:none; color:var(--ink); font-size:13.5px; font-weight:700;
+  }
+  .drawer-season-link:hover{border-color:var(--coral); background:#FFF6EF;}
+  .drawer-season-link.current{border-color:var(--coral); background:#FFF1E6;}
+  .drawer-divider{border:none; border-top:1px solid var(--line); margin:14px 16px 0;}
   .scroll-top-btn{position:fixed; bottom:20px; right:20px; z-index:40; width:56px; height:64px; border-radius:12px; border:none; background:var(--paper); box-shadow:0 2px 8px rgba(0,0,0,.12); cursor:pointer; display:none; flex-direction:column; align-items:center; justify-content:center; opacity:0.7; transition:opacity 0.2s; font-size:11px; font-weight:700; color:var(--ink-soft); min-width:56px; min-height:64px; padding:4px 2px; line-height:1.3;}
   .scroll-top-btn:hover{opacity:1;}
   .scroll-top-btn.show{display:flex;}
@@ -700,7 +741,8 @@
 <body>
 
 <header>
-  <div>
+  <button id="hamburgerBtn" class="hamburger-btn" type="button" aria-label="メニューを開く">☰</button>
+  <div class="header-info">
     <h1><span>おでかけナビ</span></h1>
     <p>今日は、子どもとどこ行く？</p>
     <span class="disclaimer">※料金・駐車場・混雑・所要時間はすべて目安です。訪問前に公式サイトをご確認ください</span>
@@ -708,6 +750,30 @@
   </div>
   <button class="header-share-btn" id="headerShareBtn" title="URLを共有する">🔗 共有</button>
 </header>
+
+<!-- ☰ ハンバーガーメニュー：地域・季節・目的から探す新しい入口。
+     既存の検索・絞り込み・お気に入り等のUI/ロジックには一切触れない。 -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<nav class="drawer-panel" id="drawerPanel" aria-label="サイトメニュー">
+  <div class="drawer-header">
+    <span class="drawer-title">🧭 メニュー</span>
+    <button class="drawer-close-btn" id="drawerCloseBtn" type="button" aria-label="メニューを閉じる">×</button>
+  </div>
+  <div class="drawer-section">
+    <div class="drawer-section-title">🗾 地域から探す</div>
+    <div class="drawer-link-grid" id="drawerRegionGrid"></div>
+  </div>
+  <hr class="drawer-divider">
+  <div class="drawer-section">
+    <div class="drawer-section-title">季節から探す</div>
+    <div class="drawer-season-row" id="drawerSeasonRow"></div>
+  </div>
+  <hr class="drawer-divider">
+  <div class="drawer-section">
+    <div class="drawer-section-title">🎯 目的から探す</div>
+    <div class="drawer-link-grid" id="drawerGenreGrid"></div>
+  </div>
+</nav>
 
 <!-- 行きたい一覧・プラン・比較する（プランは「追加してすぐ確認したい」機能のため、
      footerではなくheader直下に配置して見つけやすくする） -->
@@ -1070,13 +1136,15 @@ const SEASON_EMOJI = {"春":"🌸","夏":"☀️","秋":"🍁","冬":"❄️"};
 function effectiveSeasons(spot){
   return (spot.seasons && spot.seasons.length) ? spot.seasons : ["通年"];
 }
-// 3〜5月:春 / 6〜8月:夏 / 9〜11月:秋 / 12〜2月:冬 というシンプルな判定のみ（祝日等の複雑な判定は行わない）
+// おでかけナビ独自の季節期間（月日の境界で判定）：
+// 春 2/22〜5/20／夏 5/21〜8/20／秋 8/21〜11/20／冬 11/21〜2/21
 function currentSeason(){
-  const m = new Date().getMonth()+1;
-  if(m>=3 && m<=5) return "春";
-  if(m>=6 && m<=8) return "夏";
-  if(m>=9 && m<=11) return "秋";
-  return "冬";
+  const now = new Date();
+  const md = (now.getMonth()+1) * 100 + now.getDate(); // 例: 9/17 → 917
+  if(md >= 222 && md <= 520) return "春";
+  if(md >= 521 && md <= 820) return "夏";
+  if(md >= 821 && md <= 1120) return "秋";
+  return "冬"; // 11/21〜12/31 および 1/1〜2/21
 }
 // 🏃 遊び方：施設のジャンル・特徴から自動判定した大まかな傾向（実測ではなく目安）
 const ACTIVITY_LEVELS = [
@@ -8743,7 +8811,7 @@ function removeBreadcrumbJsonLd(){
 // 今のうちから表現しておく（今回、地域ページ自体は作らない）。
 // 地域ページ（都道府県・市区町村ページ）が存在する都道府県。
 // 今回は神奈川県のみ試作のため、パンくずへのリンク付与もここだけに限定する。
-const REGIONS_WITH_HUB_PAGES = new Set(["神奈川"]);
+const REGIONS_WITH_HUB_PAGES = new Set(["東京","神奈川","埼玉","千葉","茨城","栃木","群馬","山梨","静岡","福島","長野"]);
 function cleanCityDisplayName(jpName){
   const m = jpName.match(/^.+郡(.+)$/);
   return m ? m[1] : jpName;
@@ -8755,17 +8823,18 @@ function setBreadcrumbJsonLdForSpot(spot){
     const home = origin + APP_BASE_PATH;
     const rawCityLabel = (spot.area || "").split("・")[0] || spot.area || "";
     const hasHub = REGIONS_WITH_HUB_PAGES.has(spot.region);
+    const prefSlugPart = hasHub ? spotSlug(spot).split("/")[0] : null;
     const citySlugPart = hasHub ? spotSlug(spot).split("/")[1] : null;
     const cityLabel = hasHub ? cleanCityDisplayName(baseMunicipality(rawCityLabel)) : rawCityLabel;
     const items = [{name:"おでかけナビ", url:home}];
     if(spot.region){
       const prefEntry = {name: fullPrefectureName(spot.region)};
-      if(hasHub) prefEntry.url = home + "kanagawa/";
+      if(hasHub && prefSlugPart) prefEntry.url = home + prefSlugPart + "/";
       items.push(prefEntry);
     }
     if(cityLabel){
       const cityEntry = {name: cityLabel};
-      if(hasHub && citySlugPart) cityEntry.url = home + "kanagawa/" + citySlugPart + "/";
+      if(hasHub && prefSlugPart && citySlugPart) cityEntry.url = home + prefSlugPart + "/" + citySlugPart + "/";
       items.push(cityEntry);
     }
     items.push({name: spot.name, url: home + spotSlug(spot) + "/"});
@@ -12613,6 +12682,81 @@ loadAnalytics();
 const persisted = loadPersisted(); // localStorageの読み込みは1回だけ行い、使い回す
 applyPersisted(persisted);
 pickDiscovery(); // 「新しいおでかけ先を発見」の初期ピックアップ（render()内で毎回選び直さない）
+
+// ------------------------------------------------------------------
+// ☰ ハンバーガーメニュー（地域・季節・目的から探す）
+// 既存の検索・絞り込み・お気に入り等の状態やロジックには一切触れない、
+// 独立した新しい入口として追加する。
+// ------------------------------------------------------------------
+// 現在データが十分に存在する地域を優先して表示（全国データが増えたら追加すればよい構造）
+const DRAWER_PREFS = [
+  {region:"神奈川", label:"神奈川"}, {region:"東京", label:"東京"},
+  {region:"千葉", label:"千葉"}, {region:"埼玉", label:"埼玉"},
+  {region:"山梨", label:"山梨"}, {region:"群馬", label:"群馬"},
+  {region:"栃木", label:"栃木"}, {region:"茨城", label:"茨城"}
+];
+const SEASON_PERIOD_LABEL = {"春":"2/22〜5/20", "夏":"5/21〜8/20", "秋":"8/21〜11/20", "冬":"11/21〜2/21"};
+const SEASON_EN_SLUG = {"春":"spring", "夏":"summer", "秋":"autumn", "冬":"winter"};
+
+function buildDrawerMenu(){
+  const regionGrid = document.getElementById("drawerRegionGrid");
+  regionGrid.innerHTML = "";
+  DRAWER_PREFS.forEach(({region, label})=>{
+    const prefSlug = PREF_SLUG[region];
+    if(!prefSlug) return;
+    const a = document.createElement("a");
+    a.className = "drawer-link";
+    a.href = APP_BASE_PATH + prefSlug + "/";
+    a.textContent = "🗾 " + label;
+    regionGrid.appendChild(a);
+  });
+
+  const seasonRow = document.getElementById("drawerSeasonRow");
+  seasonRow.innerHTML = "";
+  const nowSeason = currentSeason();
+  ["春","夏","秋","冬"].forEach(season=>{
+    const a = document.createElement("a");
+    a.className = "drawer-season-link" + (season===nowSeason ? " current" : "");
+    a.href = APP_BASE_PATH + "season/" + SEASON_EN_SLUG[season] + "/";
+    a.innerHTML = `<span>${SEASON_EMOJI[season]}</span><span>${season}のお出かけ（${SEASON_PERIOD_LABEL[season]}）${season===nowSeason ? "　今の季節" : ""}</span>`;
+    seasonRow.appendChild(a);
+  });
+
+  const genreGrid = document.getElementById("drawerGenreGrid");
+  genreGrid.innerHTML = "";
+  GENRES.filter(g=>g.key!=="all").forEach(g=>{
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "drawer-genre-btn";
+    btn.textContent = g.label;
+    btn.onclick = ()=>{
+      // 既存の「もっと詳しく絞り込む」と同じ state.genre をそのまま使う
+      // （新しいページ・新しい状態管理は作らず、既存の仕組みを再利用する）
+      state.genre = new Set([g.key]);
+      trackFilterUse("genre", g.key);
+      closeDrawer();
+      afterFilterChange();
+      document.getElementById("main").scrollIntoView({behavior:"smooth", block:"start"});
+    };
+    genreGrid.appendChild(btn);
+  });
+}
+function openDrawer(){
+  document.getElementById("drawerOverlay").classList.add("open");
+  document.getElementById("drawerPanel").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function closeDrawer(){
+  document.getElementById("drawerOverlay").classList.remove("open");
+  document.getElementById("drawerPanel").classList.remove("open");
+  document.body.style.overflow = "";
+}
+buildDrawerMenu();
+document.getElementById("hamburgerBtn").onclick = openDrawer;
+document.getElementById("drawerCloseBtn").onclick = closeDrawer;
+document.getElementById("drawerOverlay").onclick = closeDrawer;
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeDrawer(); });
+
 document.getElementById("zipBtn").onclick = onZipSubmit;
 document.getElementById("zipInput").addEventListener("keydown", e=>{ if(e.key==="Enter") onZipSubmit(); });
 document.getElementById("geoBtn").onclick = requestCurrentLocation;
