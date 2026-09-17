@@ -158,6 +158,7 @@
   .drawer-season-link{
     display:flex; align-items:center; gap:8px; background:var(--paper); border:1px solid var(--line);
     border-radius:10px; padding:10px 12px; text-decoration:none; color:var(--ink); font-size:13.5px; font-weight:700;
+    cursor:pointer; text-align:left; width:100%; font-family:inherit;
   }
   .drawer-season-link:hover{border-color:var(--coral); background:#FFF6EF;}
   .drawer-season-link.current{border-color:var(--coral); background:#FFF1E6;}
@@ -1176,6 +1177,11 @@ function currentSeason(){
   if(md >= 521 && md <= 820) return "夏";
   if(md >= 821 && md <= 1120) return "秋";
   return "冬"; // 11/21〜12/31 および 1/1〜2/20
+}
+// 🌸 「季節から探す」で季節を1つだけ選んでいる場合は、それを「おすすめする季節」として優先する。
+// 選んでいない場合のみ、暦上の「今の季節」を使う（選択中の季節と違う季節のおすすめが出るのを防ぐ）
+function effectiveDisplaySeason(){
+  return (state.seasons && state.seasons.size===1) ? [...state.seasons][0] : currentSeason();
 }
 // 🏃 遊び方：施設のジャンル・特徴から自動判定した大まかな傾向（実測ではなく目安）
 const ACTIVITY_LEVELS = [
@@ -11724,7 +11730,7 @@ function personalAdjustScore(spot){
 function seasonCompatScore(spot){
   const eff = effectiveSeasons(spot);
   if(eff.includes("通年")) return 2; // 季節指定なし（通年）は無難に小さくプラス
-  const inSeason = eff.includes(currentSeason());
+  const inSeason = eff.includes(effectiveDisplaySeason());
   // 🌸花の名所は「今しか見頃じゃない」度合いが強いジャンルのため、
   // 他ジャンルより季節適合の影響を大きくし、おすすめ順に反映されやすくする。
   if(spot.genre === "花の名所") return inSeason ? 18 : -12;
@@ -11767,7 +11773,7 @@ function diagnosisReasonTags(spot, ctx, parts){
   const bucket = deriveStayTimeBucket(spot);
   if(bucket==="2〜4時間" || bucket==="4時間以上" || (spot.duration||[]).includes("半日")) tags.push("⏱️ 半日しっかり遊べます");
   if(deriveActivityLevel(spot)==="active") tags.push("🏃 体を動かせます");
-  if(effectiveSeasons(spot).includes(currentSeason())) tags.push(`${SEASON_EMOJI[currentSeason()]} 今の季節におすすめ`);
+  if(effectiveSeasons(spot).includes(effectiveDisplaySeason())) tags.push(`${SEASON_EMOJI[effectiveDisplaySeason()]} 今の季節におすすめ`);
   if(state.favorites.has(spot.name)) tags.push("❤️ お気に入り済み");
   return tags.slice(0,4);
 }
@@ -12299,7 +12305,7 @@ function buildSeasonalStrip(){
   const wrap = document.getElementById("seasonalWrap");
   const titleEl = document.getElementById("seasonalTitle");
   const el = document.getElementById("seasonalChips");
-  const season = currentSeason();
+  const season = effectiveDisplaySeason();
   const spots = SPOTS.filter(s => s.seasons && s.seasons.includes(season));
   if(spots.length===0){ wrap.style.display = "none"; return; }
   wrap.style.display = "block";
@@ -12374,7 +12380,7 @@ function buildCardSummary(spot){
     }
   }
 
-  const seasonMatch = spot.seasons && spot.seasons.includes(currentSeason());
+  const seasonMatch = spot.seasons && spot.seasons.includes(effectiveDisplaySeason());
   const isFavQuick = state.favorites.has(spot.name);
   const isPlannedQuick = isInPlan(spot.name);
   card.innerHTML = `
@@ -12390,7 +12396,7 @@ function buildCardSummary(spot){
         <button type="button" class="card-quick-btn ${isPlannedQuick?'on':''}" data-quick="plan" title="プランに追加">🗓</button>
       </div>
     </div>
-    ${seasonMatch ? `<div class="season-tag">${SEASON_EMOJI[currentSeason()]} ${currentSeason()}におすすめ</div>` : ""}
+    ${seasonMatch ? `<div class="season-tag">${SEASON_EMOJI[effectiveDisplaySeason()]} ${effectiveDisplaySeason()}におすすめ</div>` : ""}
     ${visitDateBadgeHtml(spot) ? `<div class="visitdate-badge-row">${visitDateBadgeHtml(spot)}</div>` : ""}
     <div class="card-feature">${spot.tip}</div>
     <div class="card-eval-row">
@@ -12853,22 +12859,40 @@ function buildDrawerMenu(){
   DRAWER_PREFS.forEach(({region, label})=>{
     const prefSlug = PREF_SLUG[region];
     if(!prefSlug) return;
-    const a = document.createElement("a");
-    a.className = "drawer-link";
-    a.href = APP_BASE_PATH + prefSlug + "/";
-    a.textContent = "🗾 " + label;
-    regionGrid.appendChild(a);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "drawer-link";
+    btn.textContent = "🗾 " + label;
+    btn.onclick = ()=>{
+      // 既存の state.region をそのまま使い、その都道府県だけに絞り込む
+      // （新しいページへは移動せず、アプリ内でそのまま結果を表示する）
+      state.region = new Set([region]);
+      trackFilterUse("region", region);
+      closeDrawer();
+      afterFilterChange();
+      document.getElementById("main").scrollIntoView({behavior:"smooth", block:"start"});
+    };
+    regionGrid.appendChild(btn);
   });
 
   const seasonRow = document.getElementById("drawerSeasonRow");
   seasonRow.innerHTML = "";
   const nowSeason = currentSeason();
   ["春","夏","秋","冬"].forEach(season=>{
-    const a = document.createElement("a");
-    a.className = "drawer-season-link" + (season===nowSeason ? " current" : "");
-    a.href = APP_BASE_PATH + "season/" + SEASON_EN_SLUG[season] + "/";
-    a.innerHTML = `<span>${SEASON_EMOJI[season]}</span><span>${season}のお出かけ${season===nowSeason ? "　今の季節" : ""}</span>`;
-    seasonRow.appendChild(a);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "drawer-season-link" + (season===nowSeason ? " current" : "");
+    btn.innerHTML = `<span>${SEASON_EMOJI[season]}</span><span>${season}のお出かけ${season===nowSeason ? "　今の季節" : ""}</span>`;
+    btn.onclick = ()=>{
+      // 既存の state.seasons をそのまま使い、その季節だけに絞り込む
+      // （新しいページへは移動せず、アプリ内でそのまま結果を表示する）
+      state.seasons = new Set([season]);
+      trackFilterUse("season", season);
+      closeDrawer();
+      afterFilterChange();
+      document.getElementById("main").scrollIntoView({behavior:"smooth", block:"start"});
+    };
+    seasonRow.appendChild(btn);
   });
 
   const genreGrid = document.getElementById("drawerGenreGrid");
