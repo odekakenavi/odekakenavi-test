@@ -794,13 +794,13 @@
   </div>
   <hr class="drawer-divider">
   <div class="drawer-section">
-    <div class="drawer-section-title">季節から探す</div>
-    <div class="drawer-season-row" id="drawerSeasonRow"></div>
+    <div class="drawer-section-title">🎯 目的から探す</div>
+    <div class="drawer-link-grid" id="drawerGenreGrid"></div>
   </div>
   <hr class="drawer-divider">
   <div class="drawer-section">
-    <div class="drawer-section-title">🎯 目的から探す</div>
-    <div class="drawer-link-grid" id="drawerGenreGrid"></div>
+    <div class="drawer-section-title">季節から探す</div>
+    <div class="drawer-season-row" id="drawerSeasonRow"></div>
   </div>
 </nav>
 
@@ -1172,10 +1172,10 @@ function effectiveSeasons(spot){
 function currentSeason(){
   const now = new Date();
   const md = (now.getMonth()+1) * 100 + now.getDate(); // 例: 9/17 → 917
-  if(md >= 222 && md <= 520) return "春";
+  if(md >= 221 && md <= 520) return "春";
   if(md >= 521 && md <= 820) return "夏";
   if(md >= 821 && md <= 1120) return "秋";
-  return "冬"; // 11/21〜12/31 および 1/1〜2/21
+  return "冬"; // 11/21〜12/31 および 1/1〜2/20
 }
 // 🏃 遊び方：施設のジャンル・特徴から自動判定した大まかな傾向（実測ではなく目安）
 const ACTIVITY_LEVELS = [
@@ -12845,7 +12845,6 @@ const DRAWER_PREFS = [
   {region:"山梨", label:"山梨"}, {region:"群馬", label:"群馬"},
   {region:"栃木", label:"栃木"}, {region:"茨城", label:"茨城"}
 ];
-const SEASON_PERIOD_LABEL = {"春":"2/22〜5/20", "夏":"5/21〜8/20", "秋":"8/21〜11/20", "冬":"11/21〜2/21"};
 const SEASON_EN_SLUG = {"春":"spring", "夏":"summer", "秋":"autumn", "冬":"winter"};
 
 function buildDrawerMenu(){
@@ -12868,7 +12867,7 @@ function buildDrawerMenu(){
     const a = document.createElement("a");
     a.className = "drawer-season-link" + (season===nowSeason ? " current" : "");
     a.href = APP_BASE_PATH + "season/" + SEASON_EN_SLUG[season] + "/";
-    a.innerHTML = `<span>${SEASON_EMOJI[season]}</span><span>${season}のお出かけ（${SEASON_PERIOD_LABEL[season]}）${season===nowSeason ? "　今の季節" : ""}</span>`;
+    a.innerHTML = `<span>${SEASON_EMOJI[season]}</span><span>${season}のお出かけ${season===nowSeason ? "　今の季節" : ""}</span>`;
     seasonRow.appendChild(a);
   });
 
