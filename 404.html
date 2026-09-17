@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>おでかけナビ</title>
+<meta name="robots" content="noindex">
+<!-- ==================================================================
+     GitHub Pagesには /kanagawa/yokohama/xxx/ のような「実在しないパス」への
+     直接アクセスに対するサーバー側ルーティングの仕組みがない。
+     そのため、存在しないパスへのアクセスはGitHub Pagesの仕様により
+     まずこの404.htmlが返される。ここでは元のパスをクエリ文字列に変換して
+     index.htmlへリダイレクトし、index.html側（<head>内の復元スクリプト）で
+     history.replaceStateを使って元のきれいなURLに戻す
+     （通称 "spa-github-pages" と呼ばれる手法。参考: rafgraph/spa-github-pages）。
+
+     【既知の制約】
+     この方式はブラウザでJavaScriptを実行するユーザー・クローラーには有効だが、
+     GitHub Pagesはこの404.html自体をHTTPステータス404で返すため、
+     JavaScriptを実行しない一部のクローラー（検索エンジン・AIクローラーの中には
+     生HTMLのみを取得するものがある）には「存在しないページ」として扱われ、
+     索引付けされない可能性がある。そのため、施設ごとに実ファイルとして
+     事前生成した静的ページ（/{都道府県}/{市区町村}/{施設名}/index.html）を
+     別途用意し、そちらが本来のクローラー向けの入口となる。
+     このリダイレクトは「人がシェアされたURLや古いURLに直接アクセスした場合に
+     迷わないようにする」ための保険的な仕組みという位置づき。
+     ================================================================== -->
+<script>
+(function(l){
+  var pathSegmentsToKeep = 1; // "/odekake-navi" の1階層（リポジトリ名部分）はそのまま維持する
+  var segs = l.pathname.split('/');
+  var basePath = segs.slice(0, 1 + pathSegmentsToKeep).join('/'); // 例: "/odekake-navi"
+  var restPath = l.pathname.slice(basePath.length); // 例: "/tokyo/台東区/上野動物園/"
+  var origSearch = l.search ? l.search.slice(1).replace(/&/g, '~and~') : '';
+  var newUrl = l.protocol + '//' + l.host + basePath + '/?redirect=' + encodeURIComponent(restPath)
+    + (origSearch ? '&origSearch=' + encodeURIComponent(origSearch) : '')
+    + l.hash;
+  l.replace(newUrl);
+}(window.location));
+</script>
+</head>
+<body>
+<p style="font-family:sans-serif; padding:24px; color:#2B2620;">
+  ページを移動しています…お待ちください。<br>
+  自動的に移動しない場合は <a href="/odekake-navi/">こちら</a> からトップページへお進みください。
+</p>
+</body>
+</html>

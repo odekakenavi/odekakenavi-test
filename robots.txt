@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://odekakenavi.github.io/odekake-navi/sitemap.xml
