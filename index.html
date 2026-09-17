@@ -440,6 +440,35 @@
   .chip.w-both.active{background:var(--both); border-color:var(--both); color:#fff;}
   .chip.p-yes.active{background:#4F7942; border-color:#4F7942; color:#fff;}
 
+  /* 🏷 現在適用中の絞り込み条件（ワンタップで解除できるチップ表示） */
+  .active-conditions-bar{
+    display:flex; flex-wrap:wrap; gap:6px; align-items:center;
+    padding:8px 16px 4px; margin:-4px 0 8px;
+  }
+  .active-conditions-label{font-size:12px; color:var(--ink-soft); font-weight:700; margin-right:2px;}
+  .condition-chip{
+    display:inline-flex; align-items:center; gap:5px; background:var(--ink); color:var(--cream);
+    border-radius:999px; padding:6px 8px 6px 14px; font-size:12.5px; font-weight:700; white-space:nowrap;
+  }
+  .condition-chip button{
+    background:rgba(255,255,255,.18); border:none; color:var(--cream); width:20px; height:20px;
+    border-radius:50%; cursor:pointer; font-size:13px; line-height:1; display:flex; align-items:center; justify-content:center;
+  }
+  .condition-chip button:hover{background:rgba(255,255,255,.32);}
+  .conditions-clear-all{
+    font-size:12px; color:var(--coral); background:none; border:none; cursor:pointer; font-weight:700;
+    text-decoration:underline; padding:6px 4px;
+  }
+
+  /* 🐼 カテゴリ特集バナー：ジャンルが1つだけ選ばれている時に「特集ページ」として見せる */
+  .featured-banner{
+    margin:0 16px 10px; padding:16px; border-radius:14px;
+    background:linear-gradient(135deg, #FFF6EF 0%, #FCE3B8 100%);
+    border:1px solid #F0D9AE;
+  }
+  .featured-banner-title{font-size:19px; font-weight:900; margin:0 0 6px; color:var(--ink);}
+  .featured-banner-intro{font-size:13px; color:var(--ink-soft); margin:0; line-height:1.6;}
+
   .zip-row{display:flex; gap:6px; align-items:center; margin-top:8px;}
   .zip-row input{
     flex:1; min-width:0; padding:10px 10px; border:1.5px solid var(--line); border-radius:10px;
@@ -852,6 +881,8 @@
   <button class="sort-toggle-btn" data-sort="recommend">🎯 おすすめ順</button>
   <button class="sort-toggle-btn" data-sort="near">📍 近い順</button>
 </div>
+<div class="featured-banner" id="featuredBanner" style="display:none;"></div>
+<div class="active-conditions-bar" id="activeConditionsBar" style="display:none;"></div>
 <div class="result-count" id="resultCount"></div>
 
 <!-- ④ 検索結果 -->
@@ -1172,6 +1203,25 @@ const GENRES = [
   {key:"花の名所", label:"🌼 花の名所"},
   {key:"おでかけスポット", label:"📍 その他"}
 ];
+// 🐼 カテゴリ特集バナー用の一言紹介文（ジャンルの一般的な特徴のみ。施設ごとの説明は創作しない）
+const CATEGORY_INTRO = {
+  "動物園": "親子で楽しめるおすすめ動物園を集めました。動物とのふれあいや、ベビーカーでも回りやすいスポットが中心です。",
+  "牧場": "動物とのふれあいや乳搾りなどの体験ができる牧場を集めました。広い敷地でのびのび過ごせます。",
+  "水族館": "雨の日でも楽しめる水族館を集めました。室内中心で、ショーが見られる施設もあります。",
+  "博物館・科学館": "見て・触れて学べる博物館・科学館を集めました。天候を気にせず過ごせます。",
+  "遊園地・テーマパーク": "乗り物やアトラクションが楽しめる遊園地・テーマパークを集めました。1日がっつり遊べます。",
+  "公園": "広い芝生や遊具で遊べる公園を集めました。無料で楽しめるスポットも多くあります。",
+  "温泉・スパ": "家族でゆっくり過ごせる温泉・スパを集めました。日帰り利用ができる施設が中心です。",
+  "室内遊び場": "天候を気にせず遊べる室内遊び場を集めました。小さなお子さまとのお出かけにおすすめです。",
+  "プール・水遊び": "夏に楽しめるプール・水遊びスポットを集めました。屋内プールも含まれます。",
+  "アスレチック・アウトドア": "体をたくさん動かせるアスレチック・アウトドアスポットを集めました。着替えを持って行くと安心です。",
+  "キャンプ場・グランピング": "自然の中で過ごせるキャンプ場・グランピング施設を集めました。日帰り利用ができる施設もあります。",
+  "釣り堀・魚つかみ取り": "釣りや魚つかみ取りが体験できるスポットを集めました。初めてのお子さまでも楽しめます。",
+  "スケート・ボウリング": "体を動かして楽しめるスケート・ボウリング施設を集めました。天候を気にせず遊べます。",
+  "果物狩り・収穫体験": "季節の果物狩り・収穫体験ができるスポットを集めました。旬の時期をチェックしてお出かけください。",
+  "花の名所": "季節の花を楽しめるスポットを集めました。散策やピクニックにもおすすめです。",
+  "おでかけスポット": "上記のカテゴリに当てはまらない、その他のお出かけスポットを集めました。"
+};
 // 比較機能で表示する項目
 const COMPARE_ROWS = [
   "雨の日への強さ","お財布にやさしい度","発散度","短時間向き",
@@ -9948,6 +9998,104 @@ function closeFilterModal(){
 }
 document.getElementById("openFilterBtn").onclick = openFilterModal;
 
+// 🏷 現在適用中の絞り込み条件を一覧上部にチップで表示し、ワンタップで解除できるようにする。
+// 既存の state 各フィールドをそのまま読み書きするだけで、新しい状態管理は増やさない。
+function buildActiveConditionChips(){
+  const chips = [];
+  state.region.forEach(r=>{
+    const info = REGIONS.find(x=>x.key===r);
+    chips.push({label: info ? info.label : r, remove: ()=>{ state.region.delete(r); afterFilterChange(); }});
+  });
+  state.genre.forEach(g=>{
+    const info = GENRES.find(x=>x.key===g);
+    chips.push({label: info ? info.label : g, remove: ()=>{ state.genre.delete(g); afterFilterChange(); }});
+  });
+  state.ages.forEach(a=>{
+    chips.push({label: a, remove: ()=>{ state.ages.delete(a); afterFilterChange(); }});
+  });
+  state.seasons.forEach(s=>{
+    const info = SEASON_FILTERS.find(x=>x.key===s);
+    chips.push({label: info ? info.label : s, remove: ()=>{ state.seasons.delete(s); afterFilterChange(); }});
+  });
+  state.holidays.forEach(h=>{
+    const info = HOLIDAY_FILTERS.find(x=>x.key===h);
+    chips.push({label: info ? info.label : h, remove: ()=>{ state.holidays.delete(h); afterFilterChange(); }});
+  });
+  if(state.rain.size>0){
+    const lvl = [...state.rain][0];
+    const info = RAIN_LEVELS.find(r=>r.level===lvl);
+    chips.push({label: info ? info.label : "雨の日条件", remove: ()=>{ state.rain.clear(); afterFilterChange(); }});
+  }
+  if(state.wallet.size>0){
+    const lvl = [...state.wallet][0];
+    const info = WALLET_LEVELS.find(w=>w.level===lvl);
+    chips.push({label: info ? info.label : "お財布条件", remove: ()=>{ state.wallet.clear(); afterFilterChange(); }});
+  }
+  if(state.duration!=="all"){
+    const info = DURATIONS.find(d=>d.key===state.duration);
+    chips.push({label: info ? info.label : state.duration, remove: ()=>{ state.duration="all"; afterFilterChange(); }});
+  }
+  if(state.parking!=="all"){
+    const info = PARKINGS.find(p=>p.key===state.parking);
+    chips.push({label: info ? info.label : state.parking, remove: ()=>{ state.parking="all"; afterFilterChange(); }});
+  }
+  if(state.activity!=="all"){
+    const info = ACTIVITY_LEVELS.find(a=>a.key===state.activity);
+    chips.push({label: info ? info.label : state.activity, remove: ()=>{ state.activity="all"; afterFilterChange(); }});
+  }
+  if(state.hideVisited) chips.push({label:"✅ 行った場所を隠す", remove: ()=>{ state.hideVisited=false; afterFilterChange(); }});
+  if(state.filterSiblings) chips.push({label:"👨‍👩‍👧‍👦 兄弟みんな楽しめる", remove: ()=>{ state.filterSiblings=false; afterFilterChange(); }});
+  if(state.waterPlay) chips.push({label:"💦 水遊びしたい", remove: ()=>{ state.waterPlay=false; afterFilterChange(); }});
+  if(state.visitDate) chips.push({label:"📅 "+state.visitDate, remove: ()=>{ state.visitDate=""; afterFilterChange(); }});
+  return chips;
+}
+// 🐼 カテゴリ特集バナー：ジャンルが1つだけ絞り込まれている時、通常の検索結果と区別できるよう
+// 「特集ページ」として見せる。新しい状態は追加せず、既存の state.genre を読むだけ。
+function renderFeaturedBanner(resultCount){
+  const banner = document.getElementById("featuredBanner");
+  if(state.genre.size!==1){ banner.style.display = "none"; banner.innerHTML = ""; return; }
+  const key = [...state.genre][0];
+  const info = GENRES.find(g=>g.key===key);
+  if(!info){ banner.style.display = "none"; banner.innerHTML = ""; return; }
+  const intro = CATEGORY_INTRO[key] || "";
+  banner.style.display = "block";
+  banner.innerHTML =
+    `<div class="featured-banner-title">${info.label}特集</div>` +
+    (intro ? `<p class="featured-banner-intro">${intro}</p>` : "");
+}
+function renderActiveConditions(){
+  const bar = document.getElementById("activeConditionsBar");
+  const chips = buildActiveConditionChips();
+  if(chips.length===0){ bar.style.display = "none"; bar.innerHTML = ""; return; }
+  bar.style.display = "flex";
+  bar.innerHTML = "";
+  const label = document.createElement("span");
+  label.className = "active-conditions-label";
+  label.textContent = "現在の条件：";
+  bar.appendChild(label);
+  chips.forEach(({label:text, remove})=>{
+    const chip = document.createElement("span");
+    chip.className = "condition-chip";
+    const textSpan = document.createElement("span");
+    textSpan.textContent = text;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = "×";
+    btn.setAttribute("aria-label", text + "を解除");
+    btn.onclick = remove;
+    chip.appendChild(textSpan);
+    chip.appendChild(btn);
+    bar.appendChild(chip);
+  });
+  if(chips.length>=2){
+    const clearAll = document.createElement("button");
+    clearAll.type = "button";
+    clearAll.className = "conditions-clear-all";
+    clearAll.textContent = "すべて解除";
+    clearAll.onclick = ()=>{ document.getElementById("conditionResetBtn").click(); };
+    bar.appendChild(clearAll);
+  }
+}
 function countActiveFilters(){
   let n = 0;
   if(state.region.size>0) n++;
@@ -12030,6 +12178,7 @@ function render(){
   const badge = document.getElementById("filterBadgeCount");
   if(n>0){ badge.style.display = "inline-block"; badge.textContent = `${n}件`; }
   else { badge.style.display = "none"; }
+  renderActiveConditions();
 
   const favCountLabel = document.getElementById("favCountLabel");
   favCountLabel.textContent = state.favorites.size>0 ? `(${state.favorites.size})` : "";
@@ -12050,6 +12199,7 @@ function render(){
   const filtered = SPOTS.filter(matches);
   document.getElementById("resultCount").innerHTML =
     `<b>${filtered.length}</b> / ${SPOTS.length} スポット`;
+  renderFeaturedBanner(filtered.length);
 
   if(filtered.length===0){
     // 検索キーワードがある場合に検索0件イベントを送信
@@ -12742,14 +12892,18 @@ function buildDrawerMenu(){
   });
 }
 function openDrawer(){
-  document.getElementById("drawerOverlay").classList.add("open");
-  document.getElementById("drawerPanel").classList.add("open");
-  document.body.style.overflow = "hidden";
+  const overlay = document.getElementById("drawerOverlay");
+  const panel = document.getElementById("drawerPanel");
+  if(!overlay.classList.contains("open")){
+    lockScroll(); // 既存シート（詳細／絞り込み等）と同じ仕組みでスクロールを固定する
+    overlay.classList.add("open");
+    panel.classList.add("open");
+  }
 }
 function closeDrawer(){
   document.getElementById("drawerOverlay").classList.remove("open");
   document.getElementById("drawerPanel").classList.remove("open");
-  document.body.style.overflow = "";
+  unlockScroll();
 }
 buildDrawerMenu();
 document.getElementById("hamburgerBtn").onclick = openDrawer;
