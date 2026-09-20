@@ -277,9 +277,9 @@
   .diag-opt-check{position:absolute; top:8px; right:10px; font-size:14px; color:var(--coral); display:none;}
   .diag-option-card.selected .diag-opt-check{display:block;}
   .diag-option-card{position:relative;}
-  .diag-next-btn{width:100%; padding:13px; border:none; border-radius:12px; background:var(--coral); color:#fff; font-size:14px; font-weight:800; cursor:pointer; margin-top:6px;}
-  .diag-next-btn:disabled{background:#F1EADA; color:var(--ink-soft); cursor:default;}
-  .diag-skip-link{display:block; text-align:center; font-size:12px; color:var(--ink-soft); margin-top:10px; cursor:pointer; text-decoration:underline;}
+  .diag-back-link{display:block; text-align:center; font-size:12px; color:var(--ink-soft); margin-top:12px; cursor:pointer; text-decoration:underline;}
+  /* 選択肢が奇数のとき、最後の「おまかせ」を横いっぱいに */
+  .diag-options .diag-option-card:last-child:nth-child(odd){grid-column:1 / -1;}
   .diag-opt-icon{font-size:26px;}
   .diag-opt-label{font-size:14.5px; font-weight:800; color:var(--ink);}
   .diag-opt-sub{font-size:11px; color:var(--ink-soft);}
@@ -293,7 +293,6 @@
   .diag-medal{font-size:15px; font-weight:900;}
   .diag-result-genre{font-size:15px;}
   .diag-result-name{flex:1; font-size:13.5px; font-weight:800; color:var(--ink);}
-  .diag-result-score{font-size:11.5px; font-weight:800; color:var(--coral); flex:0 0 auto;}
   .diag-result-tags{display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px;}
   .diag-result-meta{font-size:11px; color:var(--ink-soft); margin-bottom:6px;}
   .diag-result-actions{display:flex; align-items:center; gap:6px; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);}
@@ -322,8 +321,36 @@
     font-weight:700; cursor:pointer; padding:0 0 10px; text-align:left;
   }
   .diag-tag{font-size:10.5px; background:#F1EADA; color:var(--ink-soft); border-radius:999px; padding:3px 8px; font-weight:700;}
-  .diag-result-oneliner{font-size:12px; color:var(--ink); line-height:1.5;}
   .diag-retry-btn{width:100%; padding:12px; border:none; border-radius:12px; background:#F1EADA; color:var(--ink); font-size:13px; font-weight:700; cursor:pointer;}
+  /* 🎯 今日のイチオシ（結果画面） */
+  .diag-context{display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin:0 0 12px;}
+  .diag-context-chip{font-size:10.5px; background:#F1EADA; color:var(--ink-soft); border-radius:999px; padding:3px 9px; font-weight:700;}
+  .diag-hero{border:2px solid var(--coral); border-radius:18px; padding:16px 14px 12px; margin-bottom:14px; cursor:pointer;
+    background:linear-gradient(180deg,#FFF1E9 0%, var(--paper) 60%); box-shadow:0 4px 14px rgba(226,96,58,.16);}
+  .diag-hero:active{background:#FBF0DC;}
+  .diag-hero-label{font-size:12px; font-weight:900; color:var(--coral); margin-bottom:6px;}
+  .diag-hero-name{font-size:20px; font-weight:900; color:var(--ink); line-height:1.35; margin-bottom:4px;}
+  .diag-hero-catch{font-size:13px; font-weight:800; color:var(--coral); margin-bottom:8px;}
+  .diag-hero-meta{font-size:11.5px; color:var(--ink-soft); margin-bottom:10px;}
+  .diag-reasons{list-style:none; margin:0 0 6px; padding:0; display:flex; flex-direction:column; gap:6px;}
+  .diag-reasons li{font-size:13px; font-weight:700; color:var(--ink); background:#fff; border:1px solid var(--line); border-radius:10px; padding:7px 10px; line-height:1.4;}
+  .diag-warn{font-size:11.5px; color:#8a5a12; background:#FFF4DA; border-radius:8px; padding:6px 9px; margin-top:6px;}
+  .diag-hint{font-size:11px; color:var(--ink-soft); margin-top:6px;}
+  .diag-hero-desc{font-size:12px; color:var(--ink-soft); line-height:1.6; margin-top:8px;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  .diag-tweaks{margin:2px 0 14px;}
+  .diag-tweaks-title{font-size:12px; font-weight:800; color:var(--ink-soft); margin-bottom:8px;}
+  .diag-tweak-chips{display:flex; flex-wrap:wrap; gap:8px;}
+  .diag-tweak-chip{border:1.5px solid var(--line); background:var(--paper); color:var(--ink); border-radius:999px; padding:8px 12px; font-size:12.5px; font-weight:800; cursor:pointer;}
+  .diag-tweak-chip.on{background:#FDEDE6; border-color:var(--coral); color:var(--coral);}
+  .diag-tweak-chip.reroll{background:#F1EADA;}
+  .diag-more-btn{width:100%; padding:12px; border:1.5px solid var(--line); border-radius:12px; background:var(--paper); color:var(--ink); font-size:13px; font-weight:800; cursor:pointer; margin-bottom:10px;}
+  .diag-more-list{display:flex; flex-direction:column; gap:10px; margin-bottom:14px;}
+  .diag-origin-note{font-size:11.5px; color:var(--ink-soft); background:#F6F1E6; border-radius:10px; padding:9px 11px; margin-bottom:12px; line-height:1.6;}
+  .diag-origin-btn{display:inline-block; margin-left:4px; border:1px solid var(--line); background:var(--paper); color:var(--sun); border-radius:8px; padding:4px 9px; font-size:11.5px; font-weight:800; cursor:pointer;}
+  .diag-origin-btn:disabled{opacity:.6; cursor:default;}
+  .diag-origin-msg{display:block; margin-top:4px; color:#8a5a12;}
+  .diag-foot-note{font-size:10.5px; color:var(--ink-soft); text-align:center; line-height:1.5; margin:12px 0 4px;}
 
   /* ---------- おすすめ順／近い順 トグル ---------- */
   .sort-toggle-row{display:flex; gap:8px; padding:6px 16px 8px;}
@@ -826,6 +853,29 @@
     min-height:44px; box-sizing:border-box; opacity:.85;
   }
 
+  /* ---------- 🏨 ホテルを探す（エリア選択→一覧）。カード・予約UIは上の既存スタイルをそのまま使う ---------- */
+  .hotel-search-intro{font-size:12px; color:var(--ink-soft); line-height:1.6; margin-bottom:14px;}
+  .hotel-area-group{margin-bottom:16px;}
+  .hotel-area-group-title{font-family:'Zen Maru Gothic',sans-serif; font-size:14px; font-weight:700; margin-bottom:8px;}
+  .hotel-area-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .hotel-area-btn{
+    display:flex; align-items:center; justify-content:space-between; gap:6px; width:100%;
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    padding:11px 12px; min-height:44px; box-sizing:border-box; cursor:pointer;
+    font-family:inherit; font-size:13px; font-weight:700; color:var(--ink); text-align:left;
+  }
+  .hotel-area-btn:hover{border-color:var(--coral); background:#FFF6EF;}
+  .hotel-area-btn-name{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .hotel-area-btn-count{flex:0 0 auto; font-size:11px; font-weight:400; color:var(--ink-soft);}
+  .hotel-search-back{
+    background:none; border:none; padding:0 2px; margin:0 0 6px; min-height:44px; cursor:pointer;
+    font-family:inherit; font-size:12.5px; font-weight:700; color:var(--sun);
+  }
+  .hotel-card-labels{display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px;}
+  .hotel-card-labels .hotel-card-label{margin-bottom:0;}
+  .hotel-card-area{font-size:11px; color:var(--ink-soft); margin-bottom:8px;}
+  #hotelSearchSheet .hotel-booking-option-name, #hotelSearchSheet .hotel-booking-option-desc{display:block;}
+
   /* ---------- 🎯 迷ったらこれ（Phase4追加） ---------- */
   .decide-chip{
     flex:0 0 auto; padding:8px 13px; border-radius:999px; background:#F1EADA; color:var(--ink);
@@ -929,6 +979,8 @@
   .calendar-visit-applyplan{border:1px solid var(--sun); background:#fff; color:var(--sun); font-size:11px; border-radius:6px; padding:4px 8px; cursor:pointer; font-weight:700;}
   .calendar-visit-applyplan:disabled{border-color:var(--line); color:var(--ink-soft); cursor:default; background:var(--paper);}
   .calendar-plan-item{font-size:13px; color:var(--sun); font-weight:700; padding:4px 0;}
+  .calendar-plan-open, .calendar-plan-tovisit{border:1px solid var(--sun); background:#fff; color:var(--sun); font-size:11px; border-radius:6px; padding:4px 8px; cursor:pointer; font-weight:700; margin-right:6px;}
+  .calendar-plan-tovisit{border-color:var(--green); color:var(--green);}
   .calendar-legend{display:flex; gap:14px; font-size:11.5px; color:var(--ink-soft); margin-bottom:10px;}
   .calendar-legend-item{display:flex; align-items:center; gap:4px;}
   .calendar-section-title{font-weight:700; font-size:15px; margin:18px 0 8px; font-family:'Zen Maru Gothic',sans-serif;}
@@ -943,7 +995,10 @@
   .visit-added-note{font-size:12px; color:var(--green); font-weight:700;}
   .plan-visit-row{margin-top:10px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
   .plan-date-input{border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-size:13px; font-family:inherit;}
-  .plan-visit-btn{border:1.5px solid var(--sun); background:var(--paper); color:var(--sun); border-radius:8px; padding:8px 12px; font-size:13px; font-weight:700; cursor:pointer;}
+  .plan-schedule-btn{border:1.5px solid var(--sun); background:var(--paper); color:var(--sun); border-radius:8px; padding:8px 12px; font-size:13px; font-weight:700; cursor:pointer;}
+  .plan-visit-btn{border:1.5px solid var(--green); background:var(--paper); color:var(--green); border-radius:8px; padding:8px 12px; font-size:13px; font-weight:700; cursor:pointer;}
+  .plan-schedule-badge{font-size:12.5px; color:var(--sun); font-weight:700; margin-top:10px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .plan-schedule-clear{border:none; background:none; color:var(--ink-soft); font-size:11.5px; text-decoration:underline; cursor:pointer; padding:2px;}
 
 </style>
 
@@ -1050,13 +1105,14 @@
   </button>
 </div>
 
-<!-- 🎯 迷ったら「今日どこ行く？」（3問診断）。条件を絞ってもなお迷ったときの最終手段として、
+<!-- 🎯 迷ったら「今日どこ行く？」（3問でおまかせ）。自分で条件を決めて探す通常検索とは別に、
+     気分を3問答えるだけでアプリが今日のイチオシを決める入口。条件を絞ってもなお迷ったときの最終手段として、
      「もっと詳しく絞り込む」の後ろに配置する -->
 <div class="diag-entry-section">
   <div class="diag-entry-card">
     <div class="diag-entry-title">🎯 迷ったら「今日どこ行く？」</div>
-    <div class="diag-entry-desc">3問答えるだけで、今日おすすめのおでかけ先をBEST5で提案します</div>
-    <button class="diag-entry-btn" id="diagnosisOpenBtn">🎯 3問で探す</button>
+    <div class="diag-entry-desc">気分を3問答えるだけで、おでかけナビが今日のイチオシをおすすめします</div>
+    <button class="diag-entry-btn" id="diagnosisOpenBtn">🎯 3問でおまかせ</button>
   </div>
 </div>
 
@@ -1133,6 +1189,11 @@
   <div class="sheet" id="howToSheet"></div>
 </div>
 
+<!-- ホテルを探す（エリアを選ぶ → ホテル一覧） -->
+<div class="sheet-overlay" id="hotelSearchOverlay">
+  <div class="sheet" id="hotelSearchSheet"></div>
+</div>
+
 <!-- 運営者・データ元について -->
 <div class="sheet-overlay" id="aboutOverlay">
   <div class="sheet" id="aboutSheet"></div>
@@ -1188,6 +1249,23 @@
 </div>
 
 <script>
+// ==================================================================
+// 🗺 データ構造マップ（将来のデータ分離に向けた目印。処理内容は変更していない）
+// ------------------------------------------------------------------
+// 「DATA-BLOCK BEGIN/END」の目印コメントで挟んだ範囲が“純粋なデータ”。将来ここを外部ファイルへ移す。
+//   ・施設本体 …… SPOTS（＋SPOTS_*配列を SPOTS.push で連結）。650件。id/slugフィールドは無い。
+//   ・ホテル ……… FAMILY_HOTELS（エリアキー→ホテル配列）＋HOTEL_AREA_META＋HOTEL_PREF_ORDER
+//   ・地域/URL …… PREF_SLUG / CITY_ROMAJI（表示名→URL用ローマ字）、SLUG_OVERRIDES（施設名→確定slug）
+//   ・その他 …… ZIP3_MASTER / STATION_MASTER（郵便番号・駅の座標）
+// 【データを編集する時の約束（既存機能・既存URLを壊さないため）】
+//   1) 施設の name は変更しない。name が事実上の主キー（お気に入り・行った・プラン・除外・比較・共有URL・訪問履歴が name で保存されている）。
+//   2) SLUG_OVERRIDES に登録済みの施設（633件）のURLは、SPOTS の並び順に影響されない。未登録の施設だけ、同じslugが重なった時の「-2」連番が並び順で決まる。追加は末尾へ。
+//   3) officialUrl / region / area を変えると、SLUG_OVERRIDES に無い施設はslugが変わる。変更前にslugを固定すること。
+//   4) ホテルの slug（hotel/エリアキー/名前）はホテルIDとして使えるので変更しない。
+//   5) SPOTS の hotelArea は FAMILY_HOTELS のエリアキーを指す。存在しないキーにしない。
+//   6) 静的ページ生成ツール（tools/build-static-pages.js）は、次の部分をこのファイルから取り出して読む。名前・並びを変える時はツールも直すこと:
+//      「const SPOTS = [」から「function spotBySlug」まで／「const GENRES」／「function deriveCategory」
+// ==================================================================
 const STORAGE_KEY = "odekakeNaviV2";
 // 📅 このデータの更新時点（施設データ＝SPOTS等を追加・修正した際にここも更新する）
 const APP_LAST_UPDATED = "2026年9月16日"; // 日本時間での最終更新日（施設データを追加・修正した日に書き換える。ページ生成日ではない）
@@ -1457,6 +1535,7 @@ const COMPARE_ROWS = [
   "車での移動時間","電車での移動時間","駐車場","混雑傾向"
 ];
 
+// ▼▼▼ DATA-BLOCK BEGIN: ZIP3_MASTER 〔郵便番号3桁→座標｜区分A〕 ▼▼▼
 const ZIP3_MASTER = [
 {min:100,max:102,lat:35.694,lng:139.753,label:"東京都千代田区"},
 {min:103,max:104,lat:35.673,lng:139.773,label:"東京都中央区"},
@@ -1733,11 +1812,13 @@ const ZIP3_MASTER = [
 {min:378,max:378,lat:36.641,lng:139.045,label:"群馬県沼田市"},
 {min:379,max:379,lat:36.617,lng:138.596,label:"群馬県吾妻郡（草津等）"},
 ];
+// ▲▲▲ DATA-BLOCK END: ZIP3_MASTER ▲▲▲
 // 🚉 主要駅マスタ（郵便番号より入力しやすい「最寄り駅」からの出発地設定用）
 // ZIP3_MASTERと同様、緯度経度は代表点の概算値（駅の正確な出入口座標ではない）。
 // 主要ターミナル・乗換拠点・急行停車クラスの駅を中心に収録し、各駅停車の全駅までは網羅していない。
 // 同名駅・類似駅名がある場合も、これは既存の地名検索（searchPlaceName）とチップ選択UIをそのまま
 // 再利用するため、新しいUIやロジックを追加する必要はない。
+// ▼▼▼ DATA-BLOCK BEGIN: STATION_MASTER 〔駅・地名→座標｜区分A〕 ▼▼▼
 const STATION_MASTER = [
 // ---- 東京 ----
 {label:"東京駅（東京都千代田区）", lat:35.6812, lng:139.7671},
@@ -1969,6 +2050,7 @@ const STATION_MASTER = [
 {label:"佐久平駅（長野県佐久市）", lat:36.2478, lng:138.4779},
 {label:"諏訪駅（長野県諏訪市）", lat:36.0387, lng:138.1177},
 ];
+// ▲▲▲ DATA-BLOCK END: STATION_MASTER ▲▲▲
 function lookupZip3(code3){
   const n = parseInt(code3, 10);
   for(const r of ZIP3_MASTER){
@@ -2307,6 +2389,7 @@ function matchesKeyword(spot, query){
 // 📌 verifiedAt（任意項目）：実在確認・公式情報の裏取りを行った日付を"YYYY年M月D日"形式で入れる。
 // 設定した施設は詳細画面の下部に「✅ 情報確認日：〜」と表示される。未設定の施設は何も表示されない
 // （未確認＝間違いではなく、単に今回の監査サイクルではまだ確認していないという意味）。
+// ▼▼▼ DATA-BLOCK BEGIN: SPOTS 〔施設データ本体＋SPOTS_*追加配列＋SPOTS.push｜区分A。slug未登録の施設だけ、並び順がslugの連番に影響〕 ▼▼▼
 const SPOTS = [
 {region:"東京", name:"上野動物園", area:"台東区・上野公園", lat:35.7160, lng:139.7712,
  ages:["2-3歳","4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日","1日"],
@@ -8512,6 +8595,7 @@ const SPOTS_MALL_KIDS_8 = [
  tip:"駅直結で雨でも濡れずにアクセスできる。3階キッズテラス・4階ピクニックテラスは無料なので、キドキドと合わせて使うと1日過ごしやすい。"}
 ];
 SPOTS.push(...SPOTS_MALL_KIDS_8);
+// ▲▲▲ DATA-BLOCK END: SPOTS ▲▲▲
 // operationStatus:"closed" が設定された施設を、画面上のどこにも表示されないよう取り除く
 // （データそのものは配列定義に残るので、後日ステータスを外すだけで復活できる）。
 for(let __i = SPOTS.length - 1; __i >= 0; __i--){
@@ -8527,6 +8611,7 @@ for(let __i = SPOTS.length - 1; __i >= 0; __i--){
 // 既存の安全な日本語slugにフォールバック」という優先順位で決定する。
 // 存在しない読み方を推測して作ることはしない。
 // ==================================================================
+// ▼▼▼ DATA-BLOCK BEGIN: PREF_SLUG / CITY_ROMAJI 〔都県・市区町村→URL用ローマ字｜区分B〕 ▼▼▼
 const PREF_SLUG = {
   "東京":"tokyo", "神奈川":"kanagawa", "埼玉":"saitama", "千葉":"chiba",
   "茨城":"ibaraki", "栃木":"tochigi", "群馬":"gunma",
@@ -8575,6 +8660,7 @@ const CITY_ROMAJI = {
   "埼玉|さいたま市北区": "saitama-kita",
   "埼玉|さいたま市南区": "saitama-minami",
   "埼玉|さいたま市大宮区": "saitama-omiya",
+  "埼玉|さいたま市浦和区": "saitama-urawa",
   "埼玉|さいたま市岩槻区": "saitama-iwatsuki",
   "埼玉|さいたま市緑区": "saitama-midori",
   "埼玉|さいたま市西区": "saitama-nishi",
@@ -8688,6 +8774,7 @@ const CITY_ROMAJI = {
   "神奈川|座間市": "zama",
   "神奈川|愛甲郡愛川町": "aikawa",
   "神奈川|横浜市": "yokohama-city",
+  "神奈川|横浜市泉区": "yokohama-izumi",
   "神奈川|横浜市中区": "yokohama-naka",
   "神奈川|横浜市保土ケ谷区": "yokohama-hodogaya",
   "神奈川|横浜市南区": "yokohama-minami",
@@ -8788,6 +8875,7 @@ const CITY_ROMAJI = {
   "静岡|賀茂郡東伊豆町": "higashiizu",
   "静岡|賀茂郡河津町": "kawazu",
 };
+// ▲▲▲ DATA-BLOCK END: PREF_SLUG ▲▲▲
 function slugifyPart(text){
   if(!text) return "";
   return String(text)
@@ -8982,6 +9070,7 @@ function facilitySlugAndMethod(spot){
 // 英字化できなかった施設について、人が確認した正式なアルファベットslugを
 // ここに追加していく運用にする。ここに登録されている施設は最優先で使われ、
 // 未登録の施設（今後新しく追加される施設を含む）は従来通り自動判定される。
+// ▼▼▼ DATA-BLOCK BEGIN: SLUG_OVERRIDES 〔施設名→確定slug。既存URLの固定表｜区分C：URLそのもの・変更禁止〕 ▼▼▼
 const SLUG_OVERRIDES = {
   "上野動物園": "tokyo/taito/ueno",
   "サンシャイン水族館": "tokyo/toshima/sunshinecity",
@@ -9616,7 +9705,26 @@ const SLUG_OVERRIDES = {
   "小野フルーツ園": "gunma/numata/ono-fruit-farm",
   "悴田梨園": "gunma/takasaki/kajita-pear-farm",
   "福田グリーン農園": "ibaraki/kasumigaura/fukuda-green-farm",
+  // ---- 商業施設内キッズスペース17件（2026年9月に確定。公開前のため、公式の英字表記が分かれば変更可）----
+  "キッズランドUS 埼玉熊谷店": "saitama/kumagaya/kidsland-us",
+  "イオンモール座間 KIDS FIELD": "kanagawa/zama/zama-aeonmall-kids-field",
+  "イオンモール幕張新都心 ズーアドベンチャーワールド": "chiba/chiba-mihama/makuharishintoshin-aeonmall-zoo-adventure-world",
+  "フレーベル館 Kinder Platz イオンモール木更津店": "chiba/kisarazu/kinder-platz-aeonmall-kisarazu",
+  "南町田グランベリーパーク キッズディスカバリー": "tokyo/machida/minamimachida-grandberry-park-kids-discovery",
+  "ゆめが丘ソラトス そうにゃんぱーく そらの広場にゃん": "kanagawa/yokohama-izumi/yumegaoka-solatos",
+  "ちきゅうのにわ 羽生店（イオンモール羽生）": "saitama/hanyu/chikyu-no-niwa-hanyu",
+  "ラゾーナ川崎プラザ あそびパークPLUS": "kanagawa/kawasaki-saiwai/lazona-kawasaki-asobi-park-plus",
+  "屋上かまたえん（東急プラザ蒲田）": "tokyo/ota/okujo-kamataen-tokyu-plaza-kamata",
+  "ファンタジーキッズリゾート ららぽーとTOKYO-BAY North Gate 船橋店": "chiba/funabashi/fantasy-kids-resort-lalaport-tokyo-bay-north-gate",
+  "リトルプラネット イオンモール川口": "saitama/kawaguchi/little-planet-aeonmall-kawaguchi",
+  "リトルプラネット ダイバーシティ東京 プラザ": "tokyo/koto/little-planet-divercity-tokyo-plaza",
+  "べるべるパーク新宿本店": "tokyo/shinjuku/beruberu-park-shinjuku",
+  "あそびのせかい マークイズみなとみらい店": "kanagawa/yokohama-nishi/asobi-no-sekai-mark-is-minatomirai",
+  "青葉台東急スクエア 屋上広場": "kanagawa/yokohama-aoba/aobadai-tokyu-square-okujo-hiroba",
+  "ボーネルンドあそびのせかい たまプラーザ テラス店": "kanagawa/yokohama-aoba/bornelund-asobi-no-sekai-tama-plaza-terrace",
+  "ボーネルンドあそびのせかい テラスモール湘南店": "kanagawa/fujisawa/bornelund-asobi-no-sekai-terrace-mall-shonan"
 };
+// ▲▲▲ DATA-BLOCK END: SLUG_OVERRIDES ▲▲▲
 function buildFacilitySlug(spot){
   if(SLUG_OVERRIDES[spot.name]) return SLUG_OVERRIDES[spot.name];
   const pref = PREF_SLUG[spot.region] || slugifyPart(spot.region) || "other";
@@ -10084,6 +10192,18 @@ let state = {
 //   click_booking         : チケット・予約ボタンのクリック（予約先つき）
 //   view_car_access       : 車での行き方情報を見た
 //   view_train_access      : 電車での行き方情報を見た
+//
+// 🆕 再訪・利用状況分析用に追加したイベント（既存イベントは変更・削除せず併走させる）：
+//   recommendation_start    : 「今日どこ行く？」を開始した（diagnosis_startと同時発火）
+//   recommendation_complete  : 「今日どこ行く？」の結果表示が完了した（diagnosis_result_viewと同時発火）
+//   facility_view         : 施設詳細を開いた（view_facilityと同時発火）
+//   favorite_add          : 「行きたい」に追加した（お気に入り解除時は発火しない）
+//   visited_add           : 「行った」記録を追加した
+//   plan_create           : プランに施設を追加した（plan_addと同時発火）
+//   share_click           : 共有・リンクコピーのボタンを押した（結果を待たずクリック時点で発火）
+//   map_click            : 「📍 地図・ナビ」を開いた
+//   route_click           : 「🚃 電車で行く」のルート検索を開始した
+//   hotel_link_click        : ホテル・予約サイト等の外部リンクをクリックした（hotel_booking_clickと同時発火）
 // ==================================================================
 window.dataLayer = window.dataLayer || [];
 function trackEvent(eventName, params){
@@ -10181,8 +10301,15 @@ function trackView(name){
       prefecture: spot.region,
       category: category
     });
+    // 🆕 再訪分析用：既存のview_facilityとは別名で追加発火（二重集計にはならない）
+    trackEvent("facility_view", {
+      facility_name: name,
+      region: spot.region,
+      category: category
+    });
   } else {
     trackEvent("view_facility", {facility_name: name});
+    trackEvent("facility_view", {facility_name: name});
   }
 }
 function trackFilterUse(filterType, filterValue){
@@ -10304,6 +10431,13 @@ function addVisit(facilityName, dateIso, memo){
   state.visited.add(facilityName);
   removeFromAllPlans(facilityName); // 行ったとして記録した施設は、どのプランタブに入っていても自動的に外す（記録済み=もう予定ではないため）
   savePersisted();
+  // 🆕 再訪分析用：詳細画面の「行った」記録・プランの一括記録のどちらもここを通るため、1箇所で発火すれば二重送信にならない
+  const visitedSpot = SPOTS.find(sp=>sp.name===facilityName);
+  trackEvent("visited_add", {
+    facility_name: facilityName,
+    category: visitedSpot ? deriveCategory(visitedSpot) : undefined,
+    region: visitedSpot ? visitedSpot.region : undefined
+  });
 }
 // 指定した施設を、プランA/B/Cのどのタブに入っていても全て削除する（既存のremoveFromPlanは現在のタブしか見ないため、こちらは別関数として用意）
 function removeFromAllPlans(name){
@@ -11439,13 +11573,19 @@ function renderHowToSheet(){
       <p>画面上部の絞り込みから、地域・子どもの年齢・天気・ジャンルなどで検索できます。ハンバーガーメニュー（☰）からも「地域から探す」「目的から探す」「季節から探す」で直接絞り込めます。</p>
 
       <h4>② どこにするか迷ったら</h4>
-      <p>「🎯 迷ったら『今日どこ行く？』」で3問答えるだけで、今日おすすめのお出かけ先をBEST5で提案します。決めきれないときにお使いください。</p>
+      <p>「🎯 迷ったら『今日どこ行く？』」は、気分を3問答えるだけで、今日のイチオシのお出かけ先を提案します。天気・お子さんの年齢・移動時間・季節・営業日などはアプリが自動で判断するので、条件を選ぶ必要はありません。自分で条件を決めて探したいときは、通常の検索・絞り込みをお使いください。</p>
 
       <h4>③ 気になる場所を保存</h4>
       <p>施設詳細画面の「❤️ 行きたい」でお気に入りに保存、「🗓 プランに追加」で当日の予定としてまとめられます。「⚖️ 比較する」で複数施設を並べて見比べることもできます。</p>
 
+      <h4>③-2 行く日が決まったら「予定」にする</h4>
+      <p>プラン画面（🗓 プラン）で日付を選んで「📅 この日に行く予定にする」を押すと、まだ行っていなくてもその日をカレンダー（📅 記録）に「📌 予定」として残せます。予定を入れても記録にはならないので、日程だけ先に決めておきたい時に使えます。予定はカレンダー画面からいつでも解除できます。</p>
+
       <h4>④ 行った記録を残す</h4>
-      <p>実際にお出かけした日は、施設詳細画面の「📅 この日に行ったとして記録」で記録できます。記録はカレンダー（📅 記録）からいつでも振り返れます。もう一度押すと記録を取り消せます。</p>
+      <p>実際にお出かけした日は、施設詳細画面の「📅 この日に行ったとして記録」、またはプラン画面の「✅ このプランに行った」で記録できます。予定を入れていた場合はその日付が初期値として入ります。記録はカレンダー（📅 記録）からいつでも振り返れます。もう一度押すと記録を取り消せます。</p>
+
+      <h4>❤️ 行きたい・📌 予定・✅ 行った の違い</h4>
+      <p>❤️ 行きたいは「いつか行きたい候補」、🗓 プランに日付を入れた📌 予定は「行く日が決まっている今後の予定」、✅ 行った記録は「過去に訪れた実績」です。予定を実際に行った日として記録すると、自動的に「行った」に変わり、プランからは外れます。</p>
 
       <h4>⑤ 家族や友だちに共有</h4>
       <p>「🖼️ 画像で共有」で施設情報を画像として、「🔗 リンクをコピー」でページのURLをコピーして共有できます。</p>
@@ -11601,6 +11741,13 @@ function addToPlanTab(name, tabIndex){
   arr.push(name);
   savePersisted();
   trackEvent("plan_add", {facility_name:name, plan_tab:tabIndex+1, plan_count:arr.length});
+  // 🆕 再訪分析用：既存のplan_addとは別名で追加発火
+  const planSpot = SPOTS.find(sp=>sp.name===name);
+  trackEvent("plan_create", {
+    facility_name: name,
+    category: planSpot ? deriveCategory(planSpot) : undefined,
+    region: planSpot ? planSpot.region : undefined
+  });
 }
 function addToPlan(name){ addToPlanTab(name, state.activePlanTab); }
 // 🆕 「どのプランに追加しますか？」ミニポップアップ。A/B/Cを選んだらonDone(tabIndex)を呼ぶ。
@@ -11826,11 +11973,13 @@ function renderPlanSheet(){
     ${spots.length>0 ? `<button type="button" class="plan-share-btn" id="planShareBtn">🖼️ ${PLAN_TAB_LABELS[state.activePlanTab]}を画像で共有</button>
     <button type="button" class="plan-share-btn plan-share-btn-outline" id="planLinkBtn">🔗 プランのリンクをコピー</button>` : ""}
     ${spots.length>0 ? `
+    ${state.planDates[state.activePlanTab] ? `<div class="plan-schedule-badge">📅 予定日：${formatDateJP(state.planDates[state.activePlanTab])}<button type="button" id="planScheduleClearBtn" class="plan-schedule-clear">予定を解除</button></div>` : ""}
     <div class="plan-visit-row">
       <input type="date" id="planVisitDateInput" class="plan-date-input" value="${state.planDates[state.activePlanTab] || todayISODate()}">
+      <button type="button" class="plan-schedule-btn" id="planScheduleBtn">📅 この日に行く予定にする</button>
       <button type="button" class="plan-visit-btn" id="planVisitBtn">✅ このプランに行った</button>
     </div>
-    <div style="font-size:11.5px; color:var(--ink-soft); margin-top:4px;">※プランに入れているだけでは「行った」とは記録されません。実際に行った日を選んでボタンを押すと、プラン内の全施設が【記録】の履歴に保存され、このプランからは自動的に削除されます。</div>
+    <div style="font-size:11.5px; color:var(--ink-soft); margin-top:4px;">※「行く予定にする」は行く日をカレンダーに残すだけで、記録にはなりません。実際に行った後で「このプランに行った」を押すと、プラン内の全施設が【記録】の履歴に保存され、このプランからは自動的に削除されます。</div>
     ` : ""}
     <button class="detail-close-bottom" id="planCloseBtnBottom">戻る</button>
   `;
@@ -11882,18 +12031,44 @@ function renderPlanSheet(){
     };
   });
   const shareBtn = document.getElementById("planShareBtn");
-  if(shareBtn) shareBtn.onclick = ()=>sharePlan(spots);
+  if(shareBtn) shareBtn.onclick = ()=>{
+    trackEvent("share_click", {plan_count: spots.length, link_type:"plan_image"});
+    sharePlan(spots);
+  };
   const linkBtn = document.getElementById("planLinkBtn");
   if(linkBtn) linkBtn.onclick = ()=>{
+    trackEvent("share_click", {plan_count: spots.length, link_type:"plan_link"});
     const planUrl = window.location.origin + APP_BASE_PATH + "?plan=" + encodeURIComponent(spots.map(s=>s.name).join("|"));
     shareLinkOrCopy(planUrl, `${PLAN_TAB_LABELS[state.activePlanTab]}｜おでかけナビ`, `🚗 今日のおでかけプラン（${spots.length}カ所）`);
   };
+  const planScheduleBtn = document.getElementById("planScheduleBtn");
+  if(planScheduleBtn){
+    planScheduleBtn.onclick = ()=>{
+      const dateInput = document.getElementById("planVisitDateInput");
+      const dateIso = dateInput && dateInput.value ? dateInput.value : todayISODate();
+      // 🆕 記録には変換せず、予定日だけを保存する（カレンダーの「📌 予定」に表示される）
+      state.planDates[state.activePlanTab] = dateIso;
+      savePersisted();
+      render();
+      renderPlanSheet();
+    };
+  }
+  const planScheduleClearBtn = document.getElementById("planScheduleClearBtn");
+  if(planScheduleClearBtn){
+    planScheduleClearBtn.onclick = ()=>{
+      state.planDates[state.activePlanTab] = null;
+      savePersisted();
+      render();
+      renderPlanSheet();
+    };
+  }
   const planVisitBtn = document.getElementById("planVisitBtn");
   if(planVisitBtn){
     planVisitBtn.onclick = ()=>{
       const dateInput = document.getElementById("planVisitDateInput");
       const dateIso = dateInput && dateInput.value ? dateInput.value : todayISODate();
-      state.planDates[state.activePlanTab] = dateIso; // この日付をカレンダーの「予定」表示にも使う
+      // ※ここでplanDatesを設定する必要はない：addVisit内部のremoveFromAllPlans→clearPlanDateIfEmptyで
+      //   プランが空になった時点で自動的にクリアされるため（設定してもすぐ上書きされていた）
       spots.forEach(s=>addVisit(s.name, dateIso, ""));
       savePersisted();
       render();
@@ -11939,7 +12114,7 @@ function renderCalendarDayDetail(){
   const planLabels = [];
   state.planDates.forEach((pd,i)=>{
     if(pd===dateIso && state.plans[i] && state.plans[i].length>0){
-      planLabels.push({label:PLAN_TAB_LABELS[i], names:state.plans[i]});
+      planLabels.push({label:PLAN_TAB_LABELS[i], names:state.plans[i], tabIndex:i});
     }
   });
   let html = `<div class="calendar-day-detail"><div class="calendar-day-detail-title">${formatDateJP(dateIso)}</div>`;
@@ -11949,6 +12124,10 @@ function renderCalendarDayDetail(){
   planLabels.forEach(pl=>{
     html += `<div style="margin-bottom:6px;"><div class="calendar-plan-item">📌 予定：${pl.label}</div>`;
     pl.names.forEach(n=>{ html += `<div style="font-size:12.5px; padding-left:14px;">・${n}</div>`; });
+    html += `<div style="margin-top:4px;">
+      <button type="button" class="calendar-plan-open" data-open-plan="${pl.tabIndex}">🗓 プランを開く</button>
+      <button type="button" class="calendar-plan-tovisit" data-plan-to-visit="${pl.tabIndex}" data-plan-date="${dateIso}">✅ この日に行った記録にする</button>
+    </div>`;
     html += `</div>`;
   });
   if(dayVisits.length>0){
@@ -11982,6 +12161,29 @@ function renderCalendarDayDetail(){
         render();
         renderCalendarSheet();
       });
+    };
+  });
+  // 🆕 「予定」表示から直接操作できるボタン（プランを開く／この日に行った記録にする）
+  wrap.querySelectorAll("[data-open-plan]").forEach(btn=>{
+    btn.onclick = ()=>{
+      state.activePlanTab = Number(btn.dataset.openPlan);
+      closeSheetById("calendarOverlay");
+      renderPlanSheet();
+      openSheet("planOverlay");
+    };
+  });
+  wrap.querySelectorAll("[data-plan-to-visit]").forEach(btn=>{
+    btn.onclick = ()=>{
+      const tabIndex = Number(btn.dataset.planToVisit);
+      const dIso = btn.dataset.planDate;
+      const arr = state.plans[tabIndex];
+      if(!arr || arr.length===0) return;
+      // プラン内の全施設を「行った」記録に変換する（既存のプラン画面「この日に行ったとして記録」と同じ処理を再利用）
+      // ※addVisit内部で該当プランタブが自動的に空になり、実施予定日もclearPlanDateIfEmptyで自動的にクリアされる
+      [...arr].forEach(name=>addVisit(name, dIso, ""));
+      savePersisted();
+      render();
+      renderCalendarSheet();
     };
   });
 }
@@ -12551,6 +12753,7 @@ function weatherClass(spot){
 // ・bookingLinksは現時点でアフィリエイト提携が未確定のため空欄。
 //   ValueCommerce等の承認が取れ次第、URLを設定する想定。
 // ==================================================================
+// ▼▼▼ DATA-BLOCK BEGIN: FAMILY_HOTELS + HOTEL_AREA_META + HOTEL_PREF_ORDER 〔ホテルデータ｜区分A〜B〕 ▼▼▼
 const FAMILY_HOTELS = {
   yamanashi: [
     {
@@ -14331,8 +14534,10 @@ const FAMILY_HOTELS = {
       babyBed: "要確認",
       meals: "要確認",
       updatedAt: "2026-09-20",
-      booking: { jalan: "", yahooTravel: "", ikyu: "" },
-      bookingLinks: []
+      booking: { jalan: "", yahooTravel: "https://travel.yahoo.co.jp/00001056/", ikyu: "" },
+      bookingLinks: [
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00001056/", order: 1, type: "旅行予約サイト" }
+      ]
     },
     {
       name: "ホテルニューカマクラ",
@@ -14666,8 +14871,12 @@ const FAMILY_HOTELS = {
       babyBed: "要確認",
       meals: "創作和会席",
       updatedAt: "2026-09-20",
-      booking: { jalan: "", yahooTravel: "", ikyu: "" },
-      bookingLinks: []
+      booking: { jalan: "https://www.jalan.net/yad389236/", yahooTravel: "https://travel.yahoo.co.jp/00003364/", ikyu: "https://www.ikyu.com/00003364/" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad389236/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00003364/", order: 2, type: "旅行予約サイト" },
+        { siteName: "一休.com", url: "https://www.ikyu.com/00003364/", order: 3, type: "旅行予約サイト" }
+      ]
     }
   ],
   katsuura: [
@@ -14699,9 +14908,11 @@ const FAMILY_HOTELS = {
       babyBed: "要確認",
       meals: "夕朝食バイキング",
       updatedAt: "2026-09-20",
-      booking: { jalan: "", yahooTravel: "", ikyu: "" },
+      booking: { jalan: "https://www.jalan.net/yad320242/", yahooTravel: "https://travel.yahoo.co.jp/00901934/", ikyu: "" },
       bookingLinks: [
-        { siteName: "公式サイト", url: "https://hmihotelgroup.com/mikazukikatsuura/", order: 1, type: "公式予約" }
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad320242/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00901934/", order: 2, type: "旅行予約サイト" },
+        { siteName: "公式サイト", url: "https://hmihotelgroup.com/mikazukikatsuura/", order: 3, type: "公式予約" }
       ]
     },
     {
@@ -14767,9 +14978,11 @@ const FAMILY_HOTELS = {
       babyBed: "要確認",
       meals: "要確認",
       updatedAt: "2026-09-20",
-      booking: { jalan: "", yahooTravel: "", ikyu: "" },
+      booking: { jalan: "https://www.jalan.net/yad344192/", yahooTravel: "https://travel.yahoo.co.jp/00901937/", ikyu: "" },
       bookingLinks: [
-        { siteName: "公式サイト", url: "https://mikazuki.co.jp/", order: 1, type: "公式予約" }
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad344192/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00901937/", order: 2, type: "旅行予約サイト" },
+        { siteName: "公式サイト", url: "https://mikazuki.co.jp/", order: 3, type: "公式予約" }
       ]
     }
   ],
@@ -14802,8 +15015,11 @@ const FAMILY_HOTELS = {
       babyBed: "要確認",
       meals: "囲炉裏料理・里山懐石（個室食事処での部屋食プランあり）",
       updatedAt: "2026-09-20",
-      booking: { jalan: "", yahooTravel: "", ikyu: "" },
-      bookingLinks: []
+      booking: { jalan: "https://www.jalan.net/yad395606/", yahooTravel: "https://travel.yahoo.co.jp/00903045/", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad395606/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00903045/", order: 2, type: "旅行予約サイト" }
+      ]
     },
     {
       name: "和銅鉱泉 ゆの宿 和どう",
@@ -14833,8 +15049,10 @@ const FAMILY_HOTELS = {
       babyBed: "要確認",
       meals: "会席料理",
       updatedAt: "2026-09-20",
-      booking: { jalan: "", yahooTravel: "", ikyu: "" },
-      bookingLinks: []
+      booking: { jalan: "", yahooTravel: "https://travel.yahoo.co.jp/00001078/", ikyu: "" },
+      bookingLinks: [
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00001078/", order: 1, type: "旅行予約サイト" }
+      ]
     }
   ],
   hanno: [
@@ -14899,8 +15117,11 @@ const FAMILY_HOTELS = {
       babyBed: "要確認",
       meals: "要確認",
       updatedAt: "2026-09-20",
-      booking: { jalan: "", yahooTravel: "", ikyu: "" },
-      bookingLinks: []
+      booking: { jalan: "https://www.jalan.net/yad378130/", yahooTravel: "https://travel.yahoo.co.jp/00903685/", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad378130/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00903685/", order: 2, type: "旅行予約サイト" }
+      ]
     }
   ],
   tokyodisney: [
@@ -15009,11 +15230,635 @@ const FAMILY_HOTELS = {
         { siteName: "一休.com", url: "https://www.ikyu.com/00000837/", order: 3, type: "旅行予約サイト" }
       ]
     }
+  ],
+  haneda: [
+    {
+      name: "羽田エクセルホテル東急",
+      slug: "hotel/haneda/haneda-excel-hotel-tokyu",
+      targetArea: "羽田空港",
+      prefecture: "東京都",
+      city: "大田区",
+      address: "東京都大田区羽田空港3-4-2",
+      area: "羽田空港第2ターミナル直結",
+      officialUrl: "",
+      label: "空港直結・飛行機好きの子に",
+      tags: [],
+      features: ["✈️ 羽田空港第2ターミナル直結", "🛫 滑走路側の客室あり", "🍽️ 和洋ブッフェの朝食"],
+      note: "羽田空港第2ターミナル出発ロビーに直結。滑走路側の客室からは飛行機が見えるので、飛行機好きの子どもと前泊・後泊するのに向く。子連れ向けの設備・添い寝条件は公式サイトで確認を。",
+      priceRange: "要確認",
+      checkIn: "14:00",
+      checkOut: "11:00",
+      parking: "要確認",
+      onsen: false,
+      bath: "要確認",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "和洋ブッフェの朝食",
+      updatedAt: "2026-09-20",
+      booking: { jalan: "https://www.jalan.net/yad315972/", yahooTravel: "https://travel.yahoo.co.jp/00000894/", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad315972/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00000894/", order: 2, type: "旅行予約サイト" }
+      ]
+    },
+    {
+      name: "ヴィラフォンテーヌ グランド 羽田空港",
+      slug: "hotel/haneda/villa-fontaine-grand-haneda",
+      targetArea: "羽田空港",
+      prefecture: "東京都",
+      city: "大田区",
+      address: "東京都大田区羽田空港2-7-1",
+      area: "羽田空港第3ターミナル直結",
+      officialUrl: "",
+      label: "空港直結・展望温泉あり",
+      tags: [],
+      features: ["✈️ 羽田空港第3ターミナル直結", "♨️ 展望天然温泉「泉天空の湯」（0〜3歳は入館不可）", "🛏️ 1〜4名対応の客室あり", "🚗 駐車場あり（有料）"],
+      note: "羽田エアポートガーデン内のホテル。1〜4名まで泊まれる客室タイプがある。温泉施設は0〜3歳・おむつ着用のお子さまは入館できないため、小さな子連れは注意。",
+      priceRange: "要確認",
+      checkIn: "15:00",
+      checkOut: "11:00",
+      parking: "有料（1時間300円）",
+      onsen: true,
+      bath: "展望天然温泉「泉天空の湯 羽田空港」（宿泊プランにより別料金）",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "要確認",
+      updatedAt: "2026-09-20",
+      booking: { jalan: "https://www.jalan.net/yad381725/", yahooTravel: "", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad381725/", order: 1, type: "旅行予約サイト" }
+      ]
+    }
+  ],
+  shinagawa: [
+    {
+      name: "品川プリンスホテル",
+      slug: "hotel/shinagawa/shinagawa-prince-hotel",
+      targetArea: "品川・高輪",
+      prefecture: "東京都",
+      city: "港区",
+      address: "東京都港区高輪4-10-30",
+      area: "品川駅高輪口から徒歩約2分",
+      officialUrl: "",
+      label: "駅近・水族館などが同じ敷地内",
+      tags: [],
+      features: ["🚉 品川駅高輪口から徒歩約2分", "🐬 都市型水族館がアネックスタワーに併設", "🍽️ 和洋中・フードコートなど飲食店が多数"],
+      note: "品川駅すぐで、水族館などの施設が同じ敷地内にある大型ホテル。新幹線・羽田空港へのアクセスも良く、子連れの東京旅行の拠点にしやすい。キッズ向けの設備は公式サイトで確認を。",
+      priceRange: "要確認",
+      checkIn: "要確認",
+      checkOut: "要確認",
+      parking: "要確認",
+      onsen: false,
+      bath: "要確認",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "和洋中・フードコートなど",
+      updatedAt: "2026-09-20",
+      booking: { jalan: "https://www.jalan.net/yad340595/", yahooTravel: "https://travel.yahoo.co.jp/00000660/", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad340595/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00000660/", order: 2, type: "旅行予約サイト" }
+      ]
+    },
+    {
+      name: "グランドプリンスホテル新高輪",
+      slug: "hotel/shinagawa/grand-prince-hotel-new-takanawa",
+      targetArea: "品川・高輪",
+      prefecture: "東京都",
+      city: "港区",
+      address: "東京都港区高輪3-13-1",
+      area: "品川駅高輪口から徒歩約5分",
+      officialUrl: "",
+      label: "全室バルコニー・3〜4名1室あり",
+      tags: [],
+      features: ["🚉 品川駅高輪口から徒歩約5分", "🛏️ 3〜4名1室の客室あり", "🏯 日本庭園に隣接", "🚗 駐車場あり（有料）"],
+      note: "全室バルコニー付き。3〜4名で泊まれる客室があり、家族での利用ができる。敷地の日本庭園は散歩にも。子連れ向けの設備は公式サイトで確認を。",
+      priceRange: "要確認",
+      checkIn: "要確認",
+      checkOut: "要確認",
+      parking: "有料",
+      onsen: false,
+      bath: "要確認",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "要確認",
+      updatedAt: "2026-09-20",
+      booking: { jalan: "https://www.jalan.net/yad306800/", yahooTravel: "", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad306800/", order: 1, type: "旅行予約サイト" }
+      ]
+    }
+  ],
+  tokyostation: [
+    {
+      name: "ザ・ペニンシュラ東京",
+      slug: "hotel/tokyostation/the-peninsula-tokyo",
+      targetArea: "東京駅・有楽町",
+      prefecture: "東京都",
+      city: "千代田区",
+      address: "東京都千代田区有楽町1-8-1",
+      area: "日比谷駅・有楽町駅直結",
+      officialUrl: "",
+      label: "駅直結・屋内プールあり",
+      tags: [],
+      features: ["🚇 日比谷駅・有楽町駅直結", "🏊 屋内プール（宿泊者無料・年齢制限あり）", "🌳 皇居外苑・日比谷公園の向かい"],
+      note: "皇居外苑と日比谷公園の向かいにあるラグジュアリーホテル。宿泊者は屋内プールを利用できるが年齢制限があるため、子連れの場合は事前に公式サイトで確認を。",
+      priceRange: "要確認",
+      checkIn: "15:00",
+      checkOut: "12:00",
+      parking: "要確認",
+      onsen: false,
+      bath: "要確認",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "要確認",
+      updatedAt: "2026-09-20",
+      booking: { jalan: "", yahooTravel: "https://travel.yahoo.co.jp/00001279/", ikyu: "https://www.ikyu.com/00001279/" },
+      bookingLinks: [
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00001279/", order: 1, type: "旅行予約サイト" },
+        { siteName: "一休.com", url: "https://www.ikyu.com/00001279/", order: 2, type: "旅行予約サイト" }
+      ]
+    }
+  ],
+  ikebukuro: [
+    {
+      name: "サンシャインシティプリンスホテル",
+      slug: "hotel/ikebukuro/sunshine-city-prince-hotel",
+      targetArea: "池袋",
+      prefecture: "東京都",
+      city: "豊島区",
+      address: "東京都豊島区東池袋3-1-5",
+      area: "サンシャインシティ直結",
+      officialUrl: "",
+      label: "サンシャイン水族館が徒歩すぐ",
+      tags: ["子連れ歓迎"],
+      features: ["🐧 サンシャイン水族館が徒歩すぐ", "🏙️ サンシャインシティ直結", "🍽️ 朝食ビュッフェ・レストラン4か所"],
+      note: "サンシャインシティ直結で、サンシャイン水族館が歩いてすぐ。子どもと池袋で遊ぶ日の宿に便利。子連れ向けの詳細は公式サイトで確認を。",
+      priceRange: "要確認",
+      checkIn: "要確認",
+      checkOut: "要確認",
+      parking: "要確認",
+      onsen: false,
+      bath: "要確認",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "0〜3歳は朝食料金なしとの情報あり（第三者サイト情報・要確認）",
+      babyBed: "要確認",
+      meals: "朝食ビュッフェ",
+      updatedAt: "2026-09-20",
+      booking: { jalan: "https://www.jalan.net/yad371478/", yahooTravel: "https://travel.yahoo.co.jp/00000637/", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad371478/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00000637/", order: 2, type: "旅行予約サイト" }
+      ]
+    },
+    {
+      name: "ホテルメトロポリタン",
+      slug: "hotel/ikebukuro/hotel-metropolitan",
+      targetArea: "池袋",
+      prefecture: "東京都",
+      city: "豊島区",
+      address: "東京都豊島区西池袋1-6-1",
+      area: "池袋駅西口から徒歩3分",
+      officialUrl: "",
+      label: "駅近・池袋の定番ホテル",
+      tags: [],
+      features: ["🚉 池袋駅西口から徒歩3分", "🍽️ 館内レストラン・朝食あり", "🚗 駐車場あり（有料・160台）"],
+      note: "池袋駅西口から徒歩3分の駅近ホテル。子連れ向けの設備・添い寝条件は公式サイトで確認を。",
+      priceRange: "要確認",
+      checkIn: "15:00",
+      checkOut: "12:00",
+      parking: "有料（160台・予約不可）",
+      onsen: false,
+      bath: "要確認",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "要確認",
+      updatedAt: "2026-09-20",
+      booking: { jalan: "https://www.jalan.net/yad306290/", yahooTravel: "", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad306290/", order: 1, type: "旅行予約サイト" }
+      ]
+    }
+  ],
+  shinjuku: [
+    {
+      name: "ヒルトン東京",
+      slug: "hotel/shinjuku/hilton-tokyo",
+      targetArea: "新宿",
+      prefecture: "東京都",
+      city: "新宿区",
+      address: "東京都新宿区西新宿6-6-2",
+      area: "西新宿・新宿駅西口から無料シャトルバス",
+      officialUrl: "",
+      label: "添い寝無料・屋内プールあり",
+      tags: ["子連れ歓迎"],
+      features: ["🛏️ 小学生以下は添い寝無料（1ベッド1名まで）", "🍽️ 6歳未満は朝食無料（大人同伴時）", "🏊 屋内プール（要予約・おむつ未卒業は不可）", "🚌 新宿駅西口から無料シャトルバス"],
+      note: "小学生以下の添い寝や6歳未満の朝食が無料になる子連れ向けの条件がある。プールは予約制で、おむつが取れていない子は利用不可。条件は変わることがあるため予約前に公式サイトで確認を。",
+      priceRange: "要確認",
+      checkIn: "要確認",
+      checkOut: "要確認",
+      parking: "有料（宿泊1泊1,500円・要確認）",
+      onsen: false,
+      bath: "屋内プール・サウナ（要予約）",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "小学生以下は1ベッドにつき1名まで無料（要確認）",
+      kidsMeal: "6歳未満は朝食無料（大人同伴時・要確認）",
+      babyBed: "要確認",
+      meals: "レストラン多数",
+      updatedAt: "2026-09-20",
+      booking: { jalan: "https://www.jalan.net/yad375177/", yahooTravel: "", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad375177/", order: 1, type: "旅行予約サイト" }
+      ]
+    },
+    {
+      name: "京王プラザホテル",
+      slug: "hotel/shinjuku/keio-plaza-hotel",
+      targetArea: "新宿",
+      prefecture: "東京都",
+      city: "新宿区",
+      address: "東京都新宿区西新宿2-2-1",
+      area: "新宿駅西口から徒歩5分",
+      officialUrl: "",
+      label: "高層階から眺める新宿の景色",
+      tags: [],
+      features: ["🚉 新宿駅西口から徒歩5分・都庁前駅B1出口すぐ", "🍽️ 15のレストラン・バー", "🌇 最上階エリア「SKY PLAZA IBASHO」", "🚗 駐車場あり（有料）"],
+      note: "新宿駅西口から徒歩5分の高層ホテル。客室数が多くレストランも豊富。子連れ向けの設備・添い寝条件は公式サイトで確認を。",
+      priceRange: "要確認",
+      checkIn: "要確認",
+      checkOut: "要確認",
+      parking: "有料",
+      onsen: false,
+      bath: "要確認",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "要確認",
+      updatedAt: "2026-09-20",
+      booking: { jalan: "https://www.jalan.net/yad332943/", yahooTravel: "", ikyu: "https://www.ikyu.com/00000187/" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad332943/", order: 1, type: "旅行予約サイト" },
+        { siteName: "一休.com", url: "https://www.ikyu.com/00000187/", order: 2, type: "旅行予約サイト" }
+      ]
+    }
+  ],
+  shibuya: [
+    {
+      name: "渋谷エクセルホテル東急",
+      slug: "hotel/shibuya/shibuya-excel-hotel-tokyu",
+      targetArea: "渋谷",
+      prefecture: "東京都",
+      city: "渋谷区",
+      address: "東京都渋谷区道玄坂1-12-2",
+      area: "渋谷駅直結（渋谷マークシティ内）",
+      officialUrl: "",
+      label: "渋谷駅直結・移動がラク",
+      tags: [],
+      features: ["🚉 渋谷駅直結（渋谷マークシティ内）", "🍽️ 朝食会場は高層階", "🚗 駐車場あり（有料）"],
+      note: "渋谷駅直結で、雨の日や荷物の多い子連れ移動がラク。子連れ向けの設備・添い寝条件は公式サイトで確認を。",
+      priceRange: "要確認",
+      checkIn: "要確認",
+      checkOut: "要確認",
+      parking: "有料",
+      onsen: false,
+      bath: "要確認",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "要確認",
+      updatedAt: "2026-09-20",
+      booking: { jalan: "https://www.jalan.net/yad369102/", yahooTravel: "https://travel.yahoo.co.jp/00000295/", ikyu: "https://www.ikyu.com/00000295/" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad369102/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00000295/", order: 2, type: "旅行予約サイト" },
+        { siteName: "一休.com", url: "https://www.ikyu.com/00000295/", order: 3, type: "旅行予約サイト" }
+      ]
+    }
+  ],
+  yokohama: [
+    {
+      name: "ヨコハマ グランド インターコンチネンタル ホテル",
+      slug: "hotel/yokohama/intercontinental-yokohama-grand",
+      targetArea: "横浜・みなとみらい",
+      prefecture: "神奈川県",
+      city: "横浜市西区",
+      address: "神奈川県横浜市西区みなとみらい1-1-1",
+      area: "みなとみらい駅から徒歩約5分",
+      officialUrl: "",
+      label: "みなとみらい・横浜港を望むホテル",
+      tags: [],
+      features: ["🚉 みなとみらい駅から徒歩約5分", "🌊 横浜港を望むハーバービューの客室", "🏊 屋内プールあり（利用条件は要確認）", "🍽️ 和洋食ブッフェの朝食"],
+      note: "みなとみらいの海沿いに建つホテル。観覧車や港の景色を楽しめる。子連れ向けの設備・添い寝条件は公式サイトで確認を。",
+      priceRange: "要確認",
+      checkIn: "要確認",
+      checkOut: "要確認",
+      parking: "要確認",
+      onsen: false,
+      bath: "要確認",
+      kidsSpace: "要確認",
+      kidsAmenities: "お子さま用備品の用意あり（クチコミ返信より・詳細は要確認）",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "和洋食ブッフェ",
+      updatedAt: "2026-09-20",
+      booking: { jalan: "https://www.jalan.net/yad337752/", yahooTravel: "", ikyu: "https://www.ikyu.com/00000031/" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad337752/", order: 1, type: "旅行予約サイト" },
+        { siteName: "一休.com", url: "https://www.ikyu.com/00000031/", order: 2, type: "旅行予約サイト" }
+      ]
+    },
+    {
+      name: "横浜ベイホテル東急",
+      slug: "hotel/yokohama/yokohama-bay-hotel-tokyu",
+      targetArea: "横浜・みなとみらい",
+      prefecture: "神奈川県",
+      city: "横浜市西区",
+      address: "神奈川県横浜市西区みなとみらい2-3-7",
+      area: "みなとみらい駅直結（クイーンズスクエア横浜内）",
+      officialUrl: "",
+      label: "駅直結・大観覧車が見える客室",
+      tags: [],
+      features: ["🚉 みなとみらい駅直結", "🎡 大観覧車コスモクロック21が見える客室あり", "🏊 4階にプールエリア（利用条件は要確認）", "🍽️ 朝食ブッフェ"],
+      note: "みなとみらい駅直結で、バルコニー付きの客室から観覧車を眺められる。雨の日も移動しやすい。子連れ向けの設備・添い寝条件は公式サイトで確認を。",
+      priceRange: "要確認",
+      checkIn: "要確認",
+      checkOut: "要確認",
+      parking: "有料（宿泊者向け料金あり・要確認）",
+      onsen: false,
+      bath: "要確認",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "朝食ブッフェ",
+      updatedAt: "2026-09-20",
+      booking: { jalan: "https://www.jalan.net/yad336041/", yahooTravel: "https://travel.yahoo.co.jp/00000070/", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad336041/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00000070/", order: 2, type: "旅行予約サイト" }
+      ]
+    }
+  ],
+  kawasaki: [
+    {
+      name: "川崎日航ホテル",
+      slug: "hotel/kawasaki/hotel-nikko-kawasaki",
+      targetArea: "川崎",
+      prefecture: "神奈川県",
+      city: "川崎市川崎区",
+      address: "神奈川県川崎市川崎区日進町1-53",
+      area: "JR川崎駅中央東口から徒歩1分",
+      officialUrl: "",
+      label: "駅近・添い寝無料プランあり",
+      tags: ["子連れ歓迎"],
+      features: ["🚉 JR川崎駅中央東口から徒歩1分（アゼリア地下街直結）", "🛏️ 1室3名・添い寝無料のプランあり", "🍽️ 朝食ブッフェ", "✈️ 羽田空港から約15分"],
+      note: "川崎駅から近く、雨の日も地下街経由で移動しやすい。家族向けに1室3名・添い寝のお子さま無料のプランがある。プラン条件は予約前に確認を。",
+      priceRange: "要確認",
+      checkIn: "要確認",
+      checkOut: "要確認",
+      parking: "要確認",
+      onsen: false,
+      bath: "要確認",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "添い寝のお子さま無料のプランあり（プラン条件は要確認）",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "朝食ブッフェ",
+      updatedAt: "2026-09-20",
+      booking: { jalan: "https://www.jalan.net/yad322153/", yahooTravel: "https://travel.yahoo.co.jp/00001235/", ikyu: "https://www.ikyu.com/00001235/" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad322153/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00001235/", order: 2, type: "旅行予約サイト" },
+        { siteName: "一休.com", url: "https://www.ikyu.com/00001235/", order: 3, type: "旅行予約サイト" }
+      ]
+    }
+  ],
+  omiya: [
+    {
+      name: "パレスホテル大宮",
+      slug: "hotel/omiya/palace-hotel-omiya",
+      targetArea: "大宮",
+      prefecture: "埼玉県",
+      city: "さいたま市大宮区",
+      address: "埼玉県さいたま市大宮区桜木町1-7-5",
+      area: "大宮駅西口から徒歩3分",
+      officialUrl: "",
+      label: "駅近・鉄道博物館へ行く日に",
+      tags: [],
+      features: ["🚉 大宮駅西口から徒歩3分", "🚂 近郊に鉄道博物館・盆栽美術館（ホテル案内より）", "🍽️ 埼玉県産食材の朝食ブッフェ"],
+      note: "6つの新幹線が乗り入れる大宮駅から徒歩3分。鉄道博物館など大宮周辺のおでかけの拠点にしやすい。子連れ向けの設備・添い寝条件は公式サイトで確認を。",
+      priceRange: "要確認",
+      checkIn: "要確認",
+      checkOut: "要確認",
+      parking: "要確認",
+      onsen: false,
+      bath: "要確認",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "朝食ブッフェ",
+      updatedAt: "2026-09-20",
+      booking: { jalan: "https://www.jalan.net/yad319907/", yahooTravel: "https://travel.yahoo.co.jp/00000629/", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad319907/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00000629/", order: 2, type: "旅行予約サイト" }
+      ]
+    }
+  ],
+  urawa: [
+    {
+      name: "ロイヤルパインズホテル浦和",
+      slug: "hotel/urawa/royal-pines-hotel-urawa",
+      targetArea: "浦和",
+      prefecture: "埼玉県",
+      city: "さいたま市浦和区",
+      address: "埼玉県さいたま市浦和区仲町2-5-1",
+      area: "JR浦和駅から徒歩約7分",
+      officialUrl: "",
+      label: "レストランが充実した浦和のホテル",
+      tags: [],
+      features: ["🚉 JR浦和駅から徒歩約7分", "🍽️ 朝食ビュッフェ・館内レストラン多数", "🏟️ さいたまスーパーアリーナまで最短1駅"],
+      note: "浦和駅から歩いて行けるシティホテル。館内に中国料理・日本料理などのレストランがそろう。子連れ向けの設備・添い寝条件は公式サイトで確認を。",
+      priceRange: "要確認",
+      checkIn: "要確認",
+      checkOut: "要確認",
+      parking: "要確認",
+      onsen: false,
+      bath: "要確認",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "朝食ビュッフェ",
+      updatedAt: "2026-09-20",
+      booking: { jalan: "https://www.jalan.net/yad330988/", yahooTravel: "https://travel.yahoo.co.jp/00000385/", ikyu: "https://www.ikyu.com/00000385/" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad330988/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00000385/", order: 2, type: "旅行予約サイト" },
+        { siteName: "一休.com", url: "https://www.ikyu.com/00000385/", order: 3, type: "旅行予約サイト" }
+      ]
+    }
+  ],
+  narita: [
+    {
+      name: "ヒルトン成田",
+      slug: "hotel/narita/hilton-narita",
+      targetArea: "成田空港周辺",
+      prefecture: "千葉県",
+      city: "成田市",
+      address: "千葉県成田市取香456",
+      area: "成田空港・JR成田駅から無料シャトルバス",
+      officialUrl: "",
+      label: "空港送迎バスあり・緑豊かな広い敷地",
+      tags: [],
+      features: ["🚌 成田空港駅・空港第2ビル駅・JR成田駅から無料シャトルバス", "🌳 緑豊かな約1万坪の敷地", "🚗 室内駐車場あり"],
+      note: "成田空港から無料シャトルバスで移動できるリゾート型ホテル。前泊・後泊の家族旅行に向く。子連れ向けの設備・添い寝条件は公式サイトで確認を。",
+      priceRange: "要確認",
+      checkIn: "要確認",
+      checkOut: "要確認",
+      parking: "あり（室内駐車場・料金は要確認）",
+      onsen: false,
+      bath: "要確認",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "要確認",
+      updatedAt: "2026-09-20",
+      booking: { jalan: "https://www.jalan.net/yad376077/", yahooTravel: "", ikyu: "https://www.ikyu.com/00000442/" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad376077/", order: 1, type: "旅行予約サイト" },
+        { siteName: "一休.com", url: "https://www.ikyu.com/00000442/", order: 2, type: "旅行予約サイト" }
+      ]
+    }
+  ],
+  chiba: [
+    {
+      name: "ホテルニューオータニ幕張",
+      slug: "hotel/chiba/hotel-new-otani-makuhari",
+      targetArea: "千葉・幕張",
+      prefecture: "千葉県",
+      city: "千葉市美浜区",
+      address: "千葉県千葉市美浜区ひび野2-120-3",
+      area: "海浜幕張駅から徒歩約5分",
+      officialUrl: "",
+      label: "ディズニー直通シャトルあり（要予約）",
+      tags: [],
+      features: ["🚌 ディズニーリゾート直通の無料シャトル（宿泊者限定・事前予約制）", "🛍️ 三井アウトレットパーク幕張まで徒歩4分", "🏊 夏季限定のアウトドアプール", "🚉 海浜幕張駅から徒歩約5分"],
+      note: "ディズニーリゾートへの無料シャトルバス（宿泊者限定・事前予約制）がある。運行日・予約方法は公式サイトで確認を。子連れ向けの設備・添い寝条件も公式サイトで確認を。",
+      priceRange: "要確認",
+      checkIn: "15:00",
+      checkOut: "12:00",
+      parking: "要確認",
+      onsen: false,
+      bath: "要確認",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "要確認",
+      updatedAt: "2026-09-20",
+      booking: { jalan: "https://www.jalan.net/yad357162/", yahooTravel: "https://travel.yahoo.co.jp/00000201/", ikyu: "https://www.ikyu.com/00000201/" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad357162/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00000201/", order: 2, type: "旅行予約サイト" },
+        { siteName: "一休.com", url: "https://www.ikyu.com/00000201/", order: 3, type: "旅行予約サイト" }
+      ]
+    }
   ]
 };
+
+// ---- ホテルのエリア表示名・都道府県順（FAMILY_HOTELS のエリアキーに対応する表示用マスター。純粋なデータ）----
+const HOTEL_AREA_META = {
+  hakone:{label:"箱根", pref:"神奈川県"},
+  yugawara:{label:"湯河原", pref:"神奈川県"},
+  odawara:{label:"小田原", pref:"神奈川県"},
+  kamakura:{label:"鎌倉", pref:"神奈川県"},
+  shonan:{label:"湘南・江の島", pref:"神奈川県"},
+  boso:{label:"南房総・鴨川", pref:"千葉県"},
+  katsuura:{label:"勝浦", pref:"千葉県"},
+  kisarazu:{label:"木更津", pref:"千葉県"},
+  tokyodisney:{label:"ディズニー周辺", pref:"千葉県"},
+  chichibu:{label:"秩父", pref:"埼玉県"},
+  hanno:{label:"飯能", pref:"埼玉県"},
+  oarai:{label:"大洗", pref:"茨城県"},
+  nasu:{label:"那須", pref:"栃木県"},
+  nikko:{label:"日光・鬼怒川", pref:"栃木県"},
+  minakami:{label:"みなかみ", pref:"群馬県"},
+  kusatsu:{label:"草津", pref:"群馬県"},
+  ikaho:{label:"伊香保", pref:"群馬県"},
+  yamanashi:{label:"山中湖・大石周辺", pref:"山梨県"},
+  kawaguchiko:{label:"河口湖", pref:"山梨県"},
+  isawa:{label:"石和温泉", pref:"山梨県"},
+  kiyosato:{label:"清里・八ヶ岳", pref:"山梨県"},
+  izu:{label:"伊豆", pref:"静岡県"},
+  atami:{label:"熱海", pref:"静岡県"},
+  gotemba:{label:"御殿場", pref:"静岡県"},
+  karuizawa:{label:"軽井沢", pref:"長野県"},
+  tateshina:{label:"蓼科", pref:"長野県"},
+  hakuba:{label:"白馬", pref:"長野県"},
+  kurohime:{label:"黒姫", pref:"長野県"},
+  iwaki:{label:"いわき", pref:"福島県"},
+  haneda:{label:"羽田空港周辺", pref:"東京都"},
+  shinagawa:{label:"品川・高輪", pref:"東京都"},
+  tokyostation:{label:"東京駅・有楽町", pref:"東京都"},
+  ikebukuro:{label:"池袋", pref:"東京都"},
+  shinjuku:{label:"新宿", pref:"東京都"},
+  shibuya:{label:"渋谷", pref:"東京都"},
+  yokohama:{label:"横浜・みなとみらい", pref:"神奈川県"},
+  kawasaki:{label:"川崎", pref:"神奈川県"},
+  omiya:{label:"大宮", pref:"埼玉県"},
+  urawa:{label:"浦和", pref:"埼玉県"},
+  narita:{label:"成田空港周辺", pref:"千葉県"},
+  chiba:{label:"千葉・幕張", pref:"千葉県"}
+};
+const HOTEL_PREF_ORDER = ["東京都","神奈川県","千葉県","埼玉県","茨城県","栃木県","群馬県","山梨県","静岡県","長野県","福島県"];
+// ▲▲▲ DATA-BLOCK END: FAMILY_HOTELS ▲▲▲
+// 旅行予約サイト（じゃらん／Yahoo!トラベル／一休.com など）へのリンクを1つも持たないホテルは、
+// 収益導線がないため全画面（詳細・地域ページ・ホテルを探す）で非表示にする。
+// データは削除せず残してあり、bookingLinks / booking にURLを入れれば自動で再表示される。
+// （公式サイトのみのリンクは対象外。TDZを避けるため他のconstには依存しない）
+function hotelHasOtaLink(h){
+  const b = h.booking || {};
+  if(b.jalan || b.yahooTravel || b.ikyu) return true;
+  return (h.bookingLinks || []).some(l=>l && l.url && l.siteName !== "公式サイト");
+}
 function getFamilyHotels(spot){
   if(!spot.overnightRecommended || !spot.hotelArea) return [];
-  return (FAMILY_HOTELS[spot.hotelArea] || []).slice(0, 3);
+  return (FAMILY_HOTELS[spot.hotelArea] || []).filter(hotelHasOtaLink).slice(0, 3);
 }
 // ------------------------------------------------------------------
 // 🗾 STEP2：地域ページへのホテル紐付け（施設と同じ都道府県／市区町村キーを再利用）
@@ -15029,6 +15874,7 @@ const CITY_HOTELS = new Map();
 (function buildRegionHotelHub(){
   Object.keys(FAMILY_HOTELS).forEach(function(areaKey){
     FAMILY_HOTELS[areaKey].forEach(function(hotel){
+      if(!hotelHasOtaLink(hotel)) return; // 予約リンクなしは表示しない
       const pref = hotel.prefecture;
       const city = hotel.city;
       if(!pref || pref==="要確認") return;
@@ -15152,92 +15998,91 @@ function deriveStayTimeLabel(spot){
 }
 
 // ==================================================================
-// 🎯「今日どこ行く？」診断機能：スコアリングロジック
+// 🎯「今日どこ行く？」おまかせ診断：スコアリングロジック
 // ------------------------------------------------------------------
-// ・新しいAPIやAI推薦は使わず、既存のderive系関数・天気取得処理・
-//   距離計算・お気に入り/訪問済み等の既存データだけでスコアを算出する。
-// ・配点は目安（合計100点）。固定しすぎず、調整しやすいよう
-//   1つの定数オブジェクト（DIAGNOSIS_WEIGHTS）にまとめている。
-// ・「営業日・営業時間」は現在のSPOTSデータに休業日・時間の項目が
-//   存在しないため、根拠のない推測で加点・減点はしていない。
+// 【役割分担】
+//  ・通常検索        ＝「自分で条件を決めて探す」
+//  ・今日どこ行く？  ＝「3問（気分・希望）だけ答えて、あとはアプリが今日のイチオシを決める」
+//
+// 【3問で聞くこと（ユーザーの気分・希望だけ）】
+//  Q1 mood     ：遊び方・気分（しっかり／のんびり／見て楽しむ／体験）
+//  Q2 scale    ：お出かけ規模（近場でサクッと／半日／1日）
+//  Q3 priority ：優先したいこと（子ども／家族みんな／お金をかけない／特別感）
+//  ※「公園」「動物園」などカテゴリーは選ばせない。ジャンルは「気分との相性」として
+//    アプリ側で横断的に比較し、選ばれていないジャンルも含めて今日の1位を決める。
+//
+// 【質問せず自動で判定すること】
+//  天気・気温・雨への強さ（既存の fetchWeatherForSpot / ensureTodayWeatherKind を利用）／
+//  子どもの年齢（トップで選択中の state.ages）／出発地からの移動時間／季節／曜日・祝日・現在時刻／
+//  営業日・営業時間／料金／滞在時間／行った履歴／行きたい登録／検索中のエリア
+//
+// 【ロジックの考え方】
+//  ・距離は重要だが配点を小さくし、「近い＝必ず1位」にならないよう今日の条件への適合度を優先する。
+//  ・同じ施設・同じジャンルに偏らないよう、直近の推薦履歴・ジャンル重複・小さな揺らぎで分散させる。
+//  ・営業日でない／すでに閉まっている施設は、他に十分な候補があれば候補から外す。
+//  ・営業時間などデータのない項目は推測で加点・減点せず、「不明」として中立に扱う。
 // ==================================================================
-const DIAGNOSIS_WEIGHTS = { weather:25, age:18, q1:20, q2:7, q3:5, distance:25 };
+
+// 通常検索の「おすすめ順」用の配点（「今日どこ行く？」とは別管理。ここを変えても診断には影響しない）
+const GENERAL_RECOMMEND_WEIGHTS = { weather:25, age:18, distance:25 };
+// 「今日どこ行く？」用の配点。3問＝mood / scale / priority、それ以外は自動判定。
+// （季節・行きたい・行った履歴・営業時間などは、この配点の外側で加減点する）
+const DIAGNOSIS_WEIGHTS = { mood:22, scale:16, priority:16, weather:18, age:12, distance:10 };
+const DIAG_JITTER = 5; // 同点付近の候補が毎回同じ並びにならないための小さな揺らぎ（点）
 const DEFAULT_ORIGIN = { lat:35.681236, lng:139.767125 }; // 出発地未設定時の目安（東京駅付近）
 
-// 今日の天気種別（'rain'|'sunny'|null）を取得してキャッシュする。
+// 今日の天気（'rain'|'sunny'|null）を取得してキャッシュする。
 // 出発地（state.homeLoc）が変わったら再取得できるよう、呼び出し側でキャッシュを破棄する。
 let todayWeatherKindCache = undefined; // undefined=未取得 / null=取得失敗 / 'rain' or 'sunny'
+let todayWeatherInfoCache = null;      // 「今日どこ行く？」用の詳細（天気の名称・気温・降水確率）
+// 天気予報1日分（parseWeatherResponseの1要素）→ 診断で使う形に変換する
+function weatherInfoFromDay(d){
+  if(!d) return null;
+  const isRainy = (d.pop!=null && d.pop>=50) || /雨|雪|雷/.test(d.cond||"");
+  return { kind: isRainy ? "rain" : "sunny", cond: d.cond||"", icon: d.icon||"", tempMax: d.tempMax, tempMin: d.tempMin, pop: d.pop };
+}
 async function ensureTodayWeatherKind(){
   if(todayWeatherKindCache !== undefined) return todayWeatherKindCache;
   const origin = state.homeLoc || DEFAULT_ORIGIN;
   const days = await fetchWeatherForSpot(origin); // 既存の天気取得処理をそのまま再利用
-  if(!days || !days[0]){ todayWeatherKindCache = null; return null; }
-  const d = days[0];
-  const isRainy = (d.pop!=null && d.pop>=50) || /雨|雪|雷/.test(d.cond||"");
-  todayWeatherKindCache = isRainy ? "rain" : "sunny";
+  if(!days || !days[0]){ todayWeatherKindCache = null; todayWeatherInfoCache = null; return null; }
+  todayWeatherInfoCache = weatherInfoFromDay(days[0]);
+  todayWeatherKindCache = todayWeatherInfoCache.kind;
   return todayWeatherKindCache;
 }
-function resetTodayWeatherKindCache(){ todayWeatherKindCache = undefined; }
+function resetTodayWeatherKindCache(){ todayWeatherKindCache = undefined; todayWeatherInfoCache = null; }
 
-// ① 天候との相性（25点）：雨だから屋外を除外、晴れだから屋内を除外、という
-//   単純な処理はせず、既存の雨への強さ（deriveRainLevel）に応じて加点幅を変える。
+// ------------------------------------------------------------------
+// 通常検索「おすすめ順」用の軽量スコア（3問の回答は使わない。従来から仕様変更なし）
+// ------------------------------------------------------------------
+// 天候との相性：雨だから屋外を除外、晴れだから屋内を除外、という単純な処理はせず、
+// 既存の雨への強さ（deriveRainLevel）に応じて加点幅を変える。
 function weatherCompatScore(spot, weatherKind){
-  if(!weatherKind || weatherKind==="any") return DIAGNOSIS_WEIGHTS.weather; // どちらでもOK・未回答は天気で差をつけない
+  if(!weatherKind || weatherKind==="any") return GENERAL_RECOMMEND_WEIGHTS.weather; // 未取得は天気で差をつけない
   const rainLv = deriveRainLevel(spot); // 1〜4（4=雨の日でもOKと明記）
   if(weatherKind==="rain"){
-    if(rainLv===4) return DIAGNOSIS_WEIGHTS.weather;
-    if(rainLv===3) return Math.round(DIAGNOSIS_WEIGHTS.weather*0.6);
-    if(rainLv===2) return Math.round(DIAGNOSIS_WEIGHTS.weather*0.25);
+    if(rainLv===4) return GENERAL_RECOMMEND_WEIGHTS.weather;
+    if(rainLv===3) return Math.round(GENERAL_RECOMMEND_WEIGHTS.weather*0.6);
+    if(rainLv===2) return Math.round(GENERAL_RECOMMEND_WEIGHTS.weather*0.25);
     return 0; // 雨に弱い屋外施設
   }
   // 晴れの日：屋外系ジャンルに加点。屋内施設は0にはせず相対的に低くする。
   const genre = deriveCategory(spot);
   const outdoorish = ["公園","動物園","牧場"].includes(genre);
-  return outdoorish ? DIAGNOSIS_WEIGHTS.weather*0.9 : DIAGNOSIS_WEIGHTS.weather*0.45;
+  return outdoorish ? GENERAL_RECOMMEND_WEIGHTS.weather*0.9 : GENERAL_RECOMMEND_WEIGHTS.weather*0.45;
 }
-
-// ② 子どもの年齢との相性（20点）：state.ages（詳しく絞り込むで選択中の年齢）を
-//   「今日連れて行く子どもの年齢」として再利用する。未設定なら中間点にする。
+// 子どもの年齢との相性：state.ages（トップで選択中の年齢）を再利用。未設定なら中間点にする。
 function ageCompatScore(spot, selectedAges){
-  const w = DIAGNOSIS_WEIGHTS.age;
+  const w = GENERAL_RECOMMEND_WEIGHTS.age;
   if(!selectedAges || selectedAges.size===0) return Math.round(w*0.7);
   const matched = [...selectedAges].filter(a=>spot.ages.includes(a));
   if(matched.length===0) return 0;
   if(matched.length===selectedAges.size) return w; // 兄弟全員が楽しめる
   return Math.round(w*0.5) + matched.length*2; // 一部の子だけ楽しめる
 }
-
-// ③ Q3（今日はどんなお出かけ？＝カテゴリ）との相性（20点）
-function q1CompatScore(spot, q1){
-  const w = DIAGNOSIS_WEIGHTS.q1;
-  if(!q1 || q1==="any") return w*0.7; // なんでもOK・未回答は目的で絞り込まない（中立的にやや高め）
-  const genres = DIAG_CATEGORY_GENRES[q1];
-  if(!genres) return w*0.7;
-  const genre = deriveCategory(spot);
-  return genres.includes(genre) ? w : w*0.15;
-}
-// ④ Q2（どれくらい遊びたい？）との相性（15点）：既存のderiveStayTimeBucket()を再利用
-function q2CompatScore(spot, q2){
-  const w = DIAGNOSIS_WEIGHTS.q2;
-  const bucket = deriveStayTimeBucket(spot);
-  const dur = spot.duration || [];
-  if(q2==="short") return (bucket==="1時間以内"||bucket==="1〜2時間") ? w : (bucket==="2〜4時間" ? w*0.5 : w*0.2);
-  if(q2==="half") return bucket==="2〜4時間" ? w : (dur.includes("半日") ? w*0.8 : w*0.35);
-  if(q2==="full") return (bucket==="4時間以上" || dur.includes("1日")) ? w : w*0.3;
-  return w*0.5;
-}
-// ⑤ Q3（予算）との相性（10点）：既存のderiveWalletLevel()を再利用（4=最もお得）
-function q3CompatScore(spot, q3){
-  const w = DIAGNOSIS_WEIGHTS.q3;
-  const wallet = deriveWalletLevel(spot);
-  if(q3==="cheap") return wallet===4 ? w : (wallet===3 ? w*0.6 : w*0.2);
-  if(q3==="premium") return wallet<=2 ? w : w*0.6;
-  return w*0.7; // 普通：バランス重視のため大きく変動させない
-}
-// ⑥ 距離・移動負担（10点）：既存のhaversineKm()・estimateMinutes()を再利用。
-//   単純な直線距離だけでなく、車移動の概算時間ベースで評価する。
+// 距離・移動負担：既存のhaversineKm()・estimateMinutes()を再利用（車移動の概算時間ベース）
 function distanceCompatScore(spot, homeLoc){
-  const w = DIAGNOSIS_WEIGHTS.distance;
+  const w = GENERAL_RECOMMEND_WEIGHTS.distance;
   if(!homeLoc || typeof spot.lat !== "number") return Math.round(w*0.7);
   const km = haversineKm(homeLoc.lat, homeLoc.lng, spot.lat, spot.lng);
   const minutes = estimateMinutes(km);
@@ -15253,34 +16098,17 @@ function personalAdjustScore(spot){
   if(state.favorites.has(spot.name)) adj += 4; // お気に入り済みは少し優先度を上げる
   return adj;
 }
-
-// ⑦ 季節との相性：既存のeffectiveSeasons()・currentSeason()を再利用（Step6強化）。
-//   配点外の小さな加減点とし、既存のDIAGNOSIS_WEIGHTS合計（100点）の設計は変えない。
-//   根拠のない季節情報を作らないため、seasonsが未設定＝「通年」として扱い大きく減点しない。
+// 季節との相性：既存のeffectiveSeasons()・effectiveDisplaySeason()を再利用。
+// 根拠のない季節情報を作らないため、seasonsが未設定＝「通年」として扱い大きく減点しない。
 function seasonCompatScore(spot){
   const eff = effectiveSeasons(spot);
   if(eff.includes("通年")) return 2; // 季節指定なし（通年）は無難に小さくプラス
   const inSeason = eff.includes(effectiveDisplaySeason());
-  // 🌸花の名所は「今しか見頃じゃない」度合いが強いジャンルのため、
-  // 他ジャンルより季節適合の影響を大きくし、おすすめ順に反映されやすくする。
+  // 🌸花の名所は「今しか見頃じゃない」度合いが強いジャンルのため、他ジャンルより季節適合の影響を大きくする。
   if(spot.genre === "花の名所") return inSeason ? 18 : -12;
   return inSeason ? 6 : -3; // 今の季節に合えば加点、季節外なら少し減点
 }
-
-// 「今日どこ行く？」診断用の総合スコア（3問の回答を強く反映）
-function computeDiagnosisScore(spot, ctx){
-  const s = {
-    weather: weatherCompatScore(spot, ctx.weatherKind),
-    age: ageCompatScore(spot, ctx.selectedAges),
-    q1: q1CompatScore(spot, ctx.q1),
-    q2: q2CompatScore(spot, ctx.q2),
-    q3: q3CompatScore(spot, ctx.q3),
-    distance: distanceCompatScore(spot, ctx.homeLoc)
-  };
-  const total = s.weather + s.age + s.q1 + s.q2 + s.q3 + s.distance + personalAdjustScore(spot) + seasonCompatScore(spot);
-  return { total: Math.max(0, Math.min(100, Math.round(total))), parts: s };
-}
-// 通常の検索結果「おすすめ順」用の軽量版スコア（3問の回答は使わない）
+// 通常の検索結果「おすすめ順」用の軽量版スコア
 function computeGeneralRecommendScore(spot, ctx){
   const total = weatherCompatScore(spot, ctx.weatherKind)*1.1
     + ageCompatScore(spot, ctx.selectedAges)
@@ -15289,114 +16117,549 @@ function computeGeneralRecommendScore(spot, ctx){
     + seasonCompatScore(spot);
   return total;
 }
-// スコアの内訳から、施設カードに表示する理由タグ（最大4つ）を機械的に生成する。
-// AIによる自由記述ではなく、どのスコア要素が高かったかに基づく定型文のみを使う。
-function diagnosisReasonTags(spot, ctx, parts){
-  const tags = [];
-  if(parts.weather >= DIAGNOSIS_WEIGHTS.weather*0.8){
-    tags.push(ctx.weatherKind==="rain" ? "☔ 今日の天気でも安心" : "☀️ 今日の天気にぴったり");
+
+// ------------------------------------------------------------------
+// 🎯 今日どこ行く？：ジャンルごとの相性表（0〜1の目安。データ上のジャンル名 = deriveCategory() の値）
+//   ・表にないジャンルは 0.5（中立）。ジャンルを増やしたらここに1行足すだけでよい。
+// ------------------------------------------------------------------
+// Q1「今日はどんな感じで遊びたい？」との相性
+const DIAG_MOOD_AFFINITY = {
+  active: { // 🏃 しっかり遊びたい
+    "アスレチック・アウトドア":1, "遊園地・テーマパーク":0.95, "プール・水遊び":0.95, "室内遊び場":0.9,
+    "スケート・ボウリング":0.9, "公園":0.9, "キャンプ場・グランピング":0.7, "動物園":0.6, "牧場":0.6,
+    "釣り堀・魚つかみ取り":0.5, "博物館・科学館":0.35, "果物狩り・収穫体験":0.35, "水族館":0.3, "花の名所":0.25, "温泉・スパ":0.1
+  },
+  relax: { // 🌿 のんびり過ごしたい
+    "温泉・スパ":1, "花の名所":0.9, "キャンプ場・グランピング":0.85, "牧場":0.8, "公園":0.75, "果物狩り・収穫体験":0.6,
+    "水族館":0.6, "動物園":0.5, "博物館・科学館":0.5, "釣り堀・魚つかみ取り":0.5, "室内遊び場":0.4, "プール・水遊び":0.35,
+    "スケート・ボウリング":0.25, "遊園地・テーマパーク":0.2, "アスレチック・アウトドア":0.2
+  },
+  look: { // 👀 見て楽しみたい
+    "水族館":1, "動物園":1, "花の名所":0.95, "博物館・科学館":0.9, "牧場":0.6, "遊園地・テーマパーク":0.5, "公園":0.45,
+    "キャンプ場・グランピング":0.3, "釣り堀・魚つかみ取り":0.3, "果物狩り・収穫体験":0.3, "室内遊び場":0.25,
+    "スケート・ボウリング":0.2, "温泉・スパ":0.2, "アスレチック・アウトドア":0.2, "プール・水遊び":0.15
+  },
+  experience: { // 🎨 体験・遊びをしたい
+    "果物狩り・収穫体験":1, "釣り堀・魚つかみ取り":1, "牧場":0.9, "アスレチック・アウトドア":0.8, "スケート・ボウリング":0.8,
+    "博物館・科学館":0.8, "遊園地・テーマパーク":0.8, "キャンプ場・グランピング":0.8, "室内遊び場":0.75, "プール・水遊び":0.7,
+    "動物園":0.5, "水族館":0.5, "公園":0.5, "花の名所":0.3, "温泉・スパ":0.25
   }
-  if(parts.age >= DIAGNOSIS_WEIGHTS.age*0.9) tags.push("👧 兄弟みんな向き");
-  else if(parts.age >= DIAGNOSIS_WEIGHTS.age*0.5) tags.push("👧 年齢に合いそう");
-  // 🆕 距離と条件適合のバランスが伝わるよう、近い場合と「少し遠いが相性が良い」場合を両方タグ化する
-  const fitScore = parts.weather + parts.age + parts.q1; // 天気・年齢・目的の適合度（距離を除く「条件との相性」）
-  const fitMax = DIAGNOSIS_WEIGHTS.weather + DIAGNOSIS_WEIGHTS.age + DIAGNOSIS_WEIGHTS.q1;
-  if(parts.distance >= DIAGNOSIS_WEIGHTS.distance*0.9) tags.push("🚗 近め");
-  else if(parts.distance <= DIAGNOSIS_WEIGHTS.distance*0.5 && fitScore >= fitMax*0.8) tags.push("🚗 少し遠出してもおすすめ");
-  if(ctx.q3==="cheap" && parts.q3 >= DIAGNOSIS_WEIGHTS.q3*0.9) tags.push("💰 お得");
-  const bucket = deriveStayTimeBucket(spot);
-  if(bucket==="2〜4時間" || bucket==="4時間以上" || (spot.duration||[]).includes("半日")) tags.push("⏱️ 半日しっかり遊べます");
-  if(deriveActivityLevel(spot)==="active") tags.push("🏃 体を動かせます");
-  if(effectiveSeasons(spot).includes(effectiveDisplaySeason())) tags.push(`${SEASON_EMOJI[effectiveDisplaySeason()]} 今の季節におすすめ`);
-  if(state.favorites.has(spot.name)) tags.push("❤️ お気に入り済み");
-  return tags.slice(0,4);
+};
+// Q3「👧 子どもが楽しめる」：子どもが主役で遊べるジャンルほど高い
+const DIAG_KIDS_AFFINITY = {
+  "室内遊び場":1, "アスレチック・アウトドア":0.9, "プール・水遊び":0.9, "公園":0.85, "動物園":0.85, "牧場":0.85,
+  "遊園地・テーマパーク":0.85, "水族館":0.75, "博物館・科学館":0.7, "果物狩り・収穫体験":0.7, "スケート・ボウリング":0.7,
+  "釣り堀・魚つかみ取り":0.7, "キャンプ場・グランピング":0.55, "温泉・スパ":0.25, "花の名所":0.25
+};
+// Q3「👨‍👩‍👧‍👦 家族みんなで楽しめる」：大人も子どもも楽しみやすいジャンルほど高い
+const DIAG_FAMILY_AFFINITY = {
+  "水族館":0.95, "動物園":0.9, "遊園地・テーマパーク":0.9, "牧場":0.85, "果物狩り・収穫体験":0.85, "公園":0.8,
+  "キャンプ場・グランピング":0.8, "プール・水遊び":0.8, "アスレチック・アウトドア":0.75, "スケート・ボウリング":0.75,
+  "釣り堀・魚つかみ取り":0.75, "温泉・スパ":0.7, "博物館・科学館":0.7, "花の名所":0.7, "室内遊び場":0.55
+};
+// Q3「✨ ちょっと特別なお出かけ」：日常の遊び場より「わざわざ行く」特別感のあるジャンルほど高い
+const DIAG_SPECIAL_AFFINITY = {
+  "遊園地・テーマパーク":1, "キャンプ場・グランピング":0.95, "水族館":0.85, "果物狩り・収穫体験":0.85, "温泉・スパ":0.8,
+  "花の名所":0.8, "牧場":0.75, "動物園":0.7, "プール・水遊び":0.7, "アスレチック・アウトドア":0.7, "スケート・ボウリング":0.6,
+  "釣り堀・魚つかみ取り":0.6, "博物館・科学館":0.5, "室内遊び場":0.3, "公園":0.25
+};
+function diagLookup(table, key, fallback){
+  return (table && typeof table[key]==="number") ? table[key] : fallback;
 }
-// 施設カードに表示する一言（テンプレート文のみを組み合わせる。文章生成AIは使わない）
-function diagnosisOneLiner(spot, ctx, parts){
-  const bits = [];
-  if(ctx.weatherKind==="rain" && parts.weather >= DIAGNOSIS_WEIGHTS.weather*0.8) bits.push("雨でも安心して遊べる");
-  if(ctx.weatherKind==="sunny" && parts.weather >= DIAGNOSIS_WEIGHTS.weather*0.8) bits.push("今日の天気にぴったり");
-  if(parts.age >= DIAGNOSIS_WEIGHTS.age*0.9) bits.push("兄弟みんなで楽しめる");
-  const fitScore2 = parts.weather + parts.age + parts.q1;
-  const fitMax2 = DIAGNOSIS_WEIGHTS.weather + DIAGNOSIS_WEIGHTS.age + DIAGNOSIS_WEIGHTS.q1;
-  if(parts.distance >= DIAGNOSIS_WEIGHTS.distance*0.9) bits.push("出発地から近め");
-  else if(parts.distance <= DIAGNOSIS_WEIGHTS.distance*0.5 && fitScore2 >= fitMax2*0.8) bits.push("少し距離はあるが条件にとても合う");
-  if(ctx.q3==="cheap" && parts.q3 >= DIAGNOSIS_WEIGHTS.q3*0.9) bits.push("費用を抑えて遊べる");
-  if(getNearbyCombos(spot).length>0) bits.push("近くの施設と組み合わせやすい");
-  if(bits.length===0) bits.push("今日の条件に合うおでかけ先");
-  return bits.slice(0,2).join("、") + "なのでおすすめです。";
+
+// ------------------------------------------------------------------
+// 🎯 今日どこ行く？：自動判定（質問しない）ための材料
+// ------------------------------------------------------------------
+// 現在の日付・曜日・時刻・季節
+function diagNowContext(){
+  const now = new Date();
+  const wd = now.getDay();
+  return {
+    now,
+    nowMin: now.getHours()*60 + now.getMinutes(),
+    isHoliday: isJapaneseHoliday(now),
+    isOffDay: wd===0 || wd===6 || isJapaneseHoliday(now),
+    // 「今から間に合うか」は日中（5:00〜17:59）だけ判定する。夜に開いた場合は翌日の下調べとみなし、時間帯では減点しない。
+    checkTimeOfDay: now.getHours()>=5 && now.getHours()<18,
+    season: currentSeason()
+  };
 }
-// ジャンルが偏りすぎないようにしながら、スコア上位からBEST5を選ぶ。
-// 「今日どこ行く？」は距離だけでなく条件適合度も重視するため、1位のスコアから
-// 大きく離れた（＝条件にあまり合っていない）候補は無理に5件まで埋めない。
-// しきい値は固定の地域処理などにせず、毎回の1位スコアからの相対値で決めるため、
-// 施設数・地域が増えても個別対応は不要（汎用的）。
-function pickBest5(scoredList){
+// 出発地から施設までの移動時間。カード表示と同じく、トップの「車／電車」設定と既存の概算関数を再利用する。
+function diagTravelInfo(spot, homeLoc){
+  if(!homeLoc || typeof spot.lat!=="number" || typeof spot.lng!=="number") return null;
+  const km = haversineKm(homeLoc.lat, homeLoc.lng, spot.lat, spot.lng);
+  if(state.mode==="transit"){
+    if(!hasTrainAccess(spot)) return { km, minutes:null, mode:"transit", noTransit:true };
+    return { km, minutes: deriveTransitMinutes(spot, km), mode:"transit" };
+  }
+  return { km, minutes: deriveCarMinutes(spot, km), mode:"car" };
+}
+// 滞在時間の目安（時間）。個別データ → 既存の4段階目安 → 所要時間区分の順に、実際にある情報だけを使う。
+function diagStayRange(spot){
+  if(spot.stayTime && typeof spot.stayTime.minMinutes==="number" && typeof spot.stayTime.maxMinutes==="number"){
+    return { min: spot.stayTime.minMinutes/60, max: spot.stayTime.maxMinutes/60 };
+  }
+  const b = deriveStayTimeBucket(spot);
+  if(b==="1時間以内") return { min:0.5, max:1 };
+  if(b==="1〜2時間") return { min:1, max:2 };
+  if(b==="2〜4時間") return { min:2, max:4 };
+  if(b==="4時間以上") return { min:4, max:6 };
+  const dur = spot.duration || [];
+  if(dur.includes("1日")) return { min:4, max:6 };
+  if(dur.includes("半日")) return { min:2, max:4 };
+  return null;
+}
+// 今日（現在時刻）の営業状況。営業時間データのない施設は「不明」として中立に扱う（休業と決めつけない）。
+//   status: open / closed（定休日・臨時休業）/ late（到着前に閉まる）/ short（到着後の営業時間が短い）/ unknown
+function diagOpenCheck(spot, ctx, minutes){
+  let st;
+  try{ st = getBusinessStatusForDate(spot, ctx.now); }catch(e){ return { status:"unknown", penalty:0 }; }
+  if(!st || st.status==="unknown") return { status:"unknown", penalty:0 };
+  if(st.status==="closed") return { status:"closed", reason:st.reason, penalty:-70, hard:true };
+  const m = /^(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})$/.exec(st.hours||"");
+  if(!m) return { status:"open", hours:st.hours, penalty:0 }; // 「終日」など形式が読めない場合は営業日として扱う
+  const openMin = Number(m[1])*60 + Number(m[2]);
+  let closeMin = Number(m[3])*60 + Number(m[4]);
+  if(closeMin<=openMin) closeMin += 1440; // 日をまたぐ営業
+  if(ctx.checkTimeOfDay){
+    const arrive = ctx.nowMin + (typeof minutes==="number" ? minutes : 0);
+    const remain = closeMin - arrive;
+    if(remain<=0) return { status:"late", hours:st.hours, penalty:-60, hard:true };
+    if(remain<90) return { status:"short", hours:st.hours, penalty:-18 };
+  }
+  return { status:"open", hours:st.hours, penalty:0 };
+}
+
+// ------------------------------------------------------------------
+// 🎯 今日どこ行く？：各要素の適合度（0〜1）
+// ------------------------------------------------------------------
+// Q1：遊び方・気分との相性。ジャンルごとの相性表をベースに、遊び方（がっつり動く／まったり）で小さく補正。
+function diagMoodFit(spot, mood){
+  if(!mood || mood==="any") return 0.6; // おまかせ：気分では絞らない
+  let fit = diagLookup(DIAG_MOOD_AFFINITY[mood], deriveCategory(spot), 0.5);
+  const act = deriveActivityLevel(spot);
+  if(mood==="active") fit += act==="active" ? 0.08 : -0.08;
+  if(mood==="relax")  fit += act==="calm" ? 0.08 : -0.08;
+  return Math.max(0, Math.min(1, fit));
+}
+// Q2：お出かけ規模との釣り合い。滞在時間の目安と移動時間の両方で見る（近場＝短時間・近い、1日＝長く遊べて遠出OK）。
+function diagScaleFit(scale, minutes, stay){
+  if(!scale || scale==="any") return 0.6;
+  let stayFit = 0.5; // 滞在時間データなし＝中立
+  if(stay){
+    const mid = (stay.min + stay.max)/2;
+    if(scale==="near") stayFit = mid<=1.5 ? 1 : mid<=2.5 ? 0.8 : mid<=3.5 ? 0.5 : 0.3;
+    if(scale==="half") stayFit = (mid>=2 && mid<=4) ? 1 : (mid>=1.5 && mid<=5) ? 0.75 : mid<1.5 ? 0.5 : 0.55;
+    if(scale==="full") stayFit = mid>=4 ? 1 : mid>=3 ? 0.65 : mid>=2 ? 0.35 : 0.15;
+  }
+  let travelFit = 0.6; // 出発地未設定＝中立
+  if(typeof minutes==="number"){
+    if(scale==="near") travelFit = minutes<=20 ? 1 : minutes<=30 ? 0.9 : minutes<=45 ? 0.6 : minutes<=60 ? 0.3 : 0.05;
+    if(scale==="half") travelFit = minutes<=15 ? 0.75 : minutes<=60 ? 1 : minutes<=75 ? 0.8 : minutes<=90 ? 0.5 : 0.2;
+    if(scale==="full") travelFit = minutes<=20 ? 0.55 : minutes<=45 ? 0.8 : minutes<=120 ? 1 : minutes<=150 ? 0.7 : 0.35;
+  }
+  return stayFit*0.55 + travelFit*0.45;
+}
+// Q3：今日の優先事項との相性
+function diagPriorityFit(spot, priority, ageFit){
+  if(!priority || priority==="any") return 0.6;
+  const genre = deriveCategory(spot);
+  if(priority==="kids"){
+    return diagLookup(DIAG_KIDS_AFFINITY, genre, 0.5)*0.65 + ageFit*0.35;
+  }
+  if(priority==="family"){
+    const breadth = Math.min(1, (spot.ages||[]).length/4); // 対応年齢が広いほど家族みんなで行きやすい
+    const facility = Math.min(1, (spot.parking==="yes" ? 0.4 : 0) + (spot.baby ? 0.3 : 0) + (spot.lunch ? 0.3 : 0));
+    return diagLookup(DIAG_FAMILY_AFFINITY, genre, 0.5)*0.4 + breadth*0.4 + facility*0.2;
+  }
+  if(priority==="cheap"){
+    const wl = deriveWalletLevel(spot); // 4=最もお得
+    return wl===4 ? 1 : wl===3 ? 0.6 : wl===2 ? 0.25 : 0.05;
+  }
+  if(priority==="special"){
+    const stay = diagStayRange(spot);
+    const stayFit = !stay ? 0.4 : stay.min>=3.5 ? 1 : stay.max>=4 ? 0.7 : 0.4; // じっくり過ごせるほど特別感
+    const fresh = state.visited.has(spot.name) ? 0.3 : 1; // まだ行ったことがない場所ほど特別
+    return diagLookup(DIAG_SPECIAL_AFFINITY, genre, 0.4)*0.55 + stayFit*0.25 + fresh*0.2;
+  }
+  return 0.6;
+}
+// 自動：天気・気温・雨への強さ。屋外を一律に除外せず、雨への強さ（deriveRainLevel）と気温で適合度を変える。
+function diagWeatherFit(spot, weather){
+  if(!weather) return 0.6; // 天気を取得できなかった場合は差をつけない
+  const rainLv = deriveRainLevel(spot); // 1〜4（4=雨の日でもOK）
+  const genre = deriveCategory(spot);
+  const outdoor = rainLv<=2;
+  let fit = weather.kind==="rain"
+    ? ({4:1, 3:0.6, 2:0.25, 1:0})[rainLv]
+    : ({1:1, 2:0.8, 3:0.65, 4:0.55})[rainLv]; // 晴れの日は屋外を少し優先（屋内も十分ありえる）
+  if(typeof fit!=="number") fit = 0.5;
+  const t = weather.tempMax;
+  if(typeof t==="number"){
+    if(t>=31){ // 猛暑：屋外中心は不利、水遊びは有利
+      if(genre==="プール・水遊び") fit = Math.min(1, fit*1.25 + 0.1);
+      else if(outdoor) fit *= 0.6;
+    } else if(t<=8){ // 寒い日：屋外中心は不利、温泉は有利
+      if(outdoor) fit *= 0.7;
+      if(genre==="温泉・スパ") fit = Math.min(1, fit + 0.25);
+    }
+    if(genre==="プール・水遊び" && outdoor && t<24) fit *= 0.4; // 屋外プールは泳げる気温でないと不向き
+  }
+  return Math.max(0, Math.min(1, fit));
+}
+// 自動：子どもの年齢（トップで選択中の state.ages）。未設定なら差をつけない。
+function diagAgeFit(spot, selectedAges){
+  if(!selectedAges || selectedAges.size===0) return 0.6;
+  const spotAges = spot.ages || [];
+  const matched = [...selectedAges].filter(a=>spotAges.includes(a)).length;
+  if(matched===0) return 0;
+  const ratio = matched/selectedAges.size;
+  return ratio===1 ? 1 : 0.4 + 0.48*ratio; // 兄弟の一部の年齢だけ対応
+}
+// 自動：移動時間。配点を小さくして「近いだけの施設」が常に1位にならないようにする。
+function diagDistanceFit(minutes){
+  if(typeof minutes!=="number") return 0.6;
+  if(minutes<=30) return 1;
+  if(minutes<=45) return 0.85;
+  if(minutes<=60) return 0.65;
+  if(minutes<=90) return 0.4;
+  if(minutes<=120) return 0.2;
+  return 0.05;
+}
+
+// ------------------------------------------------------------------
+// 🎯 今日どこ行く？：配点外の自動加減点
+// ------------------------------------------------------------------
+// 花の名所・果物狩りの「旬の月」。説明文にある「8月上旬〜10月上旬」「例年11月中旬から」などの月表記から読み取る。
+// 月の記載がなければnull（＝季節データだけで判断）。年月（例：2025年3月オープン）は対象外。
+const diagPeakMonthsCache = new Map();
+function diagPeakMonths(spot){
+  if(diagPeakMonthsCache.has(spot.name)) return diagPeakMonthsCache.get(spot.name);
+  const ms = [];
+  const re = /(^|[^年0-9])(\d{1,2})月/g;
+  let m;
+  const text = String(spot.desc||"");
+  while((m = re.exec(text)) !== null){
+    const n = Number(m[2]);
+    if(n>=1 && n<=12) ms.push(n);
+  }
+  let set = null;
+  if(ms.length>0){
+    const uniq = [...new Set(ms)].sort((a,b)=>a-b);
+    set = new Set();
+    if(uniq[uniq.length-1] - uniq[0] <= 6){
+      for(let k=uniq[0]; k<=uniq[uniq.length-1]; k++) set.add(k); // 例：8月〜10月 → 8,9,10月
+    } else { // 年またぎ（例：12月〜2月）は、1〜12月の輪の上で短い側を採用
+      const lo = uniq.filter(k=>k<=6), hi = uniq.filter(k=>k>6);
+      for(let k=hi[0]; k<=12; k++) set.add(k);
+      for(let k=1; k<=lo[lo.length-1]; k++) set.add(k);
+    }
+  }
+  diagPeakMonthsCache.set(spot.name, set);
+  return set;
+}
+// 季節の状態と加減点。inSeason: true=今の時期におすすめ / false=時期外 / null=季節の指定なし（通年）
+//   ・花の名所・果物狩りは「今しか」の度合いが強いので影響を大きくし、月の記載があればそちらを優先する
+//     （季節区分は大まかなため。例：「秋」に分類される11月中旬の見頃が9月に上位に来ないように）。
+//   ・旬を外している場合は大きく下げる。月の記載がなければ、季節データ（春夏秋冬）だけで判断する。
+function diagSeasonState(spot, ctx){
+  const eff = effectiveSeasons(spot);
+  const inAppSeason = eff.includes("通年") ? null : eff.includes(ctx.season);
+  const g = deriveCategory(spot);
+  if(g==="花の名所" || g==="果物狩り・収穫体験"){
+    const peak = diagPeakMonths(spot);
+    if(peak){
+      const cur = ctx.now.getMonth()+1;
+      const next = cur===12 ? 1 : cur+1; // 来月に見頃を迎える場合も、お出かけ先として「今」おすすめできる
+      if(peak.has(cur) || peak.has(next)) return { adj:7, inSeason:true };
+      return { adj:-22, inSeason:false }; // 月の記載から見て時期外
+    }
+    if(inAppSeason===null) return { adj:1, inSeason:null };
+    return { adj: inAppSeason ? 7 : -22, inSeason:inAppSeason };
+  }
+  if(inAppSeason===null) return { adj:1, inSeason:null };
+  return { adj: inAppSeason ? 4 : -5, inSeason:inAppSeason };
+}
+function diagSeasonAdj(spot, ctx){ return diagSeasonState(spot, ctx).adj; }
+// お出かけ規模と移動時間が大きくズレる場合の減点。近場のつもりなのに遠い、半日のつもりなのに片道が長い、を避ける。
+// （規模の適合度だけでは、季節や気分で高得点の遠い施設が上位に来てしまうため、明らかなズレだけ別枠で下げる）
+function diagScalePenalty(scale, minutes){
+  if(typeof minutes!=="number") return 0;
+  if(scale==="near") return minutes>90 ? -40 : minutes>60 ? -22 : minutes>45 ? -8 : 0;
+  if(scale==="half") return minutes>120 ? -35 : minutes>90 ? -18 : minutes>75 ? -6 : 0;
+  if(scale==="full") return minutes>180 ? -15 : 0;
+  return minutes>120 ? -20 : minutes>90 ? -10 : minutes>75 ? -4 : 0; // おまかせ：遠すぎる施設だけ控えめに下げる
+}
+// 最後に行った記録からの日数（記録がなければnull）
+function diagLastVisitDaysAgo(name){
+  let last = null;
+  (state.visits||[]).forEach(v=>{
+    if(v.facilityName!==name || !v.date) return;
+    const d = parseVisitDate(v.date);
+    if(d && (!last || d>last)) last = d;
+  });
+  return last ? Math.floor((Date.now()-last.getTime())/86400000) : null;
+}
+// 行きたい登録は少し優先、行ったことがある施設は少し下げる（最近行ったほど下げる）
+function diagPersonalAdj(spot){
+  let adj = 0;
+  if(state.favorites.has(spot.name)) adj += 6;
+  const days = diagLastVisitDaysAgo(spot.name);
+  if(days!==null) adj -= days<=30 ? 14 : days<=180 ? 10 : 8;
+  else if(state.visited.has(spot.name)) adj -= 8;
+  return adj;
+}
+// 同じ施設ばかり推薦しない：この画面で見せたもの／最近の1位に選んだものを少し下げる
+function diagRepeatPenalty(spot, ctx){
+  let p = 0;
+  if(ctx.shown && ctx.shown.has(spot.name)) p -= 10; // 「もう一度おまかせ」で同じ顔ぶれが続かないように
+  const n = (ctx.history||[]).filter(h=>h.name===spot.name).length;
+  p -= 6*Math.min(2, n);
+  return p;
+}
+// 結果を見てからの微調整（もっと近く／雨でもOK／しっかり遊べるところ）
+function diagTweakAdj(spot, tweaks, distFit, minutes){
+  const t = tweaks || {};
+  let a = 0;
+  if(t.nearer){
+    a += (distFit - 0.5)*40; // 近いほど加点・遠いほど減点
+    if(typeof minutes==="number" && minutes>60) a -= 12;
+  }
+  if(t.rain){
+    const lv = deriveRainLevel(spot);
+    a += lv>=4 ? 20 : lv===3 ? 12 : lv===2 ? -8 : -24;
+  }
+  if(t.active){
+    a += deriveActivityLevel(spot)==="active" ? 8 : -6;
+  }
+  return a;
+}
+// 施設名とシードから決まる小さな揺らぎ（-DIAG_JITTER〜+DIAG_JITTER）
+function diagJitter(name, seed){
+  let h = (2166136261 ^ (seed|0)) >>> 0;
+  for(let i=0;i<name.length;i++){ h ^= name.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return ((h % 1000)/1000 - 0.5)*2*DIAG_JITTER;
+}
+function diagNewSeed(){ return Math.floor(Math.random()*1000000000); }
+
+// 推薦履歴（1位に選んだ施設）。同じ施設ばかりにならないよう、直近14日分だけ端末に保持する。
+const DIAG_HISTORY_KEY = "odekake_diag_history_v1";
+function diagLoadHistory(){
+  try{
+    const raw = localStorage.getItem(DIAG_HISTORY_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    const now = Date.now();
+    return (Array.isArray(arr) ? arr : []).filter(x=>x && x.name && now - x.t < 14*86400000).slice(-20);
+  }catch(e){ return []; }
+}
+function diagSaveHistory(name){
+  try{
+    const arr = diagLoadHistory();
+    arr.push({ name, t: Date.now() });
+    localStorage.setItem(DIAG_HISTORY_KEY, JSON.stringify(arr.slice(-20)));
+  }catch(e){ /* 保存できなくても機能は継続 */ }
+}
+
+// ------------------------------------------------------------------
+// 🎯 今日どこ行く？：総合スコア
+//   weather：この施設に使う天気（現地の天気が取れていれば現地、なければ出発地の天気）
+// ------------------------------------------------------------------
+function computeDiagnosisScore(spot, ctx, weather, weatherIsDest){
+  const W = DIAGNOSIS_WEIGHTS;
+  const tweaks = ctx.tweaks || {};
+  const mood = tweaks.active ? "active" : ctx.mood; // 「しっかり遊べるところ」を押したら気分をそちらに寄せる
+  const travel = diagTravelInfo(spot, ctx.origin || ctx.homeLoc);
+  const minutes = travel ? travel.minutes : null;
+  const stay = diagStayRange(spot);
+  const ageFit = diagAgeFit(spot, ctx.selectedAges);
+  const parts = {
+    mood: diagMoodFit(spot, mood),
+    scale: diagScaleFit(ctx.scale, minutes, stay),
+    priority: diagPriorityFit(spot, ctx.priority, ageFit),
+    weather: diagWeatherFit(spot, weather),
+    age: ageFit,
+    distance: diagDistanceFit(minutes)
+  };
+  // 1日しっかり遠出したい時は、距離の影響を小さくする
+  const distMul = ctx.scale==="full" ? 0.4 : ctx.scale==="half" ? 0.8 : 1;
+  let total = parts.mood*W.mood + parts.scale*W.scale + parts.priority*W.priority
+            + parts.weather*W.weather + parts.age*W.age + parts.distance*W.distance*distMul;
+  // 出発地が未設定（東京駅付近で代用）の間は、実際の到着時刻が分からないため「間に合うか」の判定に移動時間は使わない
+  const open = diagOpenCheck(spot, ctx, ctx.originIsDefault ? null : minutes);
+  total += diagSeasonAdj(spot, ctx)
+         + diagPersonalAdj(spot)
+         + open.penalty
+         + diagScalePenalty(ctx.scale, minutes)
+         + (travel && travel.noTransit ? -20 : 0) // 電車設定で公共交通が行きにくい施設
+         + diagTweakAdj(spot, tweaks, parts.distance, minutes)
+         + diagRepeatPenalty(spot, ctx)
+         + diagJitter(spot.name, ctx.seed || 0);
+  return { total, parts, open, travel, stay, weather, weatherIsDest: !!weatherIsDest, mood };
+}
+
+// ジャンルが偏りすぎないようにしながら、スコア上位からBEST5を選ぶ（1位は常に最高スコアの施設）。
+// 2位以降は、すでに選んだジャンルの数に応じて減点した値で選ぶため、同じジャンルが並びにくい。
+// 1位から大きく離れた（＝今日の条件にあまり合っていない）候補は、無理に5件まで埋めない。
+// しきい値は毎回の1位スコアからの相対値なので、施設数・地域が増えても個別対応は不要。
+function pickDiagnosisBest(scoredList){
   const sorted = [...scoredList].sort((a,b)=>b.score.total-a.score.total);
   if(sorted.length===0) return [];
   const topScore = sorted[0].score.total;
-  // 1位のスコアが低い場合はしきい値も一緒に下げ、必ず1位以上は候補に残るようにする
-  const threshold = Math.min(topScore, Math.max(25, Math.round(topScore*0.55)));
-  const qualified = sorted.filter(item=>item.score.total >= threshold);
+  const threshold = Math.min(topScore, Math.max(25, topScore*0.55));
+  const pool = sorted.filter(it=>it.score.total >= threshold);
   const picked = [];
   const genreCount = {};
-  for(const item of qualified){
-    if(picked.length>=5) break;
-    const g = deriveCategory(item.spot);
-    if((genreCount[g]||0) >= 2) continue; // 同じジャンルは2件までに抑える
-    picked.push(item);
-    genreCount[g] = (genreCount[g]||0)+1;
+  while(picked.length<5 && pool.length>0){
+    let bestIdx = -1, bestVal = -Infinity;
+    pool.forEach((it,i)=>{
+      const c = genreCount[deriveCategory(it.spot)] || 0;
+      if(c>=2) return; // 同じジャンルは2件まで
+      const val = it.score.total - c*7;
+      if(val>bestVal){ bestVal = val; bestIdx = i; }
+    });
+    if(bestIdx<0) break;
+    const it = pool.splice(bestIdx,1)[0];
+    picked.push(it);
+    const g = deriveCategory(it.spot);
+    genreCount[g] = (genreCount[g]||0) + 1;
   }
-  if(picked.length<5){ // 件数が足りない場合はジャンル制限だけ緩める（条件に合わない施設までは追加しない）
-    for(const item of qualified){
-      if(picked.length>=5) break;
-      if(picked.includes(item)) continue;
-      picked.push(item);
-    }
+  // ジャンル制限のせいで足りない場合だけ、条件に合う候補からジャンル制限を外して補う
+  for(const it of pool){
+    if(picked.length>=5) break;
+    picked.push(it);
   }
   return picked;
 }
 
+// 診断の対象にする施設。トップで検索エリア・「行った所を非表示」を設定している場合は、それも自動で反映する。
+// 入場・見学に予約が必要な施設（料金欄に「（要予約」「（完全予約制」「（事前予約制」と明記）。
+// 「要予約の場合あり」や、体験・BBQなど一部だけ予約が必要な施設は対象外（当日ふらっと行けるため）。
+// 「迷ったら今日どこ行く？」は当日すぐ行ける場所を提案するので、この施設は候補から外す。
+function spotRequiresReservation(spot){
+  return /[（(](要予約(?!の場合)|完全予約制|事前予約制)/.test(spot.price || "");
+}
+function diagCandidateSpots(){
+  let list = SPOTS.filter(s=>!state.excluded.has(s.name) && !spotRequiresReservation(s));
+  const notes = [];
+  if(state.region && state.region.size>0){
+    const inRegion = list.filter(s=>state.region.has(s.region));
+    if(inRegion.length>=8){ list = inRegion; notes.push(`🗺 ${[...state.region].join("・")}から`); }
+  }
+  if(state.hideVisited){
+    const unvisited = list.filter(s=>!state.visited.has(s.name));
+    if(unvisited.length>=8){ list = unvisited; notes.push("✅ 行った所は除く"); }
+  }
+  return { list, notes };
+}
+
+// 結果に添える「選んだ理由」。実際にデータから言えることだけを、重要な順に並べる（推測で理由を作らない）。
+function diagnosisReasons(item, ctx){
+  const sc = item.score, spot = item.spot, p = sc.parts, w = sc.weather;
+  const tw = ctx.tweaks || {};
+  const genre = deriveCategory(spot);
+  const rainLv = deriveRainLevel(spot);
+  const list = [];
+  const add = (order, text)=>list.push({ order, text });
+  // 天気（実際に取得できた場合だけ）
+  if(w){
+    const label = sc.weatherIsDest ? "現地の天気" : "今日の天気";
+    const t = w.tempMax;
+    if(typeof t==="number" && t>=31 && (genre==="プール・水遊び" || rainLv>=3)) add(1, `🌡 暑い日（最高${t}℃）でも過ごしやすい`);
+    else if(typeof t==="number" && t<=8 && (genre==="温泉・スパ" || rainLv>=3)) add(1, `🧣 寒い日（最高${t}℃）でも過ごしやすい`);
+    else if(w.kind==="rain" && rainLv>=3) add(1, `☔ 雨の日でも過ごしやすい（${label}：${w.cond}）`);
+    else if(w.kind==="sunny" && rainLv<=2 && p.weather>=0.75) add(1, `${w.icon||"☀️"} ${label}（${w.cond}）に合う`);
+  }
+  if(tw.rain && rainLv>=3 && !list.length) add(1, "☔ 雨の日でも楽しみやすい");
+  // Q1 気分
+  if(sc.mood!=="any" && p.mood>=0.75){
+    add(2, ({ active:"🏃 しっかり体を動かして遊べる", relax:"🌿 のんびり過ごせる", look:"👀 見て楽しめる", experience:"🎨 体験して遊べる" })[sc.mood]);
+  }
+  // Q3 優先したいこと
+  if(ctx.priority==="kids" && p.priority>=0.7) add(3, "👧 子どもが楽しみやすい");
+  else if(ctx.priority==="family" && p.priority>=0.7) add(3, "👨‍👩‍👧‍👦 家族みんなで楽しみやすい");
+  else if(ctx.priority==="cheap" && p.priority>=0.6 && parsePriceYen(spot.price)!==null){
+    const snip = priceCardSnippet(spot);
+    add(3, snip && snip.length<=22 ? `💰 費用を抑えやすい（${snip}）` : "💰 費用を抑えやすい");
+  }
+  else if(ctx.priority==="special" && p.priority>=0.7) add(3, `✨ 特別感のあるお出かけ先（${genre}）`);
+  // 移動時間（出発地が設定されている場合だけ）
+  const tr = sc.travel;
+  if(tr && typeof tr.minutes==="number" && !ctx.originIsDefault){ // 出発地が未設定の間は「約○分」を理由に出さない
+    const icon = tr.mode==="transit" ? "🚃" : "🚗";
+    if(ctx.scale==="near" && tr.minutes<=30) add(4, `${icon} 近場でサクッと行ける（約${formatMinutes(tr.minutes)}）`);
+    else add(4, `${icon} 約${formatMinutes(tr.minutes)}（目安）`);
+  }
+  // 子どもの年齢（トップで年齢を選んでいる場合だけ）
+  const ages = ctx.selectedAges;
+  if(ages && ages.size>0){
+    const matched = [...ages].filter(a=>(spot.ages||[]).includes(a));
+    if(matched.length===ages.size) add(5, `👧 お子さんの年齢（${matched.join("・")}）に合いやすい`);
+    else if(matched.length>0) add(5, `👧 年齢（${matched.join("・")}）に対応`);
+  }
+  // Q2 お出かけ規模（滞在時間のデータがある場合だけ）
+  const stay = sc.stay;
+  if(ctx.scale==="half" && stay && stay.min>=2 && stay.max<=4.5) add(6, "🕐 半日のお出かけにちょうどいい");
+  else if(ctx.scale==="full" && stay && stay.min>=3.5) add(6, "🗓️ 1日たっぷり遊べる");
+  else if(ctx.scale==="near" && stay && stay.max<=2) add(6, "🕐 短時間でも楽しめる");
+  // 季節（施設に季節データがある場合だけ）
+  if(diagSeasonState(spot, ctx).inSeason===true) add(7, `${SEASON_EMOJI[ctx.season]||"🌸"} 今の季節（${ctx.season}）におすすめ`);
+  // 営業（営業時間データがある場合だけ）
+  if(sc.open.status==="open" && sc.open.hours) add(8, `🕐 本日営業（${sc.open.hours}）`);
+  if(state.favorites.has(spot.name)) add(9, "❤️ 行きたいに登録済み");
+  try{ if(getNearbyCombos(spot).length>0) add(10, "🗺 近くの施設と組み合わせやすい"); }catch(e){ /* 組み合わせ情報がなくても続行 */ }
+  list.sort((a,b)=>a.order-b.order);
+  const texts = list.map(x=>x.text);
+  return texts.length>0 ? texts : ["🎯 今日の条件から選びました"];
+}
+
 // ==================================================================
-// 🎯「今日どこ行く？」診断機能：UI（質問画面・結果画面）
+// 🎯「今日どこ行く？」おまかせ診断：UI（質問画面・結果画面）
 // ------------------------------------------------------------------
-// ・既存の .sheet-overlay / openSheet() / closeSheetById() をそのまま
-//   再利用し、詳細画面・絞り込みと同じ操作感にする。
-// ・選択肢は3問固定。回答すると自動的に次の設問へ進む。
+// ・既存の .sheet-overlay / openSheet() / closeSheetById() をそのまま再利用し、
+//   詳細画面・絞り込みと同じ操作感にする。
+// ・質問は3問固定。天気・年齢・距離などは聞かず、回答すると自動的に次へ進む。
+// ・結果は「今日のイチオシ（1件）」＋「他の候補（2〜5位）」。点数は見せない。
 // ==================================================================
 const DIAGNOSIS_QUESTIONS = [
-  { key:"weather", title:"Q1. 今日はどんな天気？", options:[
-    {value:"sunny", icon:"☀️", label:"晴れ", sub:"屋外でも楽しめる場所を優先"},
-    {value:"rain", icon:"☔", label:"雨", sub:"屋内・雨に強い場所を優先"},
-    {value:"any", icon:"🌤", label:"どちらでもOK", sub:"天気による絞り込みなし"}
+  { key:"mood", title:"Q1. 今日はどんな感じで遊びたい？", sub:"気分で選ぶだけ。天気・距離・年齢などはアプリが自動で見ます", options:[
+    {value:"active", icon:"🏃", label:"しっかり遊びたい", sub:"体を動かして発散"},
+    {value:"relax", icon:"🌿", label:"のんびり過ごしたい", sub:"ゆったりまったり"},
+    {value:"look", icon:"👀", label:"見て楽しみたい", sub:"見る・観察する"},
+    {value:"experience", icon:"🎨", label:"体験・遊びをしたい", sub:"やってみる・ふれあう"},
+    {value:"any", icon:"🤔", label:"おまかせ", sub:"アプリに決めてほしい"}
   ]},
-  { key:"ages", title:"Q2. 子どもの年齢は？", sub:"複数選択できます（兄弟で年齢が違う場合など）", multi:true, options:
-    AGES.map(a=>({value:a, icon:"🧒", label:a, sub:""}))
-  },
-  { key:"q1", title:"Q3. 今日はどんなお出かけ？", options:[
-    {value:"park", icon:"🌳", label:"公園・遊び場", sub:"", genres:["公園"]},
-    {value:"zoo_aqua", icon:"🐠", label:"水族館・動物園", sub:"", genres:["水族館","動物園"]},
-    {value:"indoor", icon:"🏠", label:"室内遊び", sub:"", genres:["室内遊び場"]},
-    {value:"athletic", icon:"🌲", label:"アスレチック・アウトドア", sub:"", genres:["アスレチック・アウトドア"]},
-    {value:"onsen", icon:"♨️", label:"温泉・スパ", sub:"", genres:["温泉・スパ"]},
-    {value:"pool", icon:"🏊", label:"プール・水遊び", sub:"", genres:["プール・水遊び"]},
-    {value:"fruit", icon:"🍓", label:"果物狩り・体験", sub:"", genres:["果物狩り・収穫体験"]},
-    {value:"ranch", icon:"🐮", label:"牧場・ふれあい", sub:"", genres:["牧場"]},
-    {value:"any", icon:"❓", label:"なんでもOK", sub:"目的で絞り込まない", genres:null}
+  { key:"scale", title:"Q2. どのくらいのお出かけにする？", options:[
+    {value:"near", icon:"🚗", label:"近場でサクッと", sub:"近くで短めに"},
+    {value:"half", icon:"☀️", label:"半日くらい", sub:"数時間しっかり"},
+    {value:"full", icon:"🗓️", label:"1日しっかり", sub:"遠出もOK"},
+    {value:"any", icon:"🤔", label:"おまかせ", sub:"アプリに決めてほしい"}
+  ]},
+  { key:"priority", title:"Q3. 今日は何を優先したい？", options:[
+    {value:"kids", icon:"👧", label:"子どもが楽しめる", sub:""},
+    {value:"family", icon:"👨‍👩‍👧‍👦", label:"家族みんなで楽しめる", sub:""},
+    {value:"cheap", icon:"💰", label:"できるだけお金をかけない", sub:""},
+    {value:"special", icon:"✨", label:"ちょっと特別なお出かけ", sub:""},
+    {value:"any", icon:"🤔", label:"完全おまかせ", sub:"アプリに決めてほしい"}
   ]}
 ];
-// 🆕 Q3（カテゴリ）の選択肢と既存ジャンル（deriveCategory）の対応表。質問を増やす場合もここに追記するだけでよい。
-const DIAG_CATEGORY_GENRES = {};
-DIAGNOSIS_QUESTIONS[2].options.forEach(opt=>{ DIAG_CATEGORY_GENRES[opt.value] = opt.genres; });
-let diagnosisAnswers = {}; // { weather, ages:Set, q1 }
+let diagnosisAnswers = {};          // { mood, scale, priority }
+let diagnosisState = null;          // 結果画面の状態（採点結果・微調整・シード）。お気に入り操作などで並びが変わらないよう保持する
+let diagnosisRunToken = 0;          // 途中で閉じた／やり直した場合に、古い結果を描画しないための番号
+let diagnosisSessionShown = new Set(); // このシートを開いている間に見せた施設（「もう一度おまかせ」で同じ顔ぶれにしない）
 
 function openDiagnosis(){
   diagnosisAnswers = {};
+  diagnosisState = null;
+  diagnosisSessionShown = new Set();
+  diagnosisRunToken++;
   trackEvent("diagnosis_start", {});
+  // 🆕 再訪分析用：既存のdiagnosis_startとは別名で追加発火
+  trackEvent("recommendation_start", { recommendation_type: "mood_diagnosis" });
   renderDiagnosisQuestion(0);
   openSheet("diagnosisOverlay");
 }
 function closeDiagnosis(){
+  diagnosisRunToken++;
   closeSheetById("diagnosisOverlay");
 }
 function renderDiagnosisStepDots(activeIndex){
@@ -15404,9 +16667,9 @@ function renderDiagnosisStepDots(activeIndex){
     `<span class="diag-step-dot${i===activeIndex?" active":""}${i<activeIndex?" done":""}"></span>`).join("")}</div>`;
 }
 function renderDiagnosisQuestion(index){
+  diagnosisRunToken++; // 結果の計算中に質問へ戻った場合、遅れて届く結果で画面を上書きしない
   const sheet = document.getElementById("diagnosisSheet");
   const q = DIAGNOSIS_QUESTIONS[index];
-  const selected = q.multi ? (diagnosisAnswers[q.key] || new Set()) : null;
   sheet.innerHTML = `
     <button class="sheet-close" id="diagnosisCloseBtn">×</button>
     <div class="diag-header">
@@ -15416,7 +16679,7 @@ function renderDiagnosisQuestion(index){
     </div>
     <div class="diag-options">
       ${q.options.map(opt => `
-        <button class="diag-option-card${selected && selected.has(opt.value) ? " selected" : ""}" data-value="${opt.value}">
+        <button class="diag-option-card${diagnosisAnswers[q.key]===opt.value ? " selected" : ""}" data-value="${opt.value}">
           <span class="diag-opt-check">✓</span>
           <span class="diag-opt-icon">${opt.icon}</span>
           <span class="diag-opt-label">${opt.label}</span>
@@ -15424,122 +16687,279 @@ function renderDiagnosisQuestion(index){
         </button>
       `).join("")}
     </div>
-    ${q.multi ? `<button type="button" class="diag-next-btn" id="diagnosisNextBtn">${index < DIAGNOSIS_QUESTIONS.length - 1 ? "次へ" : "おすすめを見る"}</button>
-    <span class="diag-skip-link" id="diagnosisSkipLink">指定せずに進む</span>` : ""}
+    ${index>0 ? `<span class="diag-back-link" id="diagnosisPrevLink">‹ 前の質問に戻る</span>` : ""}
     <button class="detail-close-bottom" id="diagnosisCloseBtnBottom">戻る</button>
   `;
   sheet.querySelector("#diagnosisCloseBtn").onclick = closeDiagnosis;
   sheet.querySelector("#diagnosisCloseBtnBottom").onclick = closeDiagnosis;
-  const goNext = ()=>{
-    trackEvent("diagnosis_answer_" + q.key, {value: q.multi ? [...(diagnosisAnswers[q.key]||[])].join(",") : diagnosisAnswers[q.key]});
-    if(index < DIAGNOSIS_QUESTIONS.length - 1){
-      renderDiagnosisQuestion(index + 1);
-    } else {
-      renderDiagnosisResults();
-    }
-  };
-  if(q.multi){
-    sheet.querySelectorAll(".diag-option-card").forEach(btn=>{
-      btn.onclick = ()=>{
-        const set = diagnosisAnswers[q.key] || new Set();
-        if(set.has(btn.dataset.value)) set.delete(btn.dataset.value); else set.add(btn.dataset.value);
-        diagnosisAnswers[q.key] = set;
-        btn.classList.toggle("selected");
-      };
-    });
-    sheet.querySelector("#diagnosisNextBtn").onclick = goNext;
-    sheet.querySelector("#diagnosisSkipLink").onclick = ()=>{ diagnosisAnswers[q.key] = new Set(); goNext(); };
-  } else {
-    sheet.querySelectorAll(".diag-option-card").forEach(btn=>{
-      btn.onclick = ()=>{
-        diagnosisAnswers[q.key] = btn.dataset.value;
-        goNext();
-      };
-    });
-  }
+  const prev = sheet.querySelector("#diagnosisPrevLink");
+  if(prev) prev.onclick = ()=>renderDiagnosisQuestion(index-1);
+  sheet.querySelectorAll(".diag-option-card").forEach(btn=>{
+    btn.onclick = ()=>{
+      diagnosisAnswers[q.key] = btn.dataset.value;
+      trackEvent("diagnosis_answer_" + q.key, {value: btn.dataset.value});
+      if(index < DIAGNOSIS_QUESTIONS.length - 1) renderDiagnosisQuestion(index + 1);
+      else renderDiagnosisResults();
+    };
+  });
   sheet.scrollTop = 0;
 }
+
+// 結果画面に出す「アプリが自動で見た今日の条件」
+function diagContextChips(st){
+  const c = st.ctx;
+  const d = c.now;
+  const chips = [`📅 ${d.getMonth()+1}/${d.getDate()}(${WEEKDAY_LABELS_JA[WEEKDAY_KEYS[d.getDay()]]})${c.isHoliday ? "・祝日" : ""}`];
+  if(c.weather){
+    const w = c.weather;
+    chips.push(`${w.icon||"🌤"} ${w.cond}${typeof w.tempMax==="number" ? "・最高"+w.tempMax+"℃" : ""}`);
+  } else {
+    chips.push("☁️ 天気は取得できず");
+  }
+  if(c.homeLoc) chips.push(state.homeLocSource==="geo" ? "📍 現在地から" : "🏠 設定した出発地から");
+  else chips.push("📍 出発地は未設定（東京駅付近を目安）");
+  if(c.selectedAges && c.selectedAges.size>0) chips.push(`👧 ${[...c.selectedAges].join("・")}`);
+  st.notes.forEach(n=>chips.push(n));
+  return chips;
+}
+function diagEsc(s){
+  return String(s==null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function diagActionsHtml(spot){
+  const isFav = state.favorites.has(spot.name);
+  const isPlanned = isInAnyPlan(spot.name);
+  return `
+    <div class="diag-result-actions">
+      <button type="button" class="diag-result-quick-btn ${isFav?'on':''}" data-quick="fav">${isFav?"❤️ 行きたい済み":"🤍 行きたい"}</button>
+      <button type="button" class="diag-result-quick-btn ${isPlanned?'on':''}" data-quick="plan">${isPlanned?"🗓 追加済み":"🗓 プランに追加"}</button>
+      <span class="diag-result-detail-link">詳細を見る ›</span>
+    </div>`;
+}
+function diagHeroHtml(item, st){
+  const spot = item.spot;
+  const genre = genreInfo(spot);
+  const reasons = diagnosisReasons(item, st.ctx).slice(0,4);
+  const open = item.score.open;
+  const warn = open.status==="short" ? `<div class="diag-warn">⏰ 到着後に過ごせる時間が短めです（本日 ${diagEsc(open.hours)}）</div>` : "";
+  const noHours = open.status==="unknown" ? `<div class="diag-hint">営業日・営業時間は公式サイトでご確認ください</div>` : "";
+  return `
+    <div class="diag-hero" data-idx="0">
+      <div class="diag-hero-label">🎯 今日のイチオシ</div>
+      <div class="diag-hero-name">${genre.icon} ${diagEsc(spot.name)}</div>
+      <div class="diag-hero-catch">今日はここがぴったり！</div>
+      <div class="diag-hero-meta">${diagEsc(spot.area)}　${diagEsc(deriveCategory(spot))}　💰 ${diagEsc(priceCardSnippet(spot))}</div>
+      <ul class="diag-reasons">${reasons.map(r=>`<li>${diagEsc(r)}</li>`).join("")}</ul>
+      ${warn}${noHours}
+      ${spot.desc ? `<div class="diag-hero-desc">${diagEsc(spot.desc)}</div>` : ""}
+      ${diagActionsHtml(spot)}
+    </div>`;
+}
+function diagCompactCardHtml(item, idx, st){
+  const spot = item.spot;
+  const genre = genreInfo(spot);
+  const tags = diagnosisReasons(item, st.ctx).slice(0,2);
+  const medals = ["","🥈","🥉","4️⃣","5️⃣"];
+  return `
+    <div class="diag-result-card" data-idx="${idx}">
+      <div class="diag-result-head">
+        <span class="diag-medal">${medals[idx]||(idx+1)+"位"}</span>
+        <span class="diag-result-genre">${genre.icon}</span>
+        <span class="diag-result-name">${diagEsc(spot.name)}</span>
+      </div>
+      <div class="diag-result-meta">${diagEsc(spot.area)}　${diagEsc(deriveCategory(spot))}　💰 ${diagEsc(priceCardSnippet(spot))}</div>
+      <div class="diag-result-tags">${tags.map(t=>`<span class="diag-tag">${diagEsc(t)}</span>`).join("")}</div>
+      ${diagActionsHtml(spot)}
+    </div>`;
+}
+
+// 採点して、BEST5（1位＝イチオシ＋2〜5位）を決める。opts.record=trueなら、この結果を「見せた」履歴として残す。
+function runDiagnosis(st, opts){
+  const ctx = st.ctx;
+  ctx.tweaks = st.tweaks;
+  ctx.seed = st.seed;
+  ctx.history = st.history;
+  ctx.shown = diagnosisSessionShown;
+  const scored = st.candidates.map(spot=>{
+    const destWeather = st.weatherBySpot.get(spot.name) || null;
+    return { spot, score: computeDiagnosisScore(spot, ctx, destWeather || ctx.weather, !!destWeather) };
+  });
+  scored.sort((a,b)=>b.score.total-a.score.total);
+  st.ranked = scored;
+  // 営業日でない・すでに閉まっている施設は、他に十分な候補があれば外す
+  const viable = scored.filter(it=>!it.score.open.hard);
+  st.best = pickDiagnosisBest(viable.length>=5 ? viable : scored);
+  if(opts && opts.record && st.best[0]){
+    diagSaveHistory(st.best[0].spot.name);
+    st.best.forEach(it=>diagnosisSessionShown.add(it.spot.name));
+  }
+}
+// 上位候補だけ「現地の天気」を取得して採点し直す（既存の fetchWeatherForSpot を利用。3時間キャッシュ付き）。
+// 取得できなかった施設は出発地の天気で判断を続ける。
+async function diagFetchDestinationWeather(items, st){
+  const jobs = items.map(async it=>{
+    try{
+      const days = await fetchWeatherForSpot(it.spot);
+      const info = days && days[0] ? weatherInfoFromDay(days[0]) : null;
+      if(info) st.weatherBySpot.set(it.spot.name, info);
+    }catch(e){ /* 現地の天気が取れなくても出発地の天気で続行 */ }
+  });
+  await Promise.race([ Promise.all(jobs), new Promise(r=>setTimeout(r, 4000)) ]);
+}
+
 async function renderDiagnosisResults(){
+  const token = ++diagnosisRunToken;
   const sheet = document.getElementById("diagnosisSheet");
   sheet.innerHTML = `
     <button class="sheet-close" id="diagnosisCloseBtn">×</button>
     <div class="diag-loading">
       <div class="diag-loading-spinner">🔎</div>
-      <div>あなたに合うお出かけ先を探しています…</div>
+      <div>今日の天気や距離を見て、ぴったりの場所を選んでいます…</div>
     </div>
     <button class="detail-close-bottom" id="diagnosisCloseBtnBottom" style="margin-top:20px;">戻る</button>
   `;
   sheet.querySelector("#diagnosisCloseBtn").onclick = closeDiagnosis;
   sheet.querySelector("#diagnosisCloseBtnBottom").onclick = closeDiagnosis;
 
-  const weatherKind = diagnosisAnswers.weather || "any"; // 🆕 Q1で選んだ天気（自動取得はしない）
-  const ctx = {
-    q1: diagnosisAnswers.q1,
-    weatherKind, selectedAges: diagnosisAnswers.ages, homeLoc: state.homeLoc
+  // ① 今日の天気を自動取得（出発地。既存の仕組みを再利用）。前回失敗していた場合は取り直す。
+  if(todayWeatherKindCache===null) resetTodayWeatherKindCache();
+  try{ await Promise.race([ensureTodayWeatherKind(), new Promise(r=>setTimeout(r, 4500))]); }catch(e){ /* 天気なしで続行 */ }
+  if(token!==diagnosisRunToken) return;
+
+  // ② 自動判定の材料（現在地・年齢・時刻・季節・エリア…）と、3問の回答をまとめる
+  const cand = diagCandidateSpots();
+  const st = diagnosisState = {
+    tweaks: { nearer:false, rain:false, active:false },
+    seed: diagNewSeed(),
+    candidates: cand.list,
+    notes: cand.notes,
+    weatherBySpot: new Map(),
+    history: diagLoadHistory(),
+    showMore: false,
+    ranked: [], best: [],
+    ctx: Object.assign(diagNowContext(), {
+      homeLoc: state.homeLoc,                    // 実際に設定されている出発地（現在地／郵便番号・地名）
+      origin: state.homeLoc || DEFAULT_ORIGIN,   // 採点に使う出発地。未設定の間は東京駅付近を目安にする
+      originIsDefault: !state.homeLoc,
+      selectedAges: state.ages,
+      mood: diagnosisAnswers.mood || "any",
+      scale: diagnosisAnswers.scale || "any",
+      priority: diagnosisAnswers.priority || "any",
+      weather: todayWeatherInfoCache
+    })
   };
-  const candidates = SPOTS.filter(s => !state.excluded.has(s.name));
-  const scored = candidates.map(spot => ({ spot, score: computeDiagnosisScore(spot, ctx) }));
-  const best5 = pickBest5(scored);
+  // ③ 採点 → 上位候補の現地の天気を取得 → 採点し直して確定
+  runDiagnosis(st);
+  await diagFetchDestinationWeather(st.ranked.slice(0,10), st);
+  if(token!==diagnosisRunToken) return;
+  runDiagnosis(st, { record:true });
+  trackEvent("diagnosis_result_view", { count: st.best.length, top: st.best[0] ? st.best[0].spot.name : "" });
+  // 🆕 再訪分析用：既存のdiagnosis_result_viewとは別名で追加発火
+  trackEvent("recommendation_complete", {
+    recommendation_type: "mood_diagnosis",
+    facility_name: st.best[0] ? st.best[0].spot.name : "",
+    category: st.best[0] ? deriveCategory(st.best[0].spot) : undefined
+  });
+  renderDiagnosisResultView();
+}
 
-  trackEvent("diagnosis_result_view", {count: best5.length});
-
-  const medals = ["🥇","🥈","🥉","4️⃣","5️⃣"];
+function renderDiagnosisResultView(opts){
+  const st = diagnosisState;
+  if(!st) return;
+  const sheet = document.getElementById("diagnosisSheet");
+  const keepScroll = opts && opts.keepScroll ? sheet.scrollTop : null;
+  const best = st.best;
+  const t = st.tweaks;
+  const others = best.slice(1);
+  const tweakChips = [
+    st.ctx.homeLoc && st.ctx.scale!=="near" ? `<button type="button" class="diag-tweak-chip${t.nearer?" on":""}" data-tweak="nearer">📍 もっと近く</button>` : "",
+    `<button type="button" class="diag-tweak-chip${t.rain?" on":""}" data-tweak="rain">☔ 雨でもOK</button>`,
+    st.ctx.mood!=="active" ? `<button type="button" class="diag-tweak-chip${t.active?" on":""}" data-tweak="active">🏃 しっかり遊べるところ</button>` : "",
+    `<button type="button" class="diag-tweak-chip reroll" data-tweak="reroll">🔄 もう一度おまかせ</button>`
+  ].join("");
   sheet.innerHTML = `
     <button class="sheet-close" id="diagnosisCloseBtn">×</button>
-    <div class="diag-title" style="margin-bottom:10px;">🎯 今日のおすすめ BEST${best5.length===5?"5":best5.length}</div>
-    ${best5.length===0 ? `<div class="empty">条件に合うおでかけ先が見つかりませんでした。<br>「詳しく絞り込む」の条件を見直してみてください。</div>` : ""}
-    <div class="diag-results">
-      ${best5.map((item, i) => {
-        const genre = genreInfo(item.spot);
-        const tags = diagnosisReasonTags(item.spot, ctx, item.score.parts);
-        const oneLiner = diagnosisOneLiner(item.spot, ctx, item.score.parts);
-        const isFav = state.favorites.has(item.spot.name);
-        const isPlanned = isInAnyPlan(item.spot.name);
-        return `
-          <div class="diag-result-card" data-name="${item.spot.name.replace(/"/g,"&quot;")}">
-            <div class="diag-result-head">
-              <span class="diag-medal">${medals[i]||(i+1)+"位"}</span>
-              <span class="diag-result-genre">${genre.icon}</span>
-              <span class="diag-result-name">${item.spot.name}</span>
-              <span class="diag-result-score">${item.score.total}点</span>
-            </div>
-            <div class="diag-result-meta">${item.spot.area}　${deriveCategory(item.spot)}　💰 ${priceCardSnippet(item.spot)}</div>
-            <div class="diag-result-tags">${tags.map(t=>`<span class="diag-tag">${t}</span>`).join("")}</div>
-            <div class="diag-result-oneliner">${oneLiner}</div>
-            <div class="diag-result-actions">
-              <button type="button" class="diag-result-quick-btn ${isFav?'on':''}" data-quick="fav">${isFav?"❤️ 行きたい済み":"🤍 行きたい"}</button>
-              <button type="button" class="diag-result-quick-btn ${isPlanned?'on':''}" data-quick="plan">${isPlanned?"🗓 追加済み":"🗓 プランに追加"}</button>
-              <span class="diag-result-detail-link">詳細を見る ›</span>
-            </div>
-          </div>
-        `;
-      }).join("")}
-    </div>
-    <button class="diag-retry-btn" id="diagnosisRetryBtn">🔄 もう一度3問で探す</button>
+    <div class="diag-context">${diagContextChips(st).map(c=>`<span class="diag-context-chip">${diagEsc(c)}</span>`).join("")}</div>
+    ${best.length===0 ? `<div class="empty">条件に合うおでかけ先が見つかりませんでした。<br>トップの絞り込み条件を見直してみてください。</div>` : diagHeroHtml(best[0], st)}
+    ${st.ctx.originIsDefault ? `<div class="diag-origin-note">📍 出発地が未設定のため、東京駅付近を目安に選んでいます。<button type="button" class="diag-origin-btn" id="diagOriginBtn">現在地を使ってもう一度選ぶ</button><span class="diag-origin-msg" id="diagOriginMsg"></span></div>` : ""}
+    ${best.length===0 ? "" : `
+    <div class="diag-tweaks">
+      <div class="diag-tweaks-title">ちょっと違う？ 結果を見てから調整できます</div>
+      <div class="diag-tweak-chips">${tweakChips}</div>
+    </div>`}
+    ${others.length>0 ? `
+      <button type="button" class="diag-more-btn" id="diagMoreBtn">${st.showMore ? "他の候補を閉じる ▴" : `他の候補を見る（${others.length}件） ▾`}</button>
+      ${st.showMore ? `<div class="diag-more-list">${others.map((it,i)=>diagCompactCardHtml(it, i+1, st)).join("")}</div>` : ""}
+    ` : ""}
+    <button class="diag-retry-btn" id="diagnosisRetryBtn">🔁 3問を答え直す</button>
+    <div class="diag-foot-note">天気・営業日・営業時間・移動時間はあくまで目安です。お出かけ前に公式サイトでご確認ください。</div>
     <button class="detail-close-bottom" id="diagnosisCloseBtnBottom">戻る</button>
   `;
   sheet.querySelector("#diagnosisCloseBtn").onclick = closeDiagnosis;
   sheet.querySelector("#diagnosisCloseBtnBottom").onclick = closeDiagnosis;
-  sheet.querySelector("#diagnosisRetryBtn").onclick = ()=>{ diagnosisAnswers = {}; renderDiagnosisQuestion(0); };
-  sheet.querySelectorAll(".diag-result-card").forEach(card=>{
-    const spot = SPOTS.find(s=>s.name===card.dataset.name);
-    if(!spot) return;
+  sheet.querySelector("#diagnosisRetryBtn").onclick = ()=>{ diagnosisAnswers = {}; diagnosisState = null; renderDiagnosisQuestion(0); };
+
+  // 結果を見てからの微調整（質問を増やすのではなく、出た結果に対する再調整）
+  sheet.querySelectorAll("[data-tweak]").forEach(btn=>{
+    btn.onclick = ()=>{
+      const key = btn.dataset.tweak;
+      if(key==="reroll"){
+        st.seed = diagNewSeed();
+        runDiagnosis(st, { record:true });
+        trackEvent("diagnosis_reroll", {});
+      } else {
+        st.tweaks[key] = !st.tweaks[key];
+        runDiagnosis(st);
+        trackEvent("diagnosis_tweak", { tweak:key, on: st.tweaks[key] });
+      }
+      renderDiagnosisResultView();
+    };
+  });
+  // 出発地が未設定のときだけ、現在地を使ってやり直せる（既存の「📍 現在地から探す」と同じ処理を利用）
+  const originBtn = sheet.querySelector("#diagOriginBtn");
+  if(originBtn) originBtn.onclick = ()=>{
+    const msg = sheet.querySelector("#diagOriginMsg");
+    originBtn.disabled = true;
+    originBtn.textContent = "現在地を取得中…";
+    requestCurrentLocation();
+    let waited = 0;
+    const timer = setInterval(()=>{
+      waited += 300;
+      if(state.geoStatus==="loading" && waited<17000) return;
+      clearInterval(timer);
+      if(diagnosisState!==st) return; // すでに閉じた・やり直した場合は何もしない
+      if(state.homeLoc){ renderDiagnosisResults(); return; }
+      originBtn.disabled = false;
+      originBtn.textContent = "現在地を使ってもう一度選ぶ";
+      if(msg) msg.textContent = state.geoErrorMsg || "現在地を取得できませんでした。トップで郵便番号・地名を入力しても設定できます。";
+    }, 300);
+  };
+  const moreBtn = sheet.querySelector("#diagMoreBtn");
+  if(moreBtn) moreBtn.onclick = ()=>{
+    st.showMore = !st.showMore;
+    trackEvent("diagnosis_show_more", { open: st.showMore });
+    renderDiagnosisResultView({ keepScroll:true });
+  };
+  // 施設カード（イチオシ・他の候補共通）
+  sheet.querySelectorAll("[data-idx]").forEach(card=>{
+    const item = best[Number(card.dataset.idx)];
+    if(!item) return;
+    const spot = item.spot;
     card.querySelector('[data-quick="fav"]').onclick = (e)=>{
       e.stopPropagation();
       toggleSet("favorites", spot.name);
-      renderDiagnosisResults();
+      renderDiagnosisResultView({ keepScroll:true });
     };
     card.querySelector('[data-quick="plan"]').onclick = (e)=>{
       e.stopPropagation();
-      if(isInAnyPlan(spot.name)){ removeFromAllPlans(spot.name); render(); renderDiagnosisResults(); }
-      else { openPlanPicker(spot.name, ()=>{ render(); renderDiagnosisResults(); }); }
+      if(isInAnyPlan(spot.name)){ removeFromAllPlans(spot.name); render(); renderDiagnosisResultView({ keepScroll:true }); }
+      else { openPlanPicker(spot.name, ()=>{ render(); renderDiagnosisResultView({ keepScroll:true }); }); }
     };
     card.onclick = ()=>{
-      trackEvent("diagnosis_result_click", {facility_name: spot.name});
+      trackEvent("diagnosis_result_click", {facility_name: spot.name, rank: Number(card.dataset.idx)+1});
       openDetail(spot);
     };
   });
-  sheet.scrollTop = 0;
+  sheet.scrollTop = keepScroll!==null ? keepScroll : 0;
 }
 
 // ==================================================================
@@ -15752,8 +17172,18 @@ function getBookingInfo(spot){
 
 function toggleSet(setName, name){
   const s = state[setName];
-  if(s.has(name)) s.delete(name); else s.add(name);
+  const wasPresent = s.has(name);
+  if(wasPresent) s.delete(name); else s.add(name);
   savePersisted();
+  // 🆕 再訪分析用：「行きたい」への追加時のみ発火（解除時・除外リストなどでは発火しない）
+  if(!wasPresent && setName==="favorites"){
+    const spot = SPOTS.find(sp=>sp.name===name);
+    trackEvent("favorite_add", {
+      facility_name: name,
+      category: spot ? deriveCategory(spot) : undefined,
+      region: spot ? spot.region : undefined
+    });
+  }
   render();
   if(document.getElementById("detailOverlay").classList.contains("open")){
     const spot = SPOTS.find(sp=>sp.name===name);
@@ -16619,8 +18049,12 @@ function openDetail(spot, silent, backTarget){
       });
     }
   };
-  sheet.querySelector('[data-act="share"]').onclick = ()=>shareSpot(spot);
+  sheet.querySelector('[data-act="share"]').onclick = ()=>{
+    trackEvent("share_click", {facility_name:spot.name, category:category, region:spot.region, link_type:"spot_image"});
+    shareSpot(spot);
+  };
   sheet.querySelector('[data-act="copylink"]').onclick = ()=>{
+    trackEvent("share_click", {facility_name:spot.name, category:category, region:spot.region, link_type:"spot_link"});
     const url = window.location.origin + APP_BASE_PATH + spotSlug(spot) + "/";
     shareLinkOrCopy(url, `${spot.name}｜おでかけナビ`, `【おでかけナビ】この施設よさそう！\n${spot.name}（${spot.area}）`);
   };
@@ -16660,6 +18094,10 @@ function openDetail(spot, silent, backTarget){
       refreshVisitAddBtnLabel();
     };
   }
+  const mapActionBtn = sheet.querySelector('.go-action-btn.map');
+  if(mapActionBtn) mapActionBtn.addEventListener("click", ()=>trackEvent("map_click", {facility_name:spot.name, category:category, region:spot.region}));
+  const transitActionBtn = sheet.querySelector('.go-action-btn.transit');
+  if(transitActionBtn) transitActionBtn.addEventListener("click", ()=>trackEvent("route_click", {facility_name:spot.name, category:category, region:spot.region}));
   const officialBtn = sheet.querySelector('[data-act="official-click"]');
   if(officialBtn) officialBtn.addEventListener("click", ()=>trackEvent("official_site_click", {facility_name:spot.name}));
   const bookingBtn = sheet.querySelector('[data-act="booking-click"]');
@@ -16690,12 +18128,20 @@ function openDetail(spot, silent, backTarget){
       hotelToggleBtn.classList.toggle("open", !isOpen);
     };
     sheet.querySelectorAll('[data-act="hotel-booking-click"]').forEach(a=>{
-      a.addEventListener("click", ()=>trackEvent("hotel_booking_click", {
-        hotel_name: a.dataset.hotelName,
-        hotel_area: a.dataset.hotelArea,
-        booking_site: a.dataset.bookingSite,
-        related_facility: spot.name
-      }));
+      a.addEventListener("click", ()=>{
+        trackEvent("hotel_booking_click", {
+          hotel_name: a.dataset.hotelName,
+          hotel_area: a.dataset.hotelArea,
+          booking_site: a.dataset.bookingSite,
+          related_facility: spot.name
+        });
+        // 🆕 再訪分析用：既存のhotel_booking_clickとは別名で追加発火
+        trackEvent("hotel_link_click", {
+          link_type: "hotel_booking",
+          facility_name: spot.name,
+          hotel_name: a.dataset.hotelName
+        });
+      });
     });
     // 🏨 各ホテルカードの「このホテルを予約する」→ 予約サイト選択UIの開閉（Phase32）
     sheet.querySelectorAll('[data-act="hotel-book-toggle"]').forEach(btn=>{
@@ -16851,7 +18297,8 @@ const DRAWER_PREFS = [
   {region:"東京", label:"東京"}, {region:"神奈川", label:"神奈川"},
   {region:"埼玉", label:"埼玉"}, {region:"千葉", label:"千葉"},
   {region:"茨城", label:"茨城"}, {region:"栃木", label:"栃木"},
-  {region:"群馬", label:"群馬"}, {region:"山梨", label:"山梨"}
+  {region:"群馬", label:"群馬"}, {region:"山梨", label:"山梨"},
+  {region:"静岡", label:"静岡"}, {region:"長野", label:"長野"}
 ];
 const SEASON_EN_SLUG = {"春":"spring", "夏":"summer", "秋":"autumn", "冬":"winter"};
 
@@ -16935,17 +18382,198 @@ function buildDrawerMenu(){
     genreGrid.appendChild(btn);
   });
 }
+// ==================================================================
+// 🏨 ホテルを探す（ハンバーガーメニュー → エリアを選ぶ → そのエリアのホテル一覧）
+// ------------------------------------------------------------------
+// ・ホテル情報は既存の FAMILY_HOTELS（施設データSPOTSとは別構造）をそのまま使う。
+//   ホテルを FAMILY_HOTELS に追加するだけで、エリア選択・一覧・予約リンクに自動で反映される。
+// ・エリアの表示名と都道府県の見出しは HOTEL_AREA_META に集約。未登録のエリアも
+//   「キー名＋最初のホテルの都道府県」で表示されるので、追加時に必須ではない。
+// ・予約リンクは各ホテルの bookingLinks（siteName / url / order）を優先し、無ければ
+//   従来の booking（jalan / yahooTravel / ikyu）を使う。旅行予約サイトのURLが無いホテルは
+//   hotelHasOtaLink() で非表示にする（架空のURLは作らない）。アフィリエイトURLは bookingLinks の url に入れる。
+// ・将来 hotels.json へ切り出す場合は FAMILY_HOTELS と HOTEL_AREA_META を移すだけでよい。
+// ・既存の .sheet-overlay / openSheet() / closeSheetById() / ホテルカードCSS / 予約サイトUIを再利用。
+// ==================================================================
+// ※ HOTEL_AREA_META / HOTEL_PREF_ORDER（データ定義）は FAMILY_HOTELS の直後へ移動済み。
+
+function getSearchableHotels(areaKey){
+  return (FAMILY_HOTELS[areaKey] || []).filter(hotelHasOtaLink);
+}
+function getHotelAreas(){
+  return Object.keys(FAMILY_HOTELS).filter(key=>getSearchableHotels(key).length>0).map(key=>{
+    const hotels = getSearchableHotels(key);
+    const meta = HOTEL_AREA_META[key] || {};
+    const firstPref = hotels[0] && hotels[0].prefecture;
+    return {
+      key: key,
+      label: meta.label || key,
+      pref: meta.pref || ((firstPref && firstPref!=="要確認") ? firstPref : "その他"),
+      count: hotels.length
+    };
+  });
+}
+function groupHotelAreasByPref(areas){
+  const groups = new Map();
+  areas.forEach(a=>{
+    if(!groups.has(a.pref)) groups.set(a.pref, []);
+    groups.get(a.pref).push(a);
+  });
+  const rank = pref=>{ const i = HOTEL_PREF_ORDER.indexOf(pref); return i<0 ? 999 : i; };
+  return Array.from(groups.entries()).sort((a,b)=>rank(a[0])-rank(b[0]));
+}
+function getHotelReservationLinks(hotel){
+  const valid = l=>l && l.siteName && typeof l.url==="string" && /^https?:\/\//.test(l.url);
+  let links = [];
+  if(Array.isArray(hotel.bookingLinks)){
+    links = hotel.bookingLinks.slice()
+      .sort((a,b)=>(a.order||99)-(b.order||99))
+      .map(l=>({siteName:l.siteName, url:l.url}))
+      .filter(valid);
+  }
+  if(links.length===0 && hotel.booking){
+    links = HOTEL_BOOKING_SITES.map(site=>({siteName:site.label, url:hotel.booking[site.key]})).filter(valid);
+  }
+  return links.map(l=>{
+    const site = HOTEL_BOOKING_SITES.find(s=>s.label===l.siteName);
+    return {
+      siteName: l.siteName, url: l.url,
+      key: site ? site.key : "",
+      icon: site ? site.icon : "🌐",
+      text: site ? `${l.siteName}で空室を見る` : `${l.siteName}を見る`,
+      desc: site ? site.desc : "施設の公式ページで確認する"
+    };
+  });
+}
+function hotelSearchCardHtml(hotel, areaKey, idx){
+  const links = getHotelReservationLinks(hotel);
+  const tags = (hotel.tags && hotel.tags.length) ? hotel.tags : (hotel.label ? [hotel.label] : []);
+  const optionsId = `hotelSearchOptions-${areaKey}-${idx}`;
+  const bookingHtml = links.length>0 ? `
+    <button type="button" class="hotel-book-toggle-btn" data-act="hotel-search-toggle" data-options-id="${optionsId}" data-hotel-name="${escapeAttr(hotel.name)}">🏨 このホテルを予約する</button>
+    <div class="hotel-booking-options" id="${optionsId}" style="display:none;">
+      ${(VC_SID && VC_PID) ? `<div class="pr-label">[PR] 対象リンクからの予約で運営者に紹介料が入る場合があります</div>` : ""}
+      ${links.map(l=>`
+        <a class="hotel-booking-option ${l.key}" href="${escapeAttr(l.url)}" target="_blank" rel="noopener"
+          data-act="hotel-search-booking-click" data-hotel-name="${escapeAttr(hotel.name)}" data-hotel-area="${escapeAttr(hotel.area||"")}" data-booking-site="${escapeAttr(l.key||l.siteName)}">
+          <span class="hotel-booking-option-icon">${l.icon}</span>
+          <span class="hotel-booking-option-text">
+            <span class="hotel-booking-option-name">${l.text}</span>
+            <span class="hotel-booking-option-desc">${l.desc}</span>
+          </span>
+          <span class="hotel-booking-option-arrow">›</span>
+        </a>`).join("")}
+    </div>` : `<div class="hotel-card-book-pending">予約リンクは準備中です</div>`;
+  return `
+    <div class="hotel-card">
+      ${tags.length>0 ? `<div class="hotel-card-labels">${tags.map(t=>`<span class="hotel-card-label">${t}</span>`).join("")}</div>` : ""}
+      <div class="hotel-card-name">🏨 ${hotel.name}</div>
+      ${hotel.area ? `<div class="hotel-card-area">📍 ${hotel.area}</div>` : ""}
+      ${(hotel.features && hotel.features.length>0) ? `<div class="hotel-card-features">${hotel.features.slice(0,6).map(f=>`<span class="hotel-feature-chip">${f}</span>`).join("")}</div>` : ""}
+      ${hotel.note ? `<div class="hotel-card-note">${hotel.note}</div>` : ""}
+      ${bookingHtml}
+    </div>`;
+}
+function renderHotelSearchSheet(areaKey){
+  const sheet = document.getElementById("hotelSearchSheet");
+  const areas = getHotelAreas();
+  const area = areaKey ? areas.find(a=>a.key===areaKey) : null;
+  let html;
+  if(area){
+    // ── エリア内のホテル一覧 ──
+    const hotels = getSearchableHotels(area.key);
+    html = `
+      <button class="sheet-close" id="hotelSearchCloseBtn" type="button" aria-label="閉じる">×</button>
+      <button type="button" class="hotel-search-back" id="hotelSearchBackTop">‹ エリアを選び直す</button>
+      <div class="sheet-title">🏨 ${area.label}のホテル（${hotels.length}件）</div>
+      <div class="hotel-search-intro">${area.pref}｜子連れで泊まりやすいホテルを掲載しています。料金・空室・設備は予約サイトや公式サイトで必ずご確認ください。</div>
+      <div class="hotel-list" style="margin-top:0;">
+        ${hotels.map((h,i)=>hotelSearchCardHtml(h, area.key, i)).join("")}
+      </div>
+      <button class="detail-close-bottom" id="hotelSearchBackBottom" type="button">エリア選択に戻る</button>
+    `;
+  } else {
+    // ── エリア選択 ──
+    const groups = groupHotelAreasByPref(areas);
+    html = `
+      <button class="sheet-close" id="hotelSearchCloseBtn" type="button" aria-label="閉じる">×</button>
+      <div class="sheet-title">🏨 ホテルを探す</div>
+      <div class="hotel-search-intro">子連れで泊まりやすいホテルを、エリアから探せます。エリアを選んでください。</div>
+      ${groups.length===0 ? `<div class="hotel-search-intro">ホテル情報は準備中です。</div>` : groups.map(g=>`
+        <div class="hotel-area-group">
+          <div class="hotel-area-group-title">${g[0]}</div>
+          <div class="hotel-area-grid">
+            ${g[1].map(a=>`<button type="button" class="hotel-area-btn" data-act="hotel-area-select" data-area="${escapeAttr(a.key)}"><span class="hotel-area-btn-name">${a.label}</span><span class="hotel-area-btn-count">${a.count}件</span></button>`).join("")}
+          </div>
+        </div>`).join("")}
+      <button class="detail-close-bottom" id="hotelSearchCloseBottom" type="button">戻る</button>
+    `;
+  }
+  sheet.innerHTML = html;
+  sheet.scrollTop = 0;
+
+  const closeSheet = ()=>closeSheetById("hotelSearchOverlay");
+  document.getElementById("hotelSearchCloseBtn").onclick = closeSheet;
+  const closeBottom = document.getElementById("hotelSearchCloseBottom");
+  if(closeBottom) closeBottom.onclick = closeSheet;
+  const backTop = document.getElementById("hotelSearchBackTop");
+  if(backTop) backTop.onclick = ()=>renderHotelSearchSheet(null);
+  const backBottom = document.getElementById("hotelSearchBackBottom");
+  if(backBottom) backBottom.onclick = ()=>renderHotelSearchSheet(null);
+
+  sheet.querySelectorAll('[data-act="hotel-area-select"]').forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const a = areas.find(x=>x.key===btn.dataset.area);
+      trackEvent("hotel_area_select", {hotel_area: a ? a.label : btn.dataset.area});
+      renderHotelSearchSheet(btn.dataset.area);
+    });
+  });
+  sheet.querySelectorAll('[data-act="hotel-search-toggle"]').forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const options = document.getElementById(btn.dataset.optionsId);
+      if(!options) return;
+      const isOpen = options.style.display !== "none";
+      if(!isOpen) trackEvent("hotel_book_toggle_open", {hotel_name: btn.dataset.hotelName, source:"hotel_search"});
+      options.style.display = isOpen ? "none" : "flex";
+      btn.textContent = isOpen ? "🏨 このホテルを予約する" : "予約サイトの選択を閉じる ▲";
+      btn.classList.toggle("open", !isOpen);
+    });
+  });
+  sheet.querySelectorAll('[data-act="hotel-search-booking-click"]').forEach(a=>{
+    a.addEventListener("click", ()=>{
+      trackEvent("hotel_booking_click", {
+        hotel_name: a.dataset.hotelName,
+        hotel_area: a.dataset.hotelArea,
+        booking_site: a.dataset.bookingSite,
+        source: "hotel_search"
+      });
+      // 🆕 再訪分析用：既存のhotel_booking_clickとは別名で追加発火
+      trackEvent("hotel_link_click", {
+        link_type: "hotel_booking",
+        hotel_name: a.dataset.hotelName,
+        region: a.dataset.hotelArea
+      });
+    });
+  });
+}
+function openHotelSearch(){
+  trackEvent("hotel_search_open", {});
+  renderHotelSearchSheet(null);
+  openSheet("hotelSearchOverlay");
+}
+
 // 🆕 ハンバーガーメニュー下部「その他メニュー」の項目定義。
 // enabled:true の項目は、既存のボタン（行きたい／プラン／について）をそのままクリックさせるだけで、
-// 新しい状態管理や画面は一切作らない。enabled:false の項目（例：ホテルを探す）はまだページが無いため、
-// 「近日公開」バッジ付きの非活性表示のみ行う。今後実装した際は、この配列のenabledをtrueにして
-// onSelectを追加するだけでメニューに反映される。
+// 新しい状態管理や画面は一切作らない。enabled:false の項目はまだページが無いため、
+// 「近日公開」バッジ付きの非活性表示のみ行う。実装した際は、この配列のenabledをtrueにして
+// onSelectを追加するだけでメニューに反映される。表示順はこの配列の並び順のとおり。
+// （ホテルを探す：上のopenHotelSearch()を呼ぶ）
 const DRAWER_MORE_ITEMS = [
-  { icon:"📖", label:"簡単な使い方", enabled:true, onSelect:()=>{ renderHowToSheet(); openSheet("howToOverlay"); } },
-  { icon:"🏨", label:"ホテルを探す", enabled:false },
+  { icon:"🏨", label:"ホテルを探す", enabled:true, onSelect:()=>openHotelSearch() },
   { icon:"❤️", label:"行きたい", enabled:true, onSelect:()=>document.getElementById("favListBtn").click() },
   { icon:"🗓️", label:"プラン", enabled:true, onSelect:()=>document.getElementById("planListBtn").click() },
   { icon:"📅", label:"記録", enabled:true, onSelect:()=>document.getElementById("calendarOpenBtn").click() },
+  { icon:"📖", label:"簡単な使い方", enabled:true, onSelect:()=>{ renderHowToSheet(); openSheet("howToOverlay"); } },
   { icon:"❓", label:"よくある質問（FAQ）", enabled:true, onSelect:()=>document.getElementById("faqOpenBtn").click() },
   { icon:"ℹ️", label:"おでかけナビについて", enabled:true, onSelect:()=>document.getElementById("aboutOpenBtn").click() }
 ];

@@ -1,0 +1,29 @@
+{
+  "facilityId": "tokyo/taito/ueno",
+  "experiences": [
+    {
+      "id": "ueno-2026-09-a",
+      "facilityId": "tokyo/taito/ueno",
+      "status": "pending",
+      "visitDate": "2026-09",
+      "party": { "adults": 2, "children": 1, "childAges": ["3歳"] },
+      "transport": "train",
+      "stayMinutes": 180,
+      "costs": { "adult": 600, "child": 0, "parking": 0, "other": 500, "total": 1700 },
+      "kids": {
+        "stroller":      { "level": "partial", "note": "" },
+        "toddlerFun":    { "level": "easy",    "note": "" },
+        "elementaryFun": { "level": "easy",    "note": "" },
+        "meals":         { "level": "partial", "note": "" },
+        "diaperChange":  { "level": "easy",    "note": "" },
+        "nursing":       { "level": "easy",    "note": "" },
+        "restBreak":     { "level": "partial", "note": "" }
+      },
+      "learned": "（行ってみて分かったことを自由記述）",
+      "photos": [
+        { "url": "ueno/2026-09-a/entrance.jpg", "category": "entrance", "caption": "" }
+      ],
+      "meta": { "submittedAt": "2026-09-20", "reviewedAt": null, "source": "manual" }
+    }
+  ]
+}
