@@ -9,10 +9,11 @@
      「許可していない外部サイトへスクリプトを読み込む／データを送信する」動きは防げる。 -->
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
-  script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://aml.valuecommerce.com;
-  style-src 'self' 'unsafe-inline';
-  connect-src 'self' https://api.open-meteo.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://aml.valuecommerce.com https://ck.jp.ap.valuecommerce.com;
-  img-src 'self' data:;
+  script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://aml.valuecommerce.com https://translate.google.com https://translate.googleapis.com https://www.gstatic.com;
+  style-src 'self' 'unsafe-inline' https://www.gstatic.com https://translate.googleapis.com;
+  connect-src 'self' https://api.open-meteo.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://aml.valuecommerce.com https://ck.jp.ap.valuecommerce.com https://translate.googleapis.com https://translate-pa.googleapis.com;
+  img-src 'self' data: https://www.gstatic.com https://translate.google.com https://translate.googleapis.com https://www.google.com;
+  frame-src https://translate.google.com;
   frame-ancestors 'self';
   base-uri 'self';
   form-action 'self';
@@ -126,6 +127,44 @@
     border-radius:6px; gap:2px; font-weight:700;
   }
   .header-share-btn:active{background:var(--ink); color:var(--cream); border-color:var(--ink);}
+
+  /* 🌐 翻訳ボタン（独立モジュール。JSが失敗してもここのCSSは他へ影響しない） */
+  header.header-fixed .header-translate-btn{position:absolute; right:44px; top:calc(env(safe-area-inset-top) + 10px); z-index:2; box-shadow:0 1px 4px rgba(43,38,32,.18);}
+  .header-translate-btn{
+    flex:0 0 auto; height:36px; min-width:56px; padding:0 8px; white-space:nowrap;
+    border:1px solid var(--line); background:var(--paper); color:var(--ink-soft);
+    border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:3px;
+  }
+  .header-translate-btn:active{background:var(--ink); color:var(--cream); border-color:var(--ink);}
+  .header-translate-btn[disabled]{opacity:.6; cursor:default;}
+  .translate-menu{
+    position:fixed; right:6px; top:calc(env(safe-area-inset-top) + 60px); z-index:1000;
+    min-width:190px; max-width:calc(100vw - 12px); display:none;
+    background:var(--paper); border:1px solid var(--line); border-radius:12px;
+    box-shadow:0 6px 20px rgba(43,38,32,.22); padding:6px;
+  }
+  .translate-menu.open{display:block;}
+  .translate-item{
+    display:flex; width:100%; min-height:44px; align-items:center; justify-content:space-between; gap:12px;
+    padding:0 12px; border:0; background:transparent; color:var(--ink);
+    font-size:15px; text-align:left; border-radius:8px; cursor:pointer;
+  }
+  .translate-item:active{background:var(--cream);}
+  .translate-item.active{font-weight:700;}
+  .translate-item .translate-check{color:var(--coral);}
+  .translate-hint{font-size:11px; line-height:1.5; color:var(--ink-soft); padding:6px 12px 4px; border-top:1px solid var(--line); margin-top:4px;}
+  .translate-toast{
+    position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom) + 72px); transform:translateX(-50%);
+    width:max-content; max-width:min(92vw,420px); z-index:1001; pointer-events:none;
+    background:rgba(43,38,32,.94); color:#fff; font-size:13px; line-height:1.6;
+    padding:10px 14px; border-radius:10px; opacity:0; visibility:hidden; transition:opacity .2s;
+  }
+  .translate-toast.show{opacity:1; visibility:visible;}
+  /* Googleの翻訳ウィジェットが出す上部バナー・ツールチップは非表示にし、ページ位置のずれを防ぐ */
+  body{top:0 !important;}
+  body > .skiptranslate, .goog-te-banner-frame, .goog-te-balloon-frame, #goog-gt-tt, .goog-tooltip{display:none !important;}
+  .goog-text-highlight{background:none !important; box-shadow:none !important;}
   /* ☰ ハンバーガーメニュー（既存ヘッダーの機能・レイアウトは変更せず、先頭に1項目追加するだけ） */
   .hamburger-btn{
     flex:0 0 auto; border:1px solid var(--line); background:var(--paper); padding:6px 10px;
@@ -876,6 +915,45 @@
   .hotel-card-area{font-size:11px; color:var(--ink-soft); margin-bottom:8px;}
   #hotelSearchSheet .hotel-booking-option-name, #hotelSearchSheet .hotel-booking-option-desc{display:block;}
 
+  /* ---------- 🏨 この近くに泊まるなら（施設詳細のホテル案内・横スクロールカード） ---------- */
+  .nearby-hotel-sub{font-size:11.5px; color:var(--ink-soft); line-height:1.6; margin:-2px 0 8px;}
+  .nearby-hotel-scroll{
+    display:flex; gap:10px; overflow-x:auto; -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x proximity; padding:2px 2px 6px; margin:0 -2px;
+  }
+  .nearby-hotel-card{
+    flex:0 0 76%; max-width:250px; min-width:200px; scroll-snap-align:start;
+    display:flex; flex-direction:column; gap:5px; cursor:pointer;
+    background:#F5F0E4; border:1px solid var(--line); border-radius:12px; padding:10px 11px;
+  }
+  .nearby-hotel-scroll.single .nearby-hotel-card{flex-basis:100%; max-width:none;}
+  .nearby-hotel-card .hotel-card-labels{margin-bottom:0;}
+  .nearby-hotel-name{
+    font-size:13px; font-weight:700; color:var(--ink); line-height:1.4;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .nearby-hotel-meta{font-size:11px; color:var(--ink-soft); line-height:1.5;}
+  .nearby-hotel-feat{font-size:11px; color:var(--ink); line-height:1.5;}
+  .nearby-hotel-cta{
+    margin-top:auto; padding-top:4px; text-align:right; font-size:12px; font-weight:700; color:var(--sun);
+  }
+  .hotel-around{margin-top:8px;}
+  .hotel-around-body{margin-top:8px;}
+  .around-spot-card{
+    flex:0 0 76%; max-width:250px; min-width:200px; scroll-snap-align:start;
+    display:flex; flex-direction:column; gap:4px; cursor:pointer;
+    background:var(--paper); border:1px solid var(--line); border-left:4px solid var(--sun);
+    border-radius:12px; padding:9px 11px;
+  }
+  .around-spot-cat{font-size:10.5px; font-weight:700; color:var(--sun);}
+  .around-spot-price{
+    font-size:11px; color:var(--ink); line-height:1.5;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .around-list{display:flex; flex-direction:column; gap:8px; overflow:visible;}
+  .around-list .around-spot-card{flex:0 0 auto; max-width:none; min-width:0; width:100%; box-sizing:border-box;}
+  .hotel-card.hotel-card-focus{border-color:var(--coral); box-shadow:0 0 0 2px rgba(226,96,58,.25);}
+
   /* ---------- 🎯 迷ったらこれ（Phase4追加） ---------- */
   .decide-chip{
     flex:0 0 auto; padding:8px 13px; border-radius:999px; background:#F1EADA; color:var(--ink);
@@ -1268,7 +1346,7 @@
 // ==================================================================
 const STORAGE_KEY = "odekakeNaviV2";
 // 📅 このデータの更新時点（施設データ＝SPOTS等を追加・修正した際にここも更新する）
-const APP_LAST_UPDATED = "2026年9月16日"; // 日本時間での最終更新日（施設データを追加・修正した日に書き換える。ページ生成日ではない）
+const APP_LAST_UPDATED = "2026年9月21日"; // 日本時間での最終更新日（施設データを追加・修正した日に書き換える。ページ生成日ではない）
 // 📅 各ページの最終更新日（それぞれの本文を実際に修正した日にだけ書き換える。ファイル生成日では更新しない）
 const TERMS_LAST_UPDATED = "2026年9月16日";  // 利用規約・プライバシーポリシーの本文を修正した日
 const FAQ_LAST_UPDATED = "2026年9月17日";    // よくある質問（FAQ）の本文を修正した日
@@ -4560,12 +4638,12 @@ verifiedAt:"2026年9月16日",
  tip:"入園無料なので予定に組み込みやすい、駐車場もあるため車での立ち寄りもしやすい、屋外中心の公園なので晴れた日に訪れるのがおすすめ。"},
 {region:"栃木", name:"日光猿軍団", area:"日光市", lat:36.75, lng:139.503,
  ages:["2-3歳","4-6歳","低学年","高学年"], weather:["晴れ","雨"], duration:["半日"],
- price:"大人1700円程度／子供900円程度", parking:"yes", access:"東武線「鬼怒川温泉」駅からバス",
- baby:"おむつ替えあり／ベビーカーOK", lunch:"周辺に飲食店あり。",
+ price:"中学生以上2300円／4歳以上1100円（掲載時点の目安・変更される場合あり）", parking:"yes", access:"東武鬼怒川線「鬼怒川温泉」駅から日光江戸村行きバスで「おさるの学校前」下車すぐ（無料駐車場あり）",
+ baby:"おむつ替えあり／ベビーカーOK", lunch:"園内にレストランあり。",
  officialUrl:null,
  overnightRecommended:true, hotelArea:"nikko",
- desc:"猿によるコミカルな演技が楽しめるショー施設。屋内会場もある。",
- tip:"屋内でショーが見られるため、雨の日の代替プランにも向く。"},
+ desc:"現在の名称は「おさるランド&アニタウン 日光さる軍団劇場」（旧・日光猿軍団劇場を2022年にリニューアル）。メインステージでのおさるのショーのほか、おさるとサッカーで対決する「スポーツスタジアム」や子ザルとふれあえる「赤ちゃんハウス」、ペンギンやカピバラ、ウサギなどと触れ合えるアニタウンがある。屋内会場もある。",
+ tip:"屋内でショーが見られるため、雨の日の代替プランにも向く。営業時間は平日10:00〜16:00、土日祝は9:00〜16:00が目安（TEL 0288-70-1288）。最新の料金・ショーの時間は公式情報で確認を。"},
 {region:"栃木", name:"県民の森", area:"矢板市", lat:36.85, lng:139.895,
  ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日"],
  price:"入園無料", parking:"yes", access:"JR「矢板」駅からバス",
@@ -8079,6 +8157,24 @@ const SPOTS_ONSEN_SPA_8 = [
 SPOTS.push(...SPOTS_ONSEN_SPA_8);
 
 // ------------------------------------------------------------------
+// 📌 ユーザー依頼：♨️ 温泉・スパ カテゴリー追加（みうら湯・弘明寺）
+// 情報源：公式サイト（営業時間・料金・ご利用案内・アクセス）。座標はNAVITIME掲載値。
+// ------------------------------------------------------------------
+const SPOTS_ONSEN_SPA_9 = [
+{region:"神奈川", name:"黒湯天然温泉 みうら湯", area:"横浜市南区中里", lat:35.420201, lng:139.597795,
+ genre:"温泉・スパ",
+ ages:["2-3歳","4-6歳","低学年","高学年"], weather:["晴れ","雨"], duration:["半日"],
+ price:"大人980円（土日祝1,080円）／子ども（4歳〜小学生）350円（土日祝450円）／3歳以下無料", parking:"yes", access:"京急線・市営地下鉄「弘明寺」駅から徒歩約7分（無料駐車場あり）",
+ baby:"3歳以下は入館無料。おむつのとれていないお子様は浴槽を利用できない（公式）", lunch:"お食事処「みうら亭」あり（お子様ランチのメニューあり）。館内への飲食物の持ち込みは不可。",
+ officialUrl:"https://www.miurayu.com/",
+ bookingLinks:{asoview:"https://www.asoview.com/base/163701/"}, recommendedBooking:"asoview",
+ stayTime:{minMinutes:90, maxMinutes:180},
+ desc:"黒湯炭酸泉や露天風呂、ミストサウナなど14種類のお風呂とサウナがある日帰り温泉施設。3歳以下は無料、子ども（4歳〜小学生）は平日350円・土日祝450円と入りやすい。施設利用者は約2,400冊のコミックを無料で読め、コインランドリーも併設している。",
+ tip:"おむつが取れていないお子様は浴槽に入れないため、おむつが外れてからが目安。7歳以上は混浴不可。営業は平日23時・土日祝24時まで（最終入館は30分前）。"}
+];
+SPOTS.push(...SPOTS_ONSEN_SPA_9);
+
+// ------------------------------------------------------------------
 // 📌 追加候補リスト（Phase31）：🐮 牧場・ふれあい カテゴリー拡充（第4弾）
 // ------------------------------------------------------------------
 const SPOTS_RANCH_4 = [
@@ -8809,6 +8905,343 @@ const SPOTS_NEW_6 = [
  tip:"土曜午前は小学生で賑わいやすいため、小さな子は平日午前中の利用が狙い目。"}
 ];
 SPOTS.push(...SPOTS_NEW_6);
+const SPOTS_NEW_7 = [
+{region:"神奈川", name:"白幡公園こどもログハウス「ピッコロ」", area:"横浜市鶴見区東寺尾", lat:35.5145, lng:139.6478,
+ genre:"室内遊び場", ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["雨","晴れ"], duration:["半日"],
+ price:"入場無料", parking:null, access:"最寄りバス停・駅から徒歩圏内（詳細は区役所HPで要確認）",
+ baby:"幼児は保護者同伴で利用可", lunch:"施設内に飲食設備なし。",
+ officialUrl:null, verifiedAt:"2026年9月21日",
+ desc:"「ピッコロ」の愛称で親しまれる鶴見区のこどもログハウス。主に寺尾・寺尾第二・生麦第二地区の子どもたちが自由に集い、木のぬくもりを感じながら遊べる屋内公園施設。近隣の地区センターやコミュニティハウスと連携したイベントも行われている。",
+ tip:"地域密着型の運営で、自治会・地区センターと連携したイベントも豊富。"},
+{region:"神奈川", name:"神大寺中央公園こどもログハウス", area:"横浜市神奈川区神大寺", lat:35.4830, lng:139.6150,
+ genre:"室内遊び場", ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["雨","晴れ"], duration:["半日"],
+ price:"入場無料", parking:null, access:"詳細は区役所HPで要確認",
+ baby:"幼児は保護者同伴で利用可", lunch:"施設内に飲食設備なし。",
+ officialUrl:null, verifiedAt:"2026年9月21日",
+ desc:"神奈川区の公園内にある無料のこどもログハウス。木造の遊具や工作・読書コーナーなどを備え、地域の子どもたちが天候を気にせず遊べる屋内公園施設として親しまれている。",
+ tip:"詳しい開館日・イベント情報は神奈川区の公式サイトで確認するのがおすすめ。"},
+{region:"神奈川", name:"境之谷公園こどもログハウス", area:"横浜市西区藤棚町", lat:35.4500, lng:139.6140,
+ genre:"室内遊び場", ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["雨","晴れ"], duration:["半日"],
+ price:"入場無料", parking:null, access:"京急線「日ノ出町」駅・「黄金町」駅から徒歩圏内",
+ baby:"幼児は保護者同伴で利用可", lunch:"施設内に飲食設備なし。",
+ officialUrl:null, verifiedAt:"2026年9月21日",
+ desc:"西区の境之谷公園内にある無料のこどもログハウス。木のぬくもりを感じられる遊具や工作コーナーがあり、雨の日でも子どもたちが体を動かして遊べる屋内公園施設。",
+ tip:"周辺は住宅街で落ち着いた立地。地域の子育てイベントも開催されることがある。"},
+{region:"神奈川", name:"柏葉公園こどもログハウス", area:"横浜市中区野毛町", lat:35.4400, lng:139.6280,
+ genre:"室内遊び場", ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["雨","晴れ"], duration:["半日"],
+ price:"入場無料", parking:null, access:"JR・市営地下鉄「桜木町」駅から徒歩圏内",
+ baby:"幼児は保護者同伴で利用可", lunch:"施設内に飲食設備なし。周辺に飲食店あり。",
+ officialUrl:null, verifiedAt:"2026年9月21日",
+ desc:"中区の柏葉公園内にある無料のこどもログハウス。野毛山公園にも近く、動物園見学やお散歩と組み合わせて立ち寄りやすい。木造の遊具や読書コーナーを備えた屋内公園施設。",
+ tip:"野毛山動物園とセットで訪れると、雨の日でも一日楽しめる。"},
+{region:"神奈川", name:"上白根大池公園こどもログハウス「おおいけらんど」", area:"横浜市旭区上白根町", lat:35.5120, lng:139.5460,
+ genre:"室内遊び場", ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["雨","晴れ"], duration:["半日"],
+ price:"入場無料", parking:"yes", access:"相鉄線「三ツ境」駅・「二俣川」駅からバス便あり",
+ baby:"幼児は保護者同伴で利用可", lunch:"施設内に飲食設備なし。",
+ officialUrl:null, verifiedAt:"2026年9月21日",
+ desc:"旭区の上白根大池公園内にある無料のこどもログハウス。大池のある公園の緑豊かな環境の中で、木造の遊具や読書・工作コーナーを備えた屋内公園施設として親しまれている。",
+ tip:"公園自体も広く、天気が良ければログハウスの前後に外遊びも楽しめる。"},
+{region:"神奈川", name:"洋光台駅前公園こどもログハウス", area:"横浜市磯子区洋光台", lat:35.3900, lng:139.6180,
+ genre:"室内遊び場", ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["雨","晴れ"], duration:["半日"],
+ price:"入場無料", parking:null, access:"JR根岸線「洋光台」駅から徒歩圏内",
+ baby:"幼児は保護者同伴で利用可", lunch:"駅周辺に飲食店あり。",
+ officialUrl:null, verifiedAt:"2026年9月21日",
+ desc:"磯子区の洋光台駅前公園内にある無料のこどもログハウス。駅から近く、電車でのお出かけにも便利。木造の遊具や工作コーナーがあり、雨の日でも遊べる屋内公園施設。",
+ tip:"駅前立地のため電車移動の家族にも利用しやすい。近くのはまぎんこども宇宙科学館と合わせて訪れるのもおすすめ。"},
+{region:"神奈川", name:"富岡八幡公園こどもログハウス", area:"横浜市金沢区富岡東", lat:35.3430, lng:139.6400,
+ genre:"室内遊び場", ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["雨","晴れ"], duration:["半日"],
+ price:"入場無料", parking:null, access:"京急線「京急富岡」駅から徒歩圏内",
+ baby:"幼児は保護者同伴で利用可", lunch:"施設内に飲食設備なし。",
+ officialUrl:null, verifiedAt:"2026年9月21日",
+ desc:"金沢区の富岡八幡公園内にある無料のこどもログハウス。木造の遊具や読書・工作コーナーを備え、地域の子どもたちの遊び場として親しまれている屋内公園施設。",
+ tip:"隣接する富岡八幡宮や海の公園と組み合わせて一日お出かけコースにするのもおすすめ。"},
+{region:"神奈川", name:"綱島公園こどもログハウス", area:"横浜市港北区菊名", lat:35.5100, lng:139.6330,
+ genre:"室内遊び場", ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["雨","晴れ"], duration:["半日"],
+ price:"入場無料", parking:null, access:"東急東横線・JR横浜線「菊名」駅から徒歩圏内",
+ baby:"幼児は保護者同伴で利用可", lunch:"駅周辺に飲食店あり。",
+ officialUrl:null, verifiedAt:"2026年9月21日",
+ desc:"港北区の綱島公園内にある無料のこどもログハウス。木造の遊具や工作・読書コーナーがあり、駅からのアクセスも良いため気軽に立ち寄れる屋内公園施設。",
+ tip:"駅近なので電車でのおでかけ先にも組み込みやすい。"},
+{region:"神奈川", name:"桂山公園こどもログハウス「ロッキー」", area:"横浜市栄区桂町", lat:35.3540, lng:139.5560,
+ genre:"室内遊び場", ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["雨","晴れ"], duration:["半日"],
+ price:"入場無料", parking:null, access:"JR根岸線「本郷台」駅からバス・徒歩",
+ baby:"幼児は保護者同伴で利用可", lunch:"施設内に飲食設備なし。",
+ officialUrl:null, verifiedAt:"2026年9月21日",
+ desc:"「ロッキー」の愛称で親しまれる栄区のこどもログハウス。平成3年開設と歴史があり、子ども同士の遊びや親同士の交流を通じて育児不安の解消や青少年の健全育成に役立ってきた地域の拠点。木造の遊具や工作コーナーを備える。",
+ tip:"開設から30年以上、地域に根ざして運営されている老舗のログハウス。"},
+{region:"神奈川", name:"霧が丘公園こどもログハウス", area:"横浜市緑区霧が丘", lat:35.5300, lng:139.5350,
+ genre:"室内遊び場", ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["雨","晴れ"], duration:["半日"],
+ price:"入場無料", parking:"yes", access:"バス便あり（詳細は区役所HPで要確認）",
+ baby:"幼児は保護者同伴で利用可", lunch:"施設内に飲食設備なし。",
+ officialUrl:null, verifiedAt:"2026年9月21日",
+ desc:"緑区の霧が丘公園内にある無料のこどもログハウス。地域の運営委員会によって運営され、木造の遊具や読書・工作コーナーを備えた、天候を気にせず遊べる屋内公園施設。",
+ tip:"公園自体も広々としているので、晴れた日は外遊びと組み合わせるのがおすすめ。"},
+{region:"神奈川", name:"美しが丘公園こどもログハウス", area:"横浜市青葉区市ケ尾町", lat:35.5600, lng:139.5350,
+ genre:"室内遊び場", ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["雨","晴れ"], duration:["半日"],
+ price:"入場無料", parking:null, access:"東急田園都市線「市が尾」駅・「あざみ野」駅からバス・徒歩",
+ baby:"幼児は保護者同伴で利用可", lunch:"施設内に飲食設備なし。",
+ officialUrl:null, verifiedAt:"2026年9月21日",
+ desc:"青葉区の美しが丘公園内にある無料のこどもログハウス。木造の遊具や工作・読書コーナーを備え、地域の子育て世代に親しまれている屋内公園施設。",
+ tip:"周辺は閑静な住宅街。公園の広場でも合わせて遊べる。"},
+{region:"神奈川", name:"瀬谷中央公園こどもログハウス「まるたのしろ」", area:"横浜市瀬谷区本郷", lat:35.4690, lng:139.5600,
+ genre:"室内遊び場",
+ ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["雨","晴れ"], duration:["半日"],
+ price:"入場無料", parking:"yes", access:"相鉄線「瀬谷」駅北口から徒歩約13分、またはバス「本郷原」下車徒歩5分",
+ baby:"授乳室あり／おむつ交換台あり／ベビーカーOK", lunch:"飲食物の持ち込みOK。",
+ officialUrl:null, verifiedAt:"2026年9月21日",
+ desc:"「まるたのしろ」の愛称で親しまれる瀬谷区のこどもログハウス。丸太で作られた木造の館内は裸足になって思い切り体を動かして遊べる造りで、2階から滑れる大きなすべり台、地下迷路、ネット階段、屋根裏などわくわくする遊具が揃う。幼児から中学生まで無料で利用でき、授乳室・おむつ交換台も完備。",
+ tip:"平日午後3時以降は小学生の利用で混雑しやすいため、小さな子どもは午前中の利用がおすすめ。第2月曜と年末年始が休館日。"}
+];
+SPOTS.push(...SPOTS_NEW_7);
+const SPOTS_NEW_8 = [
+{region:"神奈川", name:"相模原麻溝公園（ふれあい動物広場）", area:"相模原市南区麻溝台", lat:35.5350, lng:139.3730,
+ genre:"公園",
+ ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日","1日"],
+ price:"入園・動物広場とも無料（ポニー乗馬のみ1回100円）", parking:"yes", access:"小田急線「相模大野駅」またはJR横浜線「古淵駅」からバスで「総合体育館前」下車徒歩2分",
+ baby:"ベビーカーOK", lunch:"オープンカフェあり。芝生広場でのピクニックも人気。",
+ officialUrl:null,
+ verifiedAt:"2026年9月21日",
+ desc:"高さ55mの展望塔「グリーンタワー相模原」や広大な芝生広場、19基25種のフィールドアスレチックを備える相模原市立の総合公園。中でも人気なのが年間約30万人が訪れる無料の「ふれあい動物広場」で、モルモットやヤギとふれあえるコーナー、ポニー乗馬（有料）、コンゴウインコなど珍しい鳥のバードケージがある。4〜9月は「水の広場」の噴水で水遊びもでき、隣接する県立相模原公園と合わせて一日中楽しめる。",
+ tip:"ふれあい動物広場はお昼休憩の時間帯があるので要注意。土日は混雑するため、平日の来園もおすすめ。"},
+{region:"神奈川", name:"藤沢市少年の森", area:"藤沢市打戻", lat:35.4150, lng:139.4450,
+ genre:"公園",
+ ages:["2-3歳","4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日"],
+ seasons:["夏"],
+ price:"入園無料", parking:"yes", access:"小田急線「長後」駅または「湘南台」駅からバスで「御所見中学校前」下車、徒歩10分",
+ baby:"ベビーカーは砂利道・自然路が多いため要注意", lunch:"飲食物の持ち込み可。売店等はないため要持参。",
+ officialUrl:null,
+ verifiedAt:"2026年9月21日",
+ desc:"1980年の国際児童年記念事業として開設された、自然豊かな青少年野外活動施設。緑あふれる園内には木製遊具のあるアスレチックコースがあり、じゃぶじゃぶ池では夏の水遊びも楽しめる。野鳥や昆虫が息づく里山の環境で、キャンプ場や宿泊研修施設も備え、自然体験を思う存分楽しめる穴場スポット。",
+ tip:"隣接する「遠藤笹窪谷公園」と合わせて訪れるのもおすすめ。虫捕りやホタル観賞ができる時期もある。"},
+{region:"神奈川", name:"鎌倉中央公園", area:"鎌倉市山崎", lat:35.3430, lng:139.5260,
+ genre:"公園",
+ ages:["2-3歳","4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日"],
+ seasons:["秋"],
+ price:"入園無料", parking:"yes", access:"JR「大船」駅からバスで「鎌倉中央公園」または「山崎」バス停下車すぐ〜徒歩約20分",
+ baby:"遊具はなく自然路が中心のためベビーカーは不向き。抱っこ紐がおすすめ", lunch:"飲食物の持ち込み自由。売店はないため要持参。",
+ officialUrl:"https://kamakura-park.com/go/central_park/",
+ verifiedAt:"2026年9月21日",
+ desc:"鎌倉市の中心に位置する、谷戸（やと）の里山風景が残る自然豊かな公園。田んぼや湿地、上池・下池があり、秋には稲穂が実り彼岸花が咲く里山散策が楽しめる。一般的な遊具はないが、野山を自由に駆け回れる自然体験型の公園で、防災公園としての機能も備える。",
+ tip:"遊具遊びより自然観察・里山散歩向きの公園。虫捕りや落ち葉拾いをしたい子ども連れに向いている。"}
+];
+SPOTS.push(...SPOTS_NEW_8);
+const SPOTS_NEW_9 = [
+{region:"神奈川", name:"いずみ台公園こどもログハウス", area:"横浜市泉区上飯田町", lat:35.4170, lng:139.4810,
+ genre:"室内遊び場", ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["雨","晴れ"], duration:["半日"],
+ price:"入場無料", parking:null, access:"相鉄いずみ野線「いずみ野」駅・「立場」駅からバス便あり",
+ baby:"幼児は保護者同伴で利用可", lunch:"施設内に飲食設備なし。",
+ officialUrl:null, verifiedAt:"2026年9月21日",
+ desc:"泉区のいずみ台公園内にある無料のこどもログハウス。自然のぬくもりを感じられる木造の遊具や工作・読書コーナーを備え、地域の子育て支援拠点「いずみ野コミュニティハウス」や「上飯田地区センター」とも連携したイベントを開催している。横浜市内18区に1館ずつ整備されているこどもログハウスの泉区版。",
+ tip:"横浜市発表の資料をもとに掲載していますが、施設名を掲げた公式サイトは見当たらなかったため、訪問前に泉区役所へ開館状況の確認をおすすめします。"}
+];
+SPOTS.push(...SPOTS_NEW_9);
+const SPOTS_NEW_10 = [
+{region:"神奈川", name:"サザンビーチちがさき", area:"茅ヶ崎市中海岸", lat:35.3190, lng:139.4020,
+ genre:"公園",
+ ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日"],
+ seasons:["夏"],
+ price:"散策自由・入場無料（海水浴期間の海の家利用は有料）", parking:"yes", access:"JR「茅ケ崎」駅南口からバスで「海水浴場前」下車すぐ",
+ baby:"バリアフリービーチとしてベビーカー対応のマットや無料貸出しの水陸両用車イスあり", lunch:"夏期は海の家が9軒出店。",
+ officialUrl:null,
+ verifiedAt:"2026年9月21日",
+ desc:"正面に「えぼし岩」、左に江の島、右に富士山を望む湘南を代表するビーチ。遠浅で波が穏やかなため、小さな子ども連れでも安心して楽しめる。夏（7月上旬〜8月末）は海水浴場として開設され、シャワーや監視・救護所も完備。バリアフリービーチとしてベビーカーや車椅子でも移動しやすいマットが敷かれ、水陸両用車イスの無料貸出しもある。",
+ tip:"隣接して2025年開業の「道の駅 湘南ちがさき」があるので、ビーチ遊びの前後に立ち寄るのがおすすめ。"},
+{region:"神奈川", name:"道の駅 湘南ちがさき", area:"茅ヶ崎市柳島", lat:35.3160, lng:139.4050,
+ genre:"おでかけスポット",
+ ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["晴れ","雨"], duration:["半日"],
+ price:"入館無料", parking:"yes", access:"新湘南バイパス「茅ヶ崎海岸IC」すぐ。JR「茅ケ崎」駅南口からバス便あり",
+ baby:"2階にキッズスペースあり／ベビーカーOK", lunch:"1階にテイクアウトショップ、2階にフードコートあり。",
+ officialUrl:null,
+ verifiedAt:"2026年9月21日",
+ desc:"2025年7月にオープンした湘南エリア初の道の駅。姉妹都市ハワイ・ホノルルの雰囲気を取り入れた内装で、地元ブランド「Choice! CHIGASAKI」の商品や、しらすを使った土産物が並ぶ。2階にはフードコートとキッズスペースがあり、子ども連れでも過ごしやすい。屋外には小型犬用ドッグランも。すぐそばの「サザンビーチちがさき」とセットで訪れやすい立地。",
+ tip:"海水浴シーズンはビーチ利用者で駐車場が混み合うため、早めの時間の来店がおすすめ。"},
+{region:"神奈川", name:"相模三川公園", area:"海老名市上郷", lat:35.4350, lng:139.3970,
+ genre:"公園",
+ ages:["2-3歳","4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日"],
+ price:"入園無料（パークゴルフの貸出しクラブ・ボールも無料）", parking:"yes", access:"小田急線「厚木」駅または相鉄線「海老名」駅からバス便あり",
+ baby:"ベビーカーOK", lunch:"パークセンターに軽食スペースあり。周辺にコンビニ等あり。",
+ officialUrl:null,
+ verifiedAt:"2026年9月21日",
+ desc:"相模川・中津川・小鮎川の三つの川が合流する地点に広がる河川敷公園。全9ホールのパークゴルフ場が人気で、専用クラブとボールを無料で借りられるため手ぶらで気軽に楽しめる。広々とした芝生広場や自然豊かな環境で、川沿いの散策やサイクリングも楽しめる、海老名運動公園とはひと味違う開放的なスポット。",
+ tip:"パークゴルフは無料だが用具の貸出数に限りがあるため、混雑する休日は早めの来園がおすすめ。"}
+];
+SPOTS.push(...SPOTS_NEW_10);
+const SPOTS_NEW_11 = [
+{region:"神奈川", name:"ファンタジーキッズリゾート イオン海老名店", area:"海老名市中央", lat:35.4480, lng:139.3930,
+ genre:"室内遊び場",
+ ages:["0-1歳","2-3歳","4-6歳","低学年"], weather:["雨","晴れ"], duration:["半日"],
+ price:"遊び放題プラン：平日と休日で変動（公式サイト要確認）。0〜1歳は多くの場合無料", parking:"yes", access:"小田急線・相鉄線・JR「海老名」駅から徒歩約3分（イオン海老名店3F）",
+ baby:"3歳未満向け「ミルキッズひろば」あり／授乳室・おむつ替えスペース完備", lunch:"館内にキッズ向け軽食コーナー、イオン内にフードコートあり。",
+ officialUrl:null,
+ verifiedAt:"2026年9月21日",
+ desc:"日本最大級をうたう全天候型の室内遊園地チェーン。海老名店は約4,000平方メートルの広さで、大人も滑れる大型スライダーやボールプール、エアー遊具の「ふわふわエリア」、電動カーに乗れる「キッズサーキット」、衣装を着て撮影できる「ファッションフォトスタジオ」、公園の砂場より衛生的な「サラサラすなば」などが揃う。海老名駅から徒歩3分とアクセスも良く、雨の日のおでかけ先として人気が高い。",
+ tip:"土日やお盆・夏休みなどのハイシーズンは料金が上がり混雑もするため、平日午前中が狙い目。現金払いのみの場合があるので要確認。"},
+{region:"神奈川", name:"湘南あそびマーレ", area:"平塚市代官町", lat:35.3280, lng:139.3320,
+ genre:"室内遊び場",
+ ages:["0-1歳","2-3歳","4-6歳","低学年"], weather:["雨","晴れ"], duration:["半日"],
+ price:"遊び放題プラン：平日1200円、休日1700円、ハイシーズン1900円（0〜1歳無料）", parking:"yes", access:"JR「平塚」駅から徒歩約10分（OSC湘南シティC棟1F）",
+ baby:"ベビールーム完備（ミルク用のお湯あり）／0歳から入場可", lunch:"弁当の持ち込みOK。館内・OSC湘南シティ内に飲食店あり。",
+ officialUrl:null,
+ verifiedAt:"2026年9月21日",
+ desc:"茅ヶ崎市の隣、平塚市のショッピングモール「OSC湘南シティ」内にある大型室内遊園地。最大の目玉は年中雪遊びができる「スノータウン」で、長靴やソリの無料貸出しもある。ほかにふわふわ遊具やボルダリング、3種類のボールプール（ボール温泉・投げるんだー・ボールシュート）など体を動かせる遊具が充実。弁当持ち込み・再入場もできる遊び放題プランが人気。",
+ tip:"駐車場はあそびマーレ・シネプレックス平塚利用で合計6時間無料になるサービスがある。混雑を避けるなら平日午前中がおすすめ。"}
+];
+SPOTS.push(...SPOTS_NEW_11);
+
+// ------------------------------------------------------------------
+// 📌 追加候補リスト（2026年9月21日）：おでかけスポット追加（第12弾）
+// 埼玉（小川町・秩父・朝霞）／神奈川（横浜・横須賀）／東京（羽田空港）／群馬（伊勢崎）／静岡（三島・長泉）
+// 公式・自治体・運営会社の情報や掲載サイトで確認できた内容のみを記載。確認できない項目は「要確認」とした。
+// ------------------------------------------------------------------
+const SPOTS_NEW_12 = [
+{region:"埼玉", name:"仙元山見晴らしの丘公園", area:"比企郡小川町", lat:36.0440, lng:139.2740,
+ genre:"公園",
+ ages:["2-3歳","4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日"],
+ price:"入園無料／ローラーすべり台（1回）大人200円・小人100円、滑走用マット100円（掲載時点の目安）", parking:"yes", access:"JR八高線「小川町」駅からタクシー約10分（駐車場の台数・料金は要確認）",
+ baby:"要確認", lunch:"周辺（小川町中心部）に飲食店あり。園内の売店等は要確認。",
+ officialUrl:null,
+ desc:"仙元山（標高約299m）の中腹にある公園。展望から盆地の小川町の街並みを見渡せ、山の斜面に造られた全長約203mのローラーすべり台（埼玉県内最長とされる）が名物。わんぱく広場や遊歩道もあり、体を動かして遊べる。",
+ tip:"ローラーすべり台はお尻が熱くなりやすいので、滑走用のマット（段ボール）の利用がおすすめ。利用料金・営業時間・運休日は時期によって変わるため、お出かけ前に公式情報（TEL 0493-73-1000）で確認を。"},
+{region:"神奈川", name:"横浜釣り堀王国", area:"横浜市金沢区鳥浜町", lat:35.3600, lng:139.6270,
+ genre:"釣り堀・魚つかみ取り",
+ ages:["2-3歳","4-6歳","低学年","高学年"], weather:["晴れ","雨"], duration:["半日"],
+ price:"入場料・釣り堀の料金は魚種やコースにより異なる（公式サイト要確認）", parking:"yes", access:"シーサイドライン「鳥浜」駅から徒歩約6〜8分",
+ baby:"要確認", lunch:"2階にフードコートと縁日ゲームコーナーあり。釣った魚を調理して食べられる（詳細は要確認）。",
+ officialUrl:null,
+ desc:"1階に釣り堀、2階に縁日ゲームとフードコート、3階に宝探しゲームがある3フロア構成の大型屋内釣り堀。海水魚（タイ・ヒラメ・イサキなど）が釣れる大きな生簀と、金魚や海水魚が釣れる中生簀があり、天候を気にせず楽しめる。",
+ tip:"営業時間は10:00〜18:00（掲載時点）。料金は魚種やコースで変わるため、事前に公式サイトで確認を。千葉県木更津市の龍宮城スパホテル三日月内にも「横浜釣り堀王国」の店舗（2025年7月開業）があるので、行き先を間違えないように。"},
+{region:"埼玉", name:"ちちぶキッズパーク", area:"秩父市別所", lat:35.9860, lng:139.0690,
+ genre:"公園",
+ ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日"],
+ price:"入園無料", parking:"yes", access:"西武秩父線「西武秩父」駅から久那循環バス「キッズパーク」下車徒歩約1分（車の場合は秩父市役所から約2km）",
+ baby:"ベビーカーOK／授乳室・おむつ替えの有無は要確認", lunch:"食事の持ち込みOK。",
+ officialUrl:null,
+ desc:"無料で利用できる秩父市の子ども向けの公園。アスレチック系の遊具で体を動かして遊べ、秩父観光や日帰り温泉の合間に立ち寄りやすい。",
+ tip:"開園時間は9:00〜17:00（4〜9月）、9:00〜16:30（10〜3月）が目安。無料駐車場は約50台。"},
+{region:"群馬", name:"華蔵寺公園遊園地", area:"伊勢崎市華蔵寺町", lat:36.3290, lng:139.2040,
+ genre:"遊園地・テーマパーク",
+ ages:["2-3歳","4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日"],
+ price:"入園無料。乗り物は1回ごとの料金制（観覧車280円、ジェットコースター350円、メリーゴーランド70円など・掲載時点の目安）", parking:"yes", access:"JR両毛線「伊勢崎」駅から徒歩約20分、または市営バス「華蔵寺公園東」下車すぐ（無料駐車場約1,200台）",
+ baby:"要確認", lunch:"周辺に飲食店あり。園内の売店等は要確認。",
+ officialUrl:null,
+ verifiedAt:"2026年9月21日",
+ desc:"伊勢崎市の華蔵寺公園に隣接する遊園地（愛称「Auto Mirai 華蔵寺遊園地」）。入園は無料で、観覧車やジェットコースターなどを乗り物ごとの料金で気軽に楽しめる。桜やツツジの名所として知られる華蔵寺公園の花見とあわせて過ごせる。",
+ tip:"定休日は火曜（祝日の場合は開園）、営業時間は9:00〜17:00（12〜2月は9:30〜16:30）が目安（TEL 0270-25-4478）。花まつりの時期（3〜5月）は夜間営業もあるが混雑し、駐車場が早く満車になるためバスの利用が安心。"},
+{region:"埼玉", name:"青葉台公園（朝霞市）", area:"朝霞市膝折町", lat:35.8070, lng:139.5960,
+ genre:"公園",
+ ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日"],
+ price:"入園無料", parking:"no", access:"東武東上線「朝霞」駅・「朝霞台」駅から徒歩またはバス（専用駐車場の有無・詳細は要確認）",
+ baby:"要確認", lunch:"周辺に飲食店あり。",
+ officialUrl:null,
+ desc:"夏場に水遊びができる朝霞市の都市公園。噴水を中心にしたじゃぶじゃぶ池と浅いせせらぎがあり、小さな子どもも水に親しめる。ザイルクライミングなどの遊具、テニスコート、野球場のある芝生広場、ウォーキングコースが揃い、桜や紅葉など四季の景色も楽しめる。",
+ tip:"じゃぶじゃぶ池の噴水は夏季のみで、冬は止まっている。近くの「ラウンドワンスタジアム朝霞店」（膝折町）と組み合わせるのもおすすめ。"},
+{region:"埼玉", name:"溝沼子どもプール", area:"朝霞市溝沼", lat:35.8130, lng:139.5745,
+ genre:"プール・水遊び",
+ ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日"],
+ seasons:["夏"],
+ price:"小学生100円／未就学児無料／付添人200円（掲載時点）", parking:"yes", access:"市内循環バス「わくわく号」膝折・溝沼線「溝沼老人福祉センター」下車徒歩約5分、または東武バス「第三中学校」下車徒歩約5分（無料駐車場90台）",
+ baby:"授乳室・おむつ交換台あり。おむつが取れていない子も水着を着用して入水できる（市販の水遊び用パンツは不可）。", lunch:"飲食可能（口コミ情報）。",
+ officialUrl:"https://www.city.asaka.lg.jp/soshiki/41/mizonumapool.html",
+ desc:"利用できるのは小学生以下の子どもと付き添いの保護者だけという、朝霞市の子ども専用プール。3種類のコースターを設けたコースタープールや滝のプール、幼児プール、児童プールがあり、小さな子から小学生まで安心して水遊びできる。",
+ tip:"営業は例年7月の第2土曜日から9月の第1日曜日までの夏季限定（9:30〜17:00、最終入場16:15、期間中無休）。シーズン外は利用できないため、お出かけ前に市の公式ページで確認を。"},
+{region:"埼玉", name:"ラウンドワンスタジアム朝霞店", area:"朝霞市膝折町", lat:35.8085, lng:139.5930,
+ genre:"室内遊び場",
+ ages:["2-3歳","4-6歳","低学年","高学年"], weather:["雨","晴れ"], duration:["半日"],
+ price:"料金は年齢・曜日・時間帯で変動（公式サイト要確認）", parking:"yes", access:"川越街道沿い、膝折公団前のすぐそば（電車・バスでの行き方は公式サイト要確認）",
+ baby:"アミューズメントコーナーは年齢による入場制限あり。授乳室などの設備は要確認。", lunch:"館内に飲食コーナーあり（口コミ情報）。",
+ officialUrl:"https://www.round1.co.jp/shop/tenpo/saitama-asaka.html",
+ desc:"ボウリングやカラオケ、アミューズメント、スポーツ施設「スポッチャ」が揃う、県内最大規模をうたう複合施設。屋内なので雨の日でも遊べ、口コミではボールプールやバスケ、卓球で楽しめたとの声がある。",
+ tip:"年中無休。営業時間は曜日で異なり、月〜木は10:00〜翌6:00、土曜は24時間営業など（掲載時点）。未就学児連れの保護者が未就学児料金になる割引があるとの口コミもあるので、最新の料金は公式サイトやアプリで確認を。"},
+{region:"埼玉", name:"朝霞養魚場", area:"朝霞市浜崎", lat:35.8030, lng:139.6000,
+ genre:"釣り堀・魚つかみ取り",
+ ages:["2-3歳","4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日"],
+ price:"「遊び」30分500円・60分800円（釣れた数に応じてお菓子と交換）／「持ち帰り」30分800円・60分1500円（30分は3匹、60分は5匹まで）（掲載時点）", parking:"yes", access:"東武東上線「朝霞台」駅・JR武蔵野線「北朝霞」駅から徒歩約20分",
+ baby:"要確認", lunch:"要確認。",
+ officialUrl:"http://www.asaka-sci.or.jp/modules/shops/content0218.html",
+ desc:"金魚・錦鯉・メダカ・川魚などを販売する養魚場に併設された釣り堀。竿とエサ付きで手ぶらで立ち寄れ、金魚やコイ、フナが釣れる。「遊び」なら釣れた数に応じてお菓子と交換、「持ち帰り」なら釣れた魚を持ち帰れる。",
+ tip:"定休日は水曜日。営業時間は要確認（TEL 048-456-0256）。口コミでは、スタッフが釣れる場所や釣り方を丁寧に教えてくれたとの声がある。"},
+{region:"東京", name:"羽田空港", area:"大田区羽田空港", lat:35.5494, lng:139.7798,
+ genre:"おでかけスポット",
+ ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["晴れ","雨"], duration:["半日"],
+ price:"展望デッキは入場無料（駐車場は有料）", parking:"yes", access:"京急線・東京モノレール「羽田空港第1・第2ターミナル」駅から徒歩約2分（第3ターミナルは「羽田空港第3ターミナル」駅）",
+ baby:"第2ターミナルの保安検査場外などにキッズスペースあり（口コミ情報）。授乳室などは各ターミナルで要確認。", lunch:"各ターミナルにレストラン・フードコートが多数。",
+ officialUrl:"https://tokyo-haneda.com/",
+ verifiedAt:"2026年9月21日",
+ desc:"第1・第2・第3ターミナルにそれぞれ無料の展望デッキがあり、飛行機の離着陸を間近に見られる。第1ターミナルは6階と屋上、第2・第3ターミナルは5階に展望デッキがあり、ターミナル間は無料シャトルバスで移動できる。飛行機に乗らなくても、飛行機好きの子どもと1日楽しめる。",
+ tip:"第1・第2ターミナルの展望デッキは6:30〜22:00（天候などで変更あり）が目安。風向きによって離着陸が見やすいターミナルが変わるので、両方回ってみるのもおすすめ。"},
+{region:"静岡", name:"三島スカイウォーク", area:"三島市笹原新田", lat:35.1600, lng:138.9990,
+ genre:"おでかけスポット",
+ ages:["2-3歳","4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日"],
+ price:"吊橋の入場料が必要（料金は公式サイト要確認）。ジップスライドなどのアクティビティは各別料金", parking:"yes", access:"JR「三島」駅から路線バス（所要時間は公式サイト要確認）／無料駐車場約400台",
+ baby:"要確認", lunch:"施設内に食事・軽食・お土産を買える店あり。",
+ officialUrl:null,
+ verifiedAt:"2026年9月21日",
+ desc:"全長400mの日本最長の歩行者専用吊橋（2015年12月開業）。橋の上から富士山や駿河湾、伊豆の山並みを一望できる。橋を渡った先の北エリアには、樹上アスレチックやロングジップスライドの「フォレストアドベンチャー」、恐竜アドベンチャー、動物とのふれあいなどのアクティビティがある。",
+ tip:"吊橋の入場料とアクティビティ料金は別なので、公式サイトで事前購入できるフリーパスなどのお得なチケットがないか確認するのがおすすめ。所在地は三島市笹原新田313、TEL 055-972-0053。"},
+{region:"神奈川", name:"横浜ベイブリッジスカイウォーク", area:"横浜市鶴見区大黒ふ頭", lat:35.4615, lng:139.6810,
+ genre:"おでかけスポット",
+ ages:["2-3歳","4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日"],
+ price:"入場無料", parking:"yes", access:"車：首都高速湾岸線「大黒ふ頭」出入口からすぐ（隣接地に臨時の駐車スペースあり・スカイウォーク利用者のみ）",
+ baby:"要確認", lunch:"敷地内での食事は禁止（飲料はOK）。食事は別の場所で。",
+ officialUrl:"https://www.city.yokohama.lg.jp/kanko-bunka/minato/taikan/kengaku/sw201905.html",
+ desc:"横浜ベイブリッジに併設された歩行者専用の展望施設。出入口の「スカイタワー」、片道約320mの遊歩道「スカイプロムナード」、360度見渡せる展望台「スカイラウンジ」で構成され、横浜港を行き交う船やみなとみらい、天気がよければ富士山も望める。対岸への通り抜けはできない。",
+ tip:"開放は基本的に土日祝の11:00〜18:00（年末年始を除く。時期により金曜も開放される場合あり）で、平日は入れない。ペット不可・ゴミ箱なし（ゴミは持ち帰り）。2026年の開放日は横浜市の公式ページで要確認。"},
+{region:"神奈川", name:"本牧海づり施設", area:"横浜市中区本牧ふ頭", lat:35.4235, lng:139.6870,
+ genre:"釣り堀・魚つかみ取り",
+ ages:["4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日"],
+ price:"つり料（個人1回券）大人900円／中学生450円／小学生300円、見学料（1回券）大人100円／小・中学生50円", parking:"yes", access:"横浜駅東口または桜木町駅から市営バス26系統「海づり桟橋」下車（駐車場の料金・台数は施設ホームページで要確認）",
+ baby:"要確認", lunch:"周辺は港湾エリアのため、飲み物・軽食は持参が安心。",
+ officialUrl:"https://yokohama-fishingpiers.jp/honmoku",
+ verifiedAt:"2026年9月21日",
+ desc:"横浜市が運営する海づり施設「横浜フィッシングピアーズ」のひとつ。本牧ふ頭の先にあり、潮風に吹かれ、港に出入りする船を見ながら安全で快適な海づりを楽しめる。",
+ tip:"営業は毎日。4〜10月は6:00〜19:00、11〜3月は7:00〜17:00（年末年始と施設点検日は休み）。団体料金や回数券は施設ホームページで確認を。TEL 045-623-6030。小さなお子さまは保護者がそばで付き添って。"},
+{region:"神奈川", name:"猿島", area:"横須賀市猿島", lat:35.2935, lng:139.6600,
+ genre:"おでかけスポット",
+ ages:["2-3歳","4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日"],
+ price:"往復乗船料 大人1300円ほか＋入島料 大人500円／小・中学生250円（掲載時点の目安・改定される場合あり）", parking:"yes", access:"京急線「横須賀中央」駅から徒歩約15分の三笠桟橋から渡船で約10分（1時間ごとに運航）。三笠公園駐車場（有料）を利用",
+ baby:"島内の広場へは108段の階段を上る。小さなお子さまは抱っこ紐があると安心。", lunch:"桟橋近くにテイクアウトの店・売店あり。バーベキューもできる（利用方法は公式サイト要確認）。",
+ officialUrl:null,
+ verifiedAt:"2026年9月21日",
+ desc:"横須賀沖に浮かぶ東京湾唯一の自然島（無人島）。明治期の要塞・砲台跡が残る国の史跡で、レンガ造りのトンネルや切通しなど探検気分の散策が楽しめる。三笠桟橋から船で約10分と近く、島の広場からはベイブリッジやみなとみらい、天気がよければ富士山も見える。",
+ tip:"猿島海水浴場は安全上の理由から2026年も開設されていない。約30分の探検ツアー（別料金、2022年時点で600円）もある。荒天時は欠航するので運航状況を確認（問い合わせ：トライアングル TEL 046-825-7144）。"},
+{region:"神奈川", name:"うみかぜ公園", area:"横須賀市平成町", lat:35.2790, lng:139.6580,
+ genre:"公園",
+ ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日"],
+ price:"入園無料（駐車場は有料：普通車 日中1時間320円、以後30分ごとに160円、上限640円）", parking:"yes", access:"京急線「県立大学」駅から徒歩約15分",
+ baby:"ベビーカーOK／おむつ替えの設備は要確認", lunch:"芝生広場でバーベキューができる（ゴミ・炭は持ち帰り）。BBQ器材のレンタルショップあり。",
+ officialUrl:null,
+ verifiedAt:"2026年9月21日",
+ desc:"目の前に猿島が浮かぶ横須賀市の海浜公園。2024年4月に新しくなった複合遊具と、年齢に合わせて選べる3コースの芝すべりがある遊具広場、夏は無料で遊べる「水の丘噴水」（7〜9月・水深0〜20cm）、テントやタープを張れる芝生広場、磯の生き物を観察できる親水護岸、スケートボードエリアやマウンテンバイクコースなどが揃う。",
+ tip:"普通車の駐車場は173台で、休日は混み合いやすい。バーベキューはゴミ・炭の持ち帰りが必須。オートバイ・自転車の乗り入れと、硬式・軟式ボールのキャッチボールは不可。TEL 046-826-2899（管理事務所）。"},
+{region:"神奈川", name:"ワンダリア横浜", area:"横浜市中区港町", lat:35.4455, lng:139.6370,
+ genre:"おでかけスポット",
+ ages:["2-3歳","4-6歳","低学年","高学年"], weather:["雨","晴れ"], duration:["半日"],
+ price:"大人2900円〜（日時変動制）／中高生2200円／小学生1500円／幼児（4歳以上）1000円／3歳以下無料（開業時の一般料金）", parking:"yes", access:"JR・横浜市営地下鉄「関内」駅から徒歩約1分（BASEGATE横浜関内タワー3〜4階。駐車場は30分400円）",
+ baby:"授乳室・ベビーカー置き場あり", lunch:"併設の「ワンダリアカフェ」でお子さまプレートやドーナツなどを楽しめる。",
+ officialUrl:"https://wonderia.jp",
+ verifiedAt:"2026年9月21日",
+ desc:"2026年3月にBASEGATE横浜関内に開業した、映像とアプリで楽しむ没入型体験施設（正式名称「ワンダリア横浜 Supported by Umios」）。高原や深海、原生林など6つのゾーンを巡り、臨場感のある映像の中で生き物や自然と出会える。専用の「ワンダリアアプリ」で生き物を集めるなど、ゲーム感覚で探検できる。",
+ tip:"チケットは日時指定の変動料金制でWeb購入が基本。Webチケットが完売の日は当日券がないため、事前予約がおすすめ。営業時間は月〜木10:00〜19:00、金〜日・大型連休は10:00〜21:00（最終入館は1時間前）で、休館日は不定休。館内の支払いはキャッシュレスのみ。"},
+{region:"静岡", name:"パルながいずみ（長泉町こども交流センター）", area:"駿東郡長泉町中土狩", lat:35.1195, lng:138.9160,
+ genre:"室内遊び場",
+ ages:["0-1歳","2-3歳","4-6歳","低学年","高学年"], weather:["雨","晴れ"], duration:["半日"],
+ price:"要確認（町の公共施設。一時保育は別料金）", parking:"yes", access:"JR御殿場線「長泉なめり」駅から徒歩約10分（フレスポ長泉A棟2階。駐車場の詳細は要確認）",
+ baby:"1歳未満の親子向け「乳児ゾーン」あり。授乳・おむつ替えの設備は要確認。", lunch:"飲食ルームあり。フレスポ長泉内にも飲食店あり。",
+ officialUrl:"https://palnagaizumi-cc.ashita-ba.co.jp/",
+ verifiedAt:"2026年9月21日",
+ desc:"フレスポ長泉A棟2階にある長泉町の子育て支援施設。プレイホール、1歳未満向けの乳児ゾーン、小学生が使えるアクティブゾーン、飲食ルームなどがあり、天候を気にせず親子で遊べる。「小・中学生わくわくルーム」の時間帯には、小学生以上が卓球などで遊べる日もある。",
+ tip:"休所日は毎月第1火曜日（祝日の場合は第2火曜日）と年末年始（12/28〜1/4）。未就学児は必ず保護者が付き添う。利用時間や料金は公式サイト・館内掲示で確認を（TEL 055-988-1086）。すぐ近くの「長泉健康公園」と組み合わせて回れる。"},
+{region:"静岡", name:"長泉健康公園（ウェルピアながいずみ）", area:"駿東郡長泉町中土狩", lat:35.1190, lng:138.9150,
+ genre:"公園",
+ ages:["2-3歳","4-6歳","低学年","高学年"], weather:["晴れ"], duration:["半日"],
+ price:"要確認（温水プールなど健康づくりセンターの施設は別料金）", parking:"yes", access:"JR御殿場線「長泉なめり」駅から徒歩約8分／新東名高速「長泉沼津」ICから車約5分",
+ baby:"要確認", lunch:"要確認（近くのフレスポ長泉内に飲食店あり）。",
+ officialUrl:null,
+ verifiedAt:"2026年9月21日",
+ desc:"長泉町の健康づくりの拠点となっている公園（敷地約44,800平方メートル）。中央グラウンドやミニ運動場のほか、温水プール・アリーナ・マシンルームを備えた健康づくりセンター「ウェルピアながいずみ」が隣接している。",
+ tip:"健康づくりセンターの営業時間は8:30〜21:30（休館は毎月第3月曜日と年末年始）。公園内の遊具の有無や利用ルールは、長泉町健康増進課（TEL 055-989-5575）などで事前に確認を。"}
+];
+SPOTS.push(...SPOTS_NEW_12);
 // ▲▲▲ DATA-BLOCK END: SPOTS ▲▲▲
 // operationStatus:"closed" が設定された施設を、画面上のどこにも表示されないよう取り除く
 // （データそのものは配列定義に残るので、後日ステータスを外すだけで復活できる）。
@@ -9088,6 +9521,10 @@ const CITY_ROMAJI = {
   "静岡|裾野市": "susono",
   "静岡|賀茂郡東伊豆町": "higashiizu",
   "静岡|賀茂郡河津町": "kawazu",
+  "静岡|三島市": "mishima",
+  "静岡|駿東郡長泉町": "nagaizumi",
+  "埼玉|朝霞市": "asaka",
+  "群馬|伊勢崎市": "isesaki",
 };
 // ▲▲▲ DATA-BLOCK END: PREF_SLUG ▲▲▲
 function slugifyPart(text){
@@ -9936,7 +10373,24 @@ const SLUG_OVERRIDES = {
   "あそびのせかい マークイズみなとみらい店": "kanagawa/yokohama-nishi/asobi-no-sekai-mark-is-minatomirai",
   "青葉台東急スクエア 屋上広場": "kanagawa/yokohama-aoba/aobadai-tokyu-square-okujo-hiroba",
   "ボーネルンドあそびのせかい たまプラーザ テラス店": "kanagawa/yokohama-aoba/bornelund-asobi-no-sekai-tama-plaza-terrace",
-  "ボーネルンドあそびのせかい テラスモール湘南店": "kanagawa/fujisawa/bornelund-asobi-no-sekai-terrace-mall-shonan"
+  "ボーネルンドあそびのせかい テラスモール湘南店": "kanagawa/fujisawa/bornelund-asobi-no-sekai-terrace-mall-shonan",
+  "仙元山見晴らしの丘公園": "saitama/比企郡小川町/sengenyama-miharashi-no-oka",
+  "横浜釣り堀王国": "kanagawa/yokohama-kanazawa/yokohama-tsuribori-okoku",
+  "ちちぶキッズパーク": "saitama/chichibu/chichibu-kids-park",
+  "華蔵寺公園遊園地": "gunma/isesaki/kezoji-yuenchi",
+  "青葉台公園（朝霞市）": "saitama/asaka/aobadai-park",
+  "溝沼子どもプール": "saitama/asaka/mizonuma-kodomo-pool",
+  "ラウンドワンスタジアム朝霞店": "saitama/asaka/round1-asaka",
+  "朝霞養魚場": "saitama/asaka/asaka-yogyojo",
+  "羽田空港": "tokyo/ota/haneda-airport",
+  "三島スカイウォーク": "shizuoka/mishima/mishima-skywalk",
+  "横浜ベイブリッジスカイウォーク": "kanagawa/yokohama-tsurumi/bay-bridge-skywalk",
+  "本牧海づり施設": "kanagawa/yokohama-naka/honmoku-umizuri",
+  "猿島": "kanagawa/yokosuka/sarushima",
+  "うみかぜ公園": "kanagawa/yokosuka/umikaze-park",
+  "ワンダリア横浜": "kanagawa/yokohama-naka/wonderia",
+  "パルながいずみ（長泉町こども交流センター）": "shizuoka/nagaizumi/pal-nagaizumi",
+  "長泉健康公園（ウェルピアながいずみ）": "shizuoka/nagaizumi/nagaizumi-kenko-park"
 };
 // ▲▲▲ DATA-BLOCK END: SLUG_OVERRIDES ▲▲▲
 function buildFacilitySlug(spot){
@@ -10903,6 +11357,8 @@ async function loadWeatherIntoDetail(spot){
 // ==================================================================
 let scrollLockY = 0;
 function lockScroll(){
+  // すでに他のシートでロック中（例：施設詳細の上にホテルシートを重ねる）なら、再ロックして保存位置を上書きしない
+  if(document.body.style.position === "fixed") return;
   scrollLockY = window.scrollY || document.documentElement.scrollTop || 0;
   document.body.style.position = "fixed";
   document.body.style.top = `-${scrollLockY}px`;
@@ -10911,6 +11367,8 @@ function lockScroll(){
   document.body.style.width = "100%";
 }
 function unlockScroll(){
+  // まだ別のシートが開いている間（例：ホテルシートだけ閉じて施設詳細に戻る場合）はロックを維持する
+  if(document.querySelector(".sheet-overlay.open")) return;
   document.body.style.position = "";
   document.body.style.top = "";
   document.body.style.left = "";
@@ -13191,7 +13649,7 @@ const FAMILY_HOTELS = {
       lat: 36.865, lng: 138.977,
       officialUrl: "",
       label: "キッズ充実",
-      tags: ["キッズにオススメ"],
+      tags: ["キッズにオススメ", "子連れ歓迎"],
       features: ["🧸 キッズルームあり", "🍽️ バイキング", "🐟 ドクターフィッシュ体験", "🚗 駐車場あり"],
       score: 8,
       note: "約200万坪の高原リゾート。館内にゲームコーナーやキッズルームがあり、夏はカヌーやファミリーキャニオニングなど親子で楽しめるアクティビティが充実。子ども向け食事メニューも月齢別に対応。",
@@ -13296,7 +13754,7 @@ const FAMILY_HOTELS = {
       lat: 36.617, lng: 138.593,
       officialUrl: "",
       label: "眺望・大浴場が魅力",
-      tags: ["キッズにオススメ"],
+      tags: [],
       features: ["🛁 大浴場・展望風呂", "🍽️ バイキング", "🚗 駐車場あり"],
       score: 8,
       note: "草津の温泉街を見下ろす高台に立つリゾートホテル。大浴場からの眺めがよく、朝食は地元食材を使ったビュッフェが人気。湯畑までは徒歩圏内。",
@@ -13365,7 +13823,7 @@ const FAMILY_HOTELS = {
       lat: 36.622, lng: 138.596,
       officialUrl: "",
       label: "子連れ歓迎（湯畑近く）",
-      tags: ["子連れ歓迎"],
+      tags: ["子連れ歓迎", "キッズにオススメ"],
       features: ["🛁 大浴場・湯上り処キッズスペース", "🎮 ゲームコーナー", "🏊 夏季限定ガーデンプール", "🥁 湯もみ・和太鼓ショー無料"],
       score: 7,
       note: "湯畑エリアに近く観光しやすい立地。大浴場前にキッズスペース、2階にゲームコーナーがあり子どもも飽きずに過ごせる。夏季はガーデンプールも開放され、湯もみショーも無料で楽しめる。",
@@ -13401,7 +13859,7 @@ const FAMILY_HOTELS = {
       lat: 37.048, lng: 140.031,
       officialUrl: "",
       label: "ファミリーの聖地",
-      tags: ["キッズにオススメ"],
+      tags: ["キッズにオススメ", "子連れ歓迎"],
       features: ["🧸 キッズ・ベビールームあり", "🏊 室内温水プール", "🍽️ バイキング", "🍼 離乳食対応", "🚗 駐車場あり"],
       score: 9,
       note: "「ファミリーの聖地」を掲げるリゾートホテル。ベビー・キッズ向けの専用ルームや室内温水プール、そば打ち体験、ツリートレッキングなど、子どもと過ごす時間を前提にした設備が充実。",
@@ -13436,7 +13894,7 @@ const FAMILY_HOTELS = {
       lat: 37.05, lng: 140.02,
       officialUrl: "",
       label: "子連れ歓迎（ウェルカムベビー）",
-      tags: ["子連れ歓迎"],
+      tags: ["子連れ歓迎", "キッズにオススメ"],
       features: ["👶 ウェルカムベビーの宿認定", "🧸 屋内キッズスペース・屋外アスレチック", "🏊 夏季ガーデンプール", "🛁 温泉大浴場"],
       score: 8,
       note: "「ウェルカムベビーの宿」認定で赤ちゃん連れでも安心。屋内キッズスペースと屋外アスレチック、夏季はキッズ用も含むガーデンプールがあり、天候や年齢を問わず家族で楽しめる。2026年1月にファミリーラウンジが新オープン。",
@@ -13493,6 +13951,38 @@ const FAMILY_HOTELS = {
         { siteName: "じゃらん", url: "https://www.jalan.net/yad331120/", order: 1, type: "旅行予約サイト" },
         { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00030794/", order: 2, type: "旅行予約サイト" }
       ]
+    },
+    {
+      name: "ペンションクレール",
+      slug: "hotel/nasu/pension-clair",
+      targetArea: "那須温泉郷",
+      prefecture: "栃木県",
+      city: "那須郡那須町",
+      address: "要確認",
+      area: "那須町（那須湯本温泉）",
+      officialUrl: "",
+      label: "お子様連れ限定の宿・貸切露天",
+      tags: ["子連れ歓迎", "キッズにオススメ"],
+      features: ["👨‍👩‍👧 お子様連れのご家族向けの宿（少数組限定）", "🧸 キッズスペース付きのリビング", "🛁 源泉かけ流しの貸切露天風呂", "🐰 うさぎやヤギとふれあえる", "🚗 駐車場無料（10台）"],
+      score: 8,
+      note: "お子様連れのご家族向けの宿で、客室・トイレ・お風呂は他のお客様と共用しない。キッズスペース付きのリビングや、源泉かけ流しの貸切露天風呂がある。夕食は那須高原の野菜を使ったチーズフォンデュと洋食のコースで、子ども向けのキッズプレートも用意される。うさぎやヤギとふれあう体験もできる。",
+      priceRange: "要確認",
+      checkIn: "要確認",
+      checkOut: "要確認",
+      parking: "無料（10台）",
+      onsen: true,
+      bath: "源泉かけ流しの貸切露天風呂（家族専用）",
+      kidsSpace: true,
+      kidsAmenities: "キッズスペース付きのリビング",
+      cosleeping: "大人2名に対し添い寝はお子様1名まで（プラン記載）",
+      kidsMeal: "キッズプレート（ハンバーグ・スパゲティ・チーズフォンデュ等）",
+      babyBed: "要確認",
+      meals: "夕食はチーズフォンデュ＆洋食コース",
+      updatedAt: "2026-09-21",
+      booking: { jalan: "https://www.jalan.net/yad324632/", yahooTravel: "", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad324632/", order: 1, type: "旅行予約サイト" }
+      ]
     }
   ],
   oarai: [
@@ -13541,7 +14031,7 @@ const FAMILY_HOTELS = {
       lat: 36.317, lng: 140.583,
       officialUrl: "",
       label: "キッズ充実",
-      tags: ["キッズにオススメ"],
+      tags: ["キッズにオススメ", "コスパ重視"],
       features: ["🧸 キッズルーム・プレイルーム（2025年11月新設）", "🏊 夏季シーサイドプール（幼児用あり）", "🍽️ オールインクルーシブ（食事・ドリンク・アクティビティ込み）", "🛁 大浴場"],
       score: 8,
       note: "太平洋を望むオーシャンリゾートホテル。2025年11月に新設されたキッズルーム・プレイルームがあり、夏季は幼児用の浅瀬もあるシーサイドプールも楽しめる。宿泊料金に食事・ドリンク・館内アクティビティが含まれるオールインクルーシブで、追加費用を気にせず過ごせる。",
@@ -13612,7 +14102,7 @@ const FAMILY_HOTELS = {
       lat: 36.335, lng: 138.630,
       officialUrl: "",
       label: "キッズ充実",
-      tags: ["キッズにオススメ"],
+      tags: ["キッズにオススメ", "子連れ歓迎"],
       features: ["🧗 アスレチック・ツリートレッキング隣接", "🧸 ファミリールームあり", "🛍️ プリンスショッピングプラザ直結", "🚗 駐車場あり"],
       score: 8,
       note: "隣接する「ネイチャーキッズ 森の家」でクライミングや昆虫採集、サファリツアーなど子連れで遊べるプログラムが充実。2段ベッド付きのファミリールームやおもちゃの無料レンタルもあり、軽井沢駅・プリンスショッピングプラザ直結でアクセスも良い。",
@@ -13647,7 +14137,7 @@ const FAMILY_HOTELS = {
       lat: 36.330, lng: 138.601,
       officialUrl: "",
       label: "子連れ歓迎（プール・キッズルーム）",
-      tags: ["子連れ歓迎"],
+      tags: ["子連れ歓迎", "キッズにオススメ"],
       features: ["🏊 屋内プールあり", "🧸 キッズルームあり", "🍽️ バイキング", "🌳 軽井沢タリアセン隣接", "🚗 駐車場あり"],
       score: 8,
       note: "屋内プールとキッズルームを完備し、天候を気にせず子どもと過ごせるリゾートホテル。隣接する軽井沢タリアセンへの散策もしやすく、駅からは少し離れる分、静かな環境で家族水入らずの時間を過ごせる。",
@@ -13682,7 +14172,7 @@ const FAMILY_HOTELS = {
       lat: 36.354, lng: 138.643,
       officialUrl: "",
       label: "コスパ重視",
-      tags: ["コスパ重視"],
+      tags: ["コスパ重視", "子連れ歓迎"],
       features: ["🛏️ ファミリールームあり", "🍽️ 和洋バイキング", "🏊 屋内温水プール（comoriパーク）", "🚗 駐車場あり"],
       score: 7,
       note: "北軽井沢・標高1130mの高原リゾート。水温約29度の屋内温水プール「comoriパーク」は浅めのジェットバスもあり水遊びデビューの小さな子でも安心。高級リゾートホテルほど値が張らず、朝食バイキングや駐車場も含めたコストパフォーマンスの良さで選びやすい一軒。",
@@ -13718,7 +14208,7 @@ const FAMILY_HOTELS = {
       lat: 36.813, lng: 139.678,
       officialUrl: "",
       label: "キッズ充実",
-      tags: ["キッズにオススメ"],
+      tags: ["キッズにオススメ", "コスパ重視"],
       features: ["🏊 屋内プール（通年）", "🛁 鬼怒川一望の水着スパ「おぷーろ」", "🎪 キッズランド", "🍽️ オールインクルーシブバイキング"],
       score: 8,
       note: "駅から徒歩3分。1年中遊べる屋内プールと、鬼怒川の渓谷美を一望できる水着で入れる「おぷーろ」があり、天候を気にせず子どもと過ごせる。食べ放題・飲み放題込みのオールインクルーシブスタイルも家族旅行に使いやすい。",
@@ -13856,7 +14346,7 @@ const FAMILY_HOTELS = {
       lat: 35.100, lng: 139.080,
       officialUrl: "https://kamenoi-hotels.com/atami/",
       label: "子連れ歓迎",
-      tags: ["子連れ歓迎"],
+      tags: ["子連れ歓迎", "キッズにオススメ"],
       features: ["🛁 大浴場・露天風呂", "🍽️ 90種の和洋中ビュッフェ（キッズコーナーあり）", "🚗 駐車場あり", "🌅 熱海市街・海を望む高台"],
       score: 7,
       note: "熱海の街と海を見晴らす高台に立つホテル。90種におよぶ和洋中ビュッフェにはキッズコーナーもあり、握り寿司や麺コーナーなど子どもが食べやすいメニューも充実。塩化物温泉の大浴場・露天風呂でゆったり過ごせる。1階の「ATAMI KIDS PARK」は3歳以上300円（プレミアベビー／キッズルーム宿泊者は無料）、身長120cmまでの子ども対象（保護者同伴）。ミキハウス子育て総研「ウェルカムベビーのお宿」認定。",
@@ -13891,7 +14381,7 @@ const FAMILY_HOTELS = {
       lat: 35.095, lng: 139.073,
       officialUrl: "",
       label: "コスパ重視",
-      tags: ["コスパ重視"],
+      tags: ["コスパ重視", "子連れ歓迎"],
       features: ["🛁 貸切風呂あり（天然温泉）", "👶 赤ちゃんにやさしい泉質", "🛏️ 家族向けトリプル・フォースルーム", "🚗 駐車場あり"],
       score: 7,
       note: "小さな子ども連れでも周囲を気にせず入れる貸切風呂を用意。赤ちゃんの肌にもやさしい塩化物泉で、家族向けのコンパクトな客室タイプも選べるため、コストを抑えつつ温泉を楽しみたい家族に向く。",
@@ -13927,7 +14417,7 @@ const FAMILY_HOTELS = {
       lat: 35.238, lng: 139.048,
       officialUrl: "https://www.hakone-hotelkowakien.jp/",
       label: "キッズ充実",
-      tags: ["キッズにオススメ"],
+      tags: ["キッズにオススメ", "子連れ歓迎"],
       features: ["🏊 ユネッサン＆森の湯 滞在中入り放題", "👶 ウェルカムベビーの宿認定", "🍽️ ビュッフェ（離乳食対応）", "🚗 駐車場あり"],
       score: 9,
       note: "温泉テーマパーク「箱根小涌園ユネッサン」に隣接し、チェックイン前後も含め滞在中は何度でも入り放題。ウェルカムベビーの宿に認定されており、離乳食付きビュッフェやレンタル備品も充実。プール好きの子どもがいる家族に特におすすめ。",
@@ -13997,7 +14487,7 @@ const FAMILY_HOTELS = {
       lat: 35.228, lng: 139.095,
       officialUrl: "",
       label: "コスパ重視",
-      tags: ["コスパ重視"],
+      tags: ["コスパ重視", "キッズにオススメ"],
       features: ["🏊 夏季幼児プール付き屋外プール", "🎨 寄木細工コースター作り等の体験企画", "🎤 カラオケ・卓球", "🚗 駐車場あり"],
       score: 7,
       note: "箱根湯本駅から有料巡回バスで約7分の奥湯本エリア。夏休みは幼児プール付きの屋外プールが登場するほか、季節ごとに寄木細工コースター作りなど子ども向け体験企画があり、リピーターも多い。",
@@ -14033,7 +14523,7 @@ const FAMILY_HOTELS = {
       lat: 35.148, lng: 139.107,
       officialUrl: "",
       label: "キッズ充実（赤ちゃん連れ向け）",
-      tags: ["キッズにオススメ"],
+      tags: ["キッズにオススメ", "子連れ歓迎"],
       features: ["👶 ベビープラン充実", "🍼 B型ベビーカー・調乳ポット等の無料貸出", "🛁 貸切露天風呂（子ども用おもちゃ貸出あり）", "🍽️ キッズメニューあり"],
       score: 8,
       note: "ベビー・ファミリープランに力を入れる宿で、ベビーカーや調乳ポットなど貸出備品が充実。貸切露天風呂では子ども用おもちゃも借りられ、赤ちゃん連れでも周囲を気にせずゆったり過ごせる。",
@@ -14205,7 +14695,7 @@ const FAMILY_HOTELS = {
       lat: 35.256, lng: 139.158,
       officialUrl: "",
       label: "コスパ重視",
-      tags: ["コスパ重視"],
+      tags: ["コスパ重視", "子連れ歓迎"],
       features: ["🍽️ 無料の朝食バイキング", "👶 小学生以下は添い寝無料", "🚶 小田原駅徒歩3分", "🚗 駐車場あり（有料）"],
       score: 6,
       note: "小田原駅から徒歩3分とアクセスが良く、無料の朝食バイキングが好評のビジネスホテル。小学生以下の添い寝は無料で、シンプルに費用を抑えて箱根・小田原観光の拠点にしたい家族に向く。",
@@ -14241,7 +14731,7 @@ const FAMILY_HOTELS = {
       lat: 35.040, lng: 139.815,
       officialUrl: "",
       label: "キッズ充実",
-      tags: ["キッズにオススメ"],
+      tags: ["キッズにオススメ", "子連れ歓迎", "コスパ重視"],
       features: ["🧸 キッズスペース・お子様向け遊具の丘", "🏊 屋外ガーデンプール（キッズ用の浅瀬あり）", "👶 ウェルカムベビー認定", "🍽️ オールインクルーシブ（食事・ドリンク込み）"],
       score: 8,
       note: "南房総国定公園・大房岬にある全197室のリゾートホテル。子ども向けの遊具の丘や、浅瀬のあるキッズ用ガーデンプールがあり、宿泊料金に夕朝食・ドリンク・温泉が含まれるオールインクルーシブで滞在中の追加出費を気にせず過ごせる。大房岬自然公園にも隣接。",
@@ -14332,6 +14822,71 @@ const FAMILY_HOTELS = {
         { siteName: "じゃらん", url: "https://www.jalan.net/yad314616/", order: 1, type: "旅行予約サイト" },
         { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00900978/", order: 2, type: "旅行予約サイト" }
       ]
+    },
+    {
+      name: "鴨川シーワールドホテル",
+      slug: "hotel/boso/kamogawa-seaworld-hotel",
+      targetArea: "鴨川",
+      prefecture: "千葉県",
+      city: "鴨川市",
+      address: "千葉県鴨川市東町1464-18",
+      area: "鴨川市（鴨川シーワールド隣接）",
+      officialUrl: "",
+      label: "シーワールド隣接・子連れ歓迎",
+      tags: ["キッズにオススメ", "子連れ歓迎"],
+      features: ["🐬 鴨川シーワールドに隣接・宿泊者は入館無料", "🧸 宿泊者専用キッズルームあり", "🍽️ バイキング（キッズメニュー・離乳食無料）", "👶 大浴場にベビーバス・ベビーチェアあり", "🏊 プールあり（夏季）", "🚗 駐車場無料"],
+      score: 9,
+      note: "鴨川シーワールドに隣接するオフィシャルホテル。宿泊者は幼児も含めて全員がシーワールドに入館できる（公式）。バイキング会場に隣接した宿泊者専用のキッズルームがあり、離乳食は無料で用意（当日レストランスタッフへ申し出）。全室オーシャンビューで、大浴場にはベビーバス・ベビーチェアがあり、夏季はガーデンプールも利用できる。",
+      priceRange: "要確認",
+      checkIn: "15:00",
+      checkOut: "10:00",
+      parking: "無料（70台）",
+      onsen: true,
+      bath: "温泉大浴場（鴨川温泉なぎさの湯）",
+      kidsSpace: true,
+      kidsAmenities: "宿泊者専用キッズルーム（バイキング会場隣接）、大浴場にベビーバス・ベビーチェア・おもちゃ、脱衣所にベビーベッド・ベビーサークル",
+      cosleeping: "要確認（プランにより異なる）",
+      kidsMeal: "離乳食（無料・当日レストランスタッフへ申し出）、子ども向けメニュー・デザートあり",
+      babyBed: "要確認",
+      meals: "夕朝食バイキング（和洋中）",
+      updatedAt: "2026-09-21",
+      booking: { jalan: "https://www.jalan.net/yad324403/", yahooTravel: "https://travel.yahoo.co.jp/00900120/", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad324403/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00900120/", order: 2, type: "旅行予約サイト" }
+      ]
+    },
+    {
+      name: "平砂浦ビーチホテル",
+      slug: "hotel/boso/heisaura-beach-hotel",
+      targetArea: "館山",
+      prefecture: "千葉県",
+      city: "館山市",
+      address: "千葉県館山市伊戸1535",
+      area: "館山市伊戸（平砂浦海岸）",
+      officialUrl: "",
+      label: "海岸が庭続き・プールあり",
+      tags: ["キッズにオススメ"],
+      features: ["🏖️ 平砂浦海岸がホテルから庭続き（海水浴・磯遊び・釣り）", "🏊 プールあり（7〜9月）", "🛁 貸切風呂・洞窟風呂あり", "🌊 全室オーシャンビュー"],
+      score: 7,
+      note: "平砂浦海岸を見渡すリゾートホテルで、海岸へはホテルから庭続き。夏の海水浴のほか、磯遊びや釣りもできる。プールは7月〜9月の営業。全室オーシャンビューで、貸切風呂や洞窟風呂もある。",
+      priceRange: "要確認",
+      checkIn: "15:00",
+      checkOut: "10:00",
+      parking: "要確認",
+      onsen: true,
+      bath: "大浴場・露天風呂・貸切風呂（洞窟風呂）",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "房総の海の幸の会席・海鮮BBQ",
+      updatedAt: "2026-09-21",
+      booking: { jalan: "https://www.jalan.net/yad310541/", yahooTravel: "", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad310541/", order: 1, type: "旅行予約サイト" }
+      ]
     }
   ],
   hakuba: [
@@ -14367,6 +14922,39 @@ const FAMILY_HOTELS = {
       bookingLinks: [
         { siteName: "じゃらん", url: "https://www.jalan.net/yad321447/", order: 1, type: "旅行予約サイト" },
         { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00030813/", order: 2, type: "旅行予約サイト" }
+      ]
+    },
+    {
+      name: "ホテルシェラリゾート白馬",
+      slug: "hotel/hakuba/sierra-resort-hakuba",
+      targetArea: "白馬",
+      prefecture: "長野県",
+      city: "北安曇郡白馬村",
+      address: "長野県北安曇郡白馬村北城14863-6",
+      area: "白馬村北城（白馬みずばしょう温泉）",
+      officialUrl: "",
+      label: "ファミリースイートあり",
+      tags: ["子連れ歓迎"],
+      features: ["👨‍👩‍👧 ファミリースイート（最大6名）", "♨️ 自家源泉の温泉「古民家の湯」", "🛁 貸切温泉あり", "🍽️ 地元食材のフレンチ", "🚗 駐車場あり"],
+      score: 8,
+      note: "北アルプスの麓、約3万坪の森に建つ温泉リゾート。スーペリアスイートは寝室を分けられ、ソファベッドを含め最大6名まで泊まれる家族向けの客室で、洗い場付きのバスタブや露天風呂も付く。自家源泉の「古民家の湯」や貸切温泉も利用できる。",
+      priceRange: "要確認",
+      checkIn: "15:00",
+      checkOut: "10:00",
+      parking: "あり",
+      onsen: true,
+      bath: "自家源泉の大浴場「古民家の湯」（内湯・檜露天・岩露天）、貸切温泉あり",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "地元食材のフレンチ（季節替わり）",
+      updatedAt: "2026-09-21",
+      booking: { jalan: "https://www.jalan.net/yad303234/", yahooTravel: "https://travel.yahoo.co.jp/00001677/", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad303234/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00001677/", order: 2, type: "旅行予約サイト" }
       ]
     }
   ],
@@ -14404,6 +14992,39 @@ const FAMILY_HOTELS = {
         { siteName: "じゃらん", url: "https://www.jalan.net/yad300381/", order: 1, type: "旅行予約サイト" },
         { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00900781/", order: 2, type: "旅行予約サイト" }
       ]
+    },
+    {
+      name: "HOTEL CLAD",
+      slug: "hotel/gotemba/hotel-clad",
+      targetArea: "御殿場",
+      prefecture: "静岡県",
+      city: "御殿場市",
+      address: "静岡県御殿場市深沢2839-1",
+      area: "御殿場市深沢（御殿場プレミアム・アウトレット敷地内）",
+      officialUrl: "",
+      label: "アウトレット敷地内・貸切風呂",
+      tags: ["子連れ歓迎"],
+      features: ["🍼 ベッドガード無料貸出・子ども用館内着あり", "🛍️ 御殿場プレミアム・アウトレット敷地内", "🛁 貸切個室露天風呂19室（有料）", "🍽️ 和洋ビュッフェ", "🚗 駐車場無料"],
+      score: 8,
+      note: "御殿場プレミアム・アウトレットの敷地内にあり、連絡通路でアウトレットへ行ける温泉リゾートホテル。宿泊者は併設の日帰り温泉「木の花の湯」を無料で利用でき、家族で入れる貸切個室露天風呂（有料・19室）もある。ベッドガードの無料貸出や幼児用歯ブラシ・子ども用サンダル・お子様用館内着の用意がある。ベビーベッドはない。",
+      priceRange: "要確認",
+      checkIn: "15:00",
+      checkOut: "10:00",
+      parking: "無料（320台）",
+      onsen: true,
+      bath: "日帰り温泉「木の花の湯」（自家源泉の露天風呂・内風呂・サウナ）を宿泊者は無料利用、貸切個室露天風呂19室（有料）",
+      kidsSpace: "要確認",
+      kidsAmenities: "ベッドガード無料貸出（数に限りあり・要事前予約）、幼児用歯ブラシ、子供用サンダル、お子様用館内着",
+      cosleeping: "3歳以上6歳未満は施設使用料あり（料金・条件は要確認）",
+      kidsMeal: "要確認",
+      babyBed: "なし（ベッドガードは無料貸出）",
+      meals: "併設「ダイニング花衣」のビュッフェ（朝食は宿泊者限定の和洋ビュッフェ）",
+      updatedAt: "2026-09-21",
+      booking: { jalan: "https://www.jalan.net/yad347076/", yahooTravel: "https://travel.yahoo.co.jp/00002675/", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad347076/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00002675/", order: 2, type: "旅行予約サイト" }
+      ]
     }
   ],
   iwaki: [
@@ -14418,7 +15039,7 @@ const FAMILY_HOTELS = {
       lat: 37.062, lng: 140.789,
       officialUrl: "",
       label: "施設直結・子連れ歓迎",
-      tags: ["子連れ歓迎"],
+      tags: ["子連れ歓迎", "キッズにオススメ"],
       features: ["🏊 スパリゾートハワイアンズと連絡通路で直結", "👶 ベビーベッド・哺乳瓶消毒用電子レンジあり", "🌺 ハワイアンショー毎日開催", "🚗 駐車場あり", "🚌 首都圏から無料送迎バスあり"],
       score: 8,
       note: "スパリゾートハワイアンズに連絡通路で直結する大型ホテル。乳幼児向けにベビーベッドや哺乳瓶消毒用電子レンジの貸し出しがあり、幼児用アロハ・ムームーの用意もある。1日中泳げるプールと大露天風呂、毎日のポリネシアンショーまで、施設を出ずに1〜2日たっぷり楽しめる。東京・新宿・横浜等から無料送迎バスも運行。",
@@ -14594,8 +15215,8 @@ const FAMILY_HOTELS = {
       area: "笛吹市石和町松本（石和温泉駅徒歩5分）",
       lat: 35.664, lng: 138.635,
       officialUrl: "http://www.hana-isawa.com/",
-      label: "キッズ充実",
-      tags: ["キッズにオススメ"],
+      label: "温泉・貸切家族風呂",
+      tags: [],
       features: ["🧸 姉妹館の湯めぐりで温泉三昧", "🛁 大浴場・露天風呂・バリアフリー仕様の貸切家族風呂（無料）", "🎪 ロビーで中国雑技団ショー開催", "🚗 駐車場あり"],
       score: 8,
       note: "石和温泉駅から徒歩5分。敷地内から自噴する自家源泉の大浴場・露天風呂に加え、バリアフリー仕様の貸切家族風呂を先着順・無料で利用できる。チェックイン14時からとゆったり滞在でき、ロビーでは中国雑技団ショーも楽しめる。",
@@ -14698,7 +15319,7 @@ const FAMILY_HOTELS = {
       lat: 35.311, lng: 139.544,
       officialUrl: "",
       label: "キッズ充実",
-      tags: ["キッズにオススメ"],
+      tags: ["キッズにオススメ", "子連れ歓迎"],
       features: ["👶 湘南初「ウェルカムベビーのお宿」", "🧸 キッズスペースあり（3F）", "🏊 温水プール・テニスコートあり", "🌊 海へ徒歩約2分", "🚗 駐車場無料"],
       score: 8,
       note: "湘南初の「ウェルカムベビーのお宿」。3階のキッズスペースに加え温水プール・テニスコートも備え、由比ヶ浜へは徒歩約2分。国家公務員共済組合連合会運営で、組合員以外も宿泊可能。",
@@ -14764,7 +15385,7 @@ const FAMILY_HOTELS = {
       lat: 35.318, lng: 139.549,
       officialUrl: "",
       label: "コスパ重視",
-      tags: ["コスパ重視"],
+      tags: ["コスパ重視", "子連れ歓迎"],
       features: ["🚶 鎌倉駅西口から徒歩約2分", "👶 2歳以下は添い寝・宿泊無料", "🏛️ 大正13年築の本館（鎌倉市景観重要建築物）", "🚗 駐車場あり（有料）"],
       score: 7,
       note: "鎌倉駅西口から徒歩約2分という好立地。大正時代築のレトロな本館と新館があり、2歳以下の子どもは添い寝で宿泊無料になるため、コストを抑えて鎌倉観光の拠点にしたい家族に向く。",
@@ -14863,7 +15484,7 @@ const FAMILY_HOTELS = {
       lat: 35.339, lng: 139.490,
       officialUrl: "",
       label: "コスパ重視",
-      tags: ["コスパ重視"],
+      tags: ["コスパ重視", "子連れ歓迎"],
       features: ["🚶 藤沢駅前・コンビニ直結", "👶 ベッドガード対応可（要事前連絡）", "🍽️ しらす等を使った朝食", "🚗 駐車場あり（有料）"],
       score: 6,
       note: "藤沢駅前でコンビニに直結し、江の島・鎌倉観光の拠点として便利なビジネスホテル。事前連絡でベッドガードの用意ができ、小さな子ども連れでも安心。リーズナブルな価格も魅力。",
@@ -14898,7 +15519,7 @@ const FAMILY_HOTELS = {
       lat: 36.083, lng: 138.267,
       officialUrl: "",
       label: "キッズ充実",
-      tags: ["キッズにオススメ"],
+      tags: ["キッズにオススメ", "子連れ歓迎"],
       features: ["🧸 全天候型「蓼科キッズパーク」約400㎡（0歳から利用可、宿泊者無料）", "👶 ミキハウス子育て総研「ウェルカムベビーのお宿」認定", "🛁 渓流露天風呂・庭園大浴場・貸切露天風呂（ベビーバス完備）", "🍽️ 70種以上のディナービュッフェ（離乳食あり）"],
       score: 9,
       note: "創業100年超の老舗温泉リゾート。0歳から遊べる約400㎡の全天候型屋内パークを宿泊者は無料で利用でき、雨でも1日中飽きずに過ごせる。ベビーデラックス・キッズデラックスなど子連れ向け客室も充実し、ミキハウス子育て総研の「ウェルカムベビーのお宿」認定。",
@@ -15035,7 +15656,7 @@ const FAMILY_HOTELS = {
       lat: 36.484, lng: 138.936,
       officialUrl: "",
       label: "キッズ充実",
-      tags: ["キッズにオススメ"],
+      tags: ["キッズにオススメ", "子連れ歓迎"],
       features: ["🛝 滑り台＆ロフト付アドベンチャールーム（2026年3月新設）", "🍼 お子様向け離乳食・お子様料理あり", "🛁 家族向け客室・露天風呂付客室など8種以上", "♨️ 「黄金の湯」「白銀の湯」の2つの源泉"],
       score: 8,
       note: "「小さい子がいても安心」との声が多い、三世代旅行にも人気の宿。2026年3月には滑り台とロフト付きのアドベンチャールームが新設され、キッズルームやお子様向け料理も充実している。",
@@ -15175,7 +15796,7 @@ const FAMILY_HOTELS = {
       lat: 35.410, lng: 139.913,
       officialUrl: "https://mikazuki.co.jp/",
       label: "キッズ充実",
-      tags: ["キッズにオススメ"],
+      tags: ["キッズにオススメ", "子連れ歓迎"],
       features: ["🏊 水深40cmのキッズプールあり", "♨️ 全天候型スパ&プール、東京湾を一望", "🍼 おむつ替えスペースあり", "🅿️ 駐車場あり"],
       score: 7,
       note: "東京湾を望む全天候型のスパ&プールリゾート。水深40cmの浅いキッズプールがあり、小さな子ども連れでも安心。隣接する金田海岸での潮干狩り後に日帰り入浴で利用する家族も多い。",
@@ -15266,6 +15887,72 @@ const FAMILY_HOTELS = {
       booking: { jalan: "", yahooTravel: "https://travel.yahoo.co.jp/00001078/", ikyu: "" },
       bookingLinks: [
         { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00001078/", order: 1, type: "旅行予約サイト" }
+      ]
+    },
+    {
+      name: "長瀞温泉 花のおもてなし 長生館",
+      slug: "hotel/chichibu/choseikan-nagatoro",
+      targetArea: "長瀞",
+      prefecture: "埼玉県",
+      city: "秩父郡長瀞町",
+      address: "要確認",
+      area: "長瀞町（長瀞駅徒歩3分）",
+      officialUrl: "",
+      label: "赤ちゃん連れ向けプランあり",
+      tags: ["子連れ歓迎"],
+      features: ["🚉 長瀞駅から徒歩約3分", "🍼 ベビーバス・スイマーバなどのレンタルあり", "🛏️ 12畳の和室・お部屋食プランあり", "♨️ 女性用のお風呂にベビーベッドあり", "🚗 駐車場あり"],
+      score: 7,
+      note: "長瀞駅から徒歩約3分、客室が荒川と長瀞渓谷に面した旅館。12畳の和室でお部屋食を選べるプランや赤ちゃん連れ向けのプランがあり、おむつ用ゴミ箱・保温ポット・ベビーバス・スイマーバなどを借りられる。女性用のお風呂にはベビーベッドがある。",
+      priceRange: "要確認",
+      checkIn: "要確認",
+      checkOut: "要確認",
+      parking: "あり",
+      onsen: true,
+      bath: "男女別の露天風呂（長瀞温泉）",
+      kidsSpace: "要確認",
+      kidsAmenities: "おむつ用ごみ箱・保温ポット・ベビーバス・スイマーバのレンタル、女性用浴場にベビーベッド",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "会席料理（お部屋食プランあり）",
+      updatedAt: "2026-09-21",
+      booking: { jalan: "https://www.jalan.net/yad329295/", yahooTravel: "", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad329295/", order: 1, type: "旅行予約サイト" }
+      ]
+    },
+    {
+      name: "亀の井ホテル 長瀞寄居",
+      slug: "hotel/chichibu/kamenoi-hotel-nagatoro-yorii",
+      targetArea: "長瀞・寄居",
+      prefecture: "埼玉県",
+      city: "大里郡寄居町",
+      address: "埼玉県大里郡寄居町末野2267",
+      area: "寄居町末野（金山温泉）",
+      officialUrl: "",
+      label: "露天風呂付客室・天然温泉",
+      tags: ["子連れ歓迎"],
+      features: ["♨️ 天然温泉・最上階の展望露天風呂", "🛏️ 露天風呂付き客室（小さなお子様連れ向けと案内）", "🍽️ 夕食バイキング", "🚌 寄居駅から送迎バスあり", "🚗 駐車場無料"],
+      score: 7,
+      note: "2025年4月にリニューアルした天然温泉のホテル。最上階の展望露天風呂から秩父の山並みや荒川を見渡せる。新設の露天風呂付き客室は、小さなお子様連れでも過ごしやすい部屋として案内されている。ラフティングなど長瀞のアクティビティの拠点にもなる。",
+      priceRange: "要確認",
+      checkIn: "15:00",
+      checkOut: "10:00",
+      parking: "無料",
+      onsen: true,
+      bath: "天然温泉（金山温泉）・最上階の展望露天風呂",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "夕食バイキング（プランによる）",
+      updatedAt: "2026-09-21",
+      booking: { jalan: "https://www.jalan.net/yad311788/", yahooTravel: "https://travel.yahoo.co.jp/00003423/", ikyu: "https://www.ikyu.com/00003423/" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad311788/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00003423/", order: 2, type: "旅行予約サイト" },
+        { siteName: "一休.com", url: "https://www.ikyu.com/00003423/", order: 3, type: "旅行予約サイト" }
       ]
     }
   ],
@@ -15385,7 +16072,7 @@ const FAMILY_HOTELS = {
       lat: 35.626, lng: 139.891,
       officialUrl: "",
       label: "子連れ歓迎・キッズスペース充実",
-      tags: ["子連れ歓迎"],
+      tags: ["子連れ歓迎", "キッズにオススメ"],
       features: ["🎡 ディズニーシー直結（屋内連絡通路）", "🧸 キッズコーナー・ゲームコーナー（無料）", "🏊 屋外・屋内プール（季節により営業）", "🛏️ ファミリースイート・キッズベッド", "🍽️ バイキング・和洋朝食"],
       score: 8,
       note: "東京ディズニーシーに屋内連絡通路で直結。1階にキッズコーナーやゲームコーナーがあり無料で遊べるほか、客室もファミリースイートやキッズベッド付きなど子連れ向けの選択肢が豊富。朝食バイキングも充実。",
@@ -15420,7 +16107,7 @@ const FAMILY_HOTELS = {
       lat: 35.632, lng: 139.884,
       officialUrl: "",
       label: "コスパ重視・和室あり",
-      tags: ["コスパ重視"],
+      tags: ["コスパ重視", "子連れ歓迎"],
       features: ["🎡 ディズニーランド直結（屋内連絡通路）", "🛏️ 和室・和洋室ファミリータイプ", "🏊 屋内プール（通年）", "🍽️ 朝食ビュッフェ・日本料理レストラン", "🚗 駐車場あり"],
       score: 8,
       note: "東京ディズニーランドに屋内連絡通路で直結。和室・和洋室のファミリータイプ客室があり、お布団派の家族や幼い子どもにも使いやすい。屋内プール完備で通年利用でき、朝食バイキングも充実。",
@@ -16012,6 +16699,141 @@ const FAMILY_HOTELS = {
         { siteName: "一休.com", url: "https://www.ikyu.com/00000201/", order: 3, type: "旅行予約サイト" }
       ]
     }
+  ],
+  kawagoe: [
+    {
+      name: "川越東武ホテル",
+      slug: "hotel/kawagoe/kawagoe-tobu-hotel",
+      targetArea: "川越",
+      prefecture: "埼玉県",
+      city: "川越市",
+      address: "埼玉県川越市脇田本町8-1",
+      area: "川越市（川越駅西口徒歩2分）",
+      officialUrl: "",
+      label: "添い寝無料・駅直結",
+      tags: ["子連れ歓迎", "コスパ重視"],
+      features: ["🚉 川越駅西口から屋根付きデッキで直結（徒歩2分）", "👶 未就学児は添い寝無料", "🚗 駐車場あり（提携・有料）"],
+      score: 7,
+      note: "川越駅西口の商業施設U_PLACE内にあり、駅から屋根付きデッキでつながる。未就学のお子様は大人と同じベッドで添い寝をすれば無料で泊まれる（公式）。小江戸川越の蔵造りの街並みへはバスで約10分。専用駐車場はなく、U_PLACEの駐車場を宿泊者優待料金（有料）で利用する。",
+      priceRange: "要確認",
+      checkIn: "要確認（標準14:00）",
+      checkOut: "11:00",
+      parking: "専用駐車場なし（提携のU_PLACE駐車場を宿泊者優待料金で利用可・有料）",
+      onsen: false,
+      bath: "要確認",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "未就学のお子様は大人と同じベッドで添い寝の場合無料（公式）",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "要確認",
+      updatedAt: "2026-09-21",
+      booking: { jalan: "https://www.jalan.net/yad374288/", yahooTravel: "https://travel.yahoo.co.jp/00081991/", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad374288/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00081991/", order: 2, type: "旅行予約サイト" }
+      ]
+    },
+    {
+      name: "川越プリンスホテル",
+      slug: "hotel/kawagoe/kawagoe-prince-hotel",
+      targetArea: "川越",
+      prefecture: "埼玉県",
+      city: "川越市",
+      address: "要確認",
+      area: "川越市（本川越駅直結）",
+      officialUrl: "",
+      label: "本川越駅直結・和室あり",
+      tags: ["子連れ歓迎"],
+      features: ["🚉 西武新宿線本川越駅に直結", "🛏️ 和室あり・ソファーベッドで3名利用できる洋室あり", "👶 未就学児は添い寝で宿泊可（キッズアメニティ付きの家族向けプランあり）", "🚗 駐車場あり（有料）"],
+      score: 7,
+      note: "西武新宿線本川越駅に直結し、小江戸川越の蔵造りの街並みへは徒歩約15分。和室の客室があるほか、洋室でもソファーベッドを使えば3名まで利用できる。未就学のお子様は添い寝で泊まれ、キッズアメニティやダンボール工作キットが付く家族向けプランも出ている。駐車場は有料。",
+      priceRange: "要確認",
+      checkIn: "14:00",
+      checkOut: "11:00",
+      parking: "有料（1泊1,000円）",
+      onsen: false,
+      bath: "要確認",
+      kidsSpace: "要確認",
+      kidsAmenities: "家族向けプランでキッズアメニティ（添い寝のお子様）・ダンボール工作キット",
+      cosleeping: "未就学のお子様は添い寝で承り",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "朝食は和洋ブッフェ（プランによる）",
+      updatedAt: "2026-09-21",
+      booking: { jalan: "https://www.jalan.net/yad305876/", yahooTravel: "https://travel.yahoo.co.jp/00000650/", ikyu: "https://www.ikyu.com/00000650/" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad305876/", order: 1, type: "旅行予約サイト" },
+        { siteName: "Yahoo!トラベル", url: "https://travel.yahoo.co.jp/00000650/", order: 2, type: "旅行予約サイト" },
+        { siteName: "一休.com", url: "https://www.ikyu.com/00000650/", order: 3, type: "旅行予約サイト" }
+      ]
+    }
+  ],
+  tsukuba: [
+    {
+      name: "筑波山ホテル青木屋",
+      slug: "hotel/tsukuba/tsukubasan-hotel-aokiya",
+      targetArea: "筑波山",
+      prefecture: "茨城県",
+      city: "つくば市",
+      address: "茨城県つくば市筑波753-1",
+      area: "つくば市筑波（筑波山中腹）",
+      officialUrl: "",
+      label: "ファミリープラン（小学生半額）",
+      tags: ["子連れ歓迎"],
+      features: ["👨‍👩‍👧 ファミリープランあり（小学生半額・駐車場無料）", "♨️ 展望大浴場と180度の大パノラマ露天風呂", "🚗 駐車場あり"],
+      score: 6,
+      note: "筑波山の中腹に建つ温泉宿。関東平野を見渡せる展望大浴場と露天風呂が自慢で、小学生半額・駐車場無料のファミリー向けプランが用意されている（じゃらん掲載プラン）。",
+      priceRange: "要確認",
+      checkIn: "15:00",
+      checkOut: "10:00",
+      parking: "あり",
+      onsen: true,
+      bath: "展望大浴場「銀河の湯」・大パノラマ露天風呂",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "会席料理（茨城の食材）",
+      updatedAt: "2026-09-21",
+      booking: { jalan: "https://www.jalan.net/yad332930/", yahooTravel: "", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad332930/", order: 1, type: "旅行予約サイト" }
+      ]
+    },
+    {
+      name: "つくばの湯 アーバンホテル",
+      slug: "hotel/tsukuba/tsukuba-no-yu-urban-hotel",
+      targetArea: "つくば",
+      prefecture: "茨城県",
+      city: "つくば市",
+      address: "茨城県つくば市筑穂2-1-2",
+      area: "つくば市筑穂",
+      officialUrl: "",
+      label: "無料駐車場・大浴場",
+      tags: ["コスパ重視"],
+      features: ["🚗 全客室分の無料駐車場", "♨️ 大浴場「つくばの湯」・ロウリュウサウナ（宿泊者無料）", "🚌 つくば駅・研究学園駅から無料送迎（要予約）", "🍽️ 茨城県産食材の朝食"],
+      score: 6,
+      note: "全客室分の平置き無料駐車場があり、車で行きやすい。大浴場「つくばの湯」とロウリュウサウナが宿泊者は無料で使える。予約制の無料送迎もあり、朝食は茨城県産の食材。じゃらんでは家族連れ向けの無料特典が多いと紹介されている。",
+      priceRange: "要確認",
+      checkIn: "15:00",
+      checkOut: "10:00",
+      parking: "無料（全客室分・大型車は要予約）",
+      onsen: "要確認",
+      bath: "大浴場「つくばの湯」（半露天岩風呂）・ロウリュウサウナ",
+      kidsSpace: "要確認",
+      kidsAmenities: "要確認",
+      cosleeping: "要確認",
+      kidsMeal: "要確認",
+      babyBed: "要確認",
+      meals: "朝食は茨城県産食材（ライブキッチン）",
+      updatedAt: "2026-09-21",
+      booking: { jalan: "https://www.jalan.net/yad305463/", yahooTravel: "", ikyu: "" },
+      bookingLinks: [
+        { siteName: "じゃらん", url: "https://www.jalan.net/yad305463/", order: 1, type: "旅行予約サイト" }
+      ]
+    }
   ]
 };
 
@@ -16057,7 +16879,9 @@ const HOTEL_AREA_META = {
   omiya:{label:"大宮", pref:"埼玉県"},
   urawa:{label:"浦和", pref:"埼玉県"},
   narita:{label:"成田空港周辺", pref:"千葉県"},
-  chiba:{label:"千葉・幕張", pref:"千葉県"}
+  chiba:{label:"千葉・幕張", pref:"千葉県"},
+  kawagoe:{label:"川越", pref:"埼玉県"},
+  tsukuba:{label:"つくば", pref:"茨城県"}
 };
 const HOTEL_PREF_ORDER = ["東京都","神奈川県","千葉県","埼玉県","茨城県","栃木県","群馬県","山梨県","静岡県","長野県","福島県"];
 // ▲▲▲ DATA-BLOCK END: FAMILY_HOTELS ▲▲▲
@@ -16122,6 +16946,90 @@ function regionHotelsSectionHtml(hotels){
   const shown = hotels.slice(0, REGION_HOTEL_LIMIT);
   return '<div class="region-section"><div class="region-section-title">🏨 この地域のホテル</div>' +
     '<div class="hotel-list">' + shown.map(regionHotelCardHtml).join("") + '</div>' +
+    '</div>';
+}
+// ------------------------------------------------------------------
+// 🏨 施設詳細「この近くに泊まるなら」用：施設に近いホテルの選定
+// ・対象ホテル：予約サイトのリンクがあり、3タグ（キッズにオススメ／子連れ歓迎／コスパ重視）を1つ以上持つホテルのみ。
+// ・距離が取れる場合（施設・ホテルの両方に緯度経度あり）は NEARBY_HOTEL_RADIUS_KM 以内を「近く」として距離順。
+// ・SPOTS側の hotelArea（同一エリア指定）が一致するホテルは NEARBY_HOTEL_AREA_MAX_KM まで許容。
+// ・ホテルに緯度経度がない場合は、hotelArea一致 または 市区町村一致のときだけ「同じエリア」として候補にする。
+// ・候補が0件なら空配列を返し、セクション自体を出さない。ホテルデータ・タグは一切変更しない。
+// ------------------------------------------------------------------
+const NEARBY_HOTEL_MAX = 5;
+const NEARBY_HOTEL_RADIUS_KM = 10;
+const NEARBY_HOTEL_AREA_MAX_KM = 30;
+const HOTEL_TAG_NAMES = ["キッズにオススメ", "子連れ歓迎", "コスパ重視"];
+let __hotelFlatCache = null;
+function hotelFlatList(){
+  if(__hotelFlatCache) return __hotelFlatCache;
+  const list = [];
+  Object.keys(FAMILY_HOTELS).forEach(function(areaKey){
+    FAMILY_HOTELS[areaKey].forEach(function(hotel){
+      if(!hotelHasOtaLink(hotel)) return;
+      const tags = (hotel.tags || []).filter(function(t){ return HOTEL_TAG_NAMES.indexOf(t) >= 0; });
+      if(tags.length === 0) return;
+      list.push({hotel: hotel, areaKey: areaKey, tags: tags});
+    });
+  });
+  __hotelFlatCache = list;
+  return list;
+}
+function getNearbyHotels(spot){
+  const spotHasCoord = typeof spot.lat === "number" && typeof spot.lng === "number";
+  const spotCity = baseMunicipality((spot.area || "").split("・")[0]);
+  const found = [];
+  hotelFlatList().forEach(function(x){
+    const h = x.hotel;
+    const hotelHasCoord = typeof h.lat === "number" && typeof h.lng === "number";
+    const km = (spotHasCoord && hotelHasCoord) ? haversineKm(spot.lat, spot.lng, h.lat, h.lng) : null;
+    const sameArea = !!spot.hotelArea && spot.hotelArea === x.areaKey;
+    let ok = false;
+    if(km !== null){
+      ok = km <= NEARBY_HOTEL_RADIUS_KM || (sameArea && km <= NEARBY_HOTEL_AREA_MAX_KM);
+    } else {
+      const hotelCity = (h.city && h.city !== "要確認") ? baseMunicipality(h.city) : "";
+      ok = sameArea || (!!spotCity && !!hotelCity && hotelCity === spotCity);
+    }
+    if(ok) found.push({hotel: h, areaKey: x.areaKey, tags: x.tags, km: km});
+  });
+  found.sort(function(a, b){
+    const da = a.km === null ? Infinity : a.km;
+    const db = b.km === null ? Infinity : b.km;
+    if(da !== db) return da - db;
+    if(a.tags.length !== b.tags.length) return b.tags.length - a.tags.length;
+    return (b.hotel.score || 0) - (a.hotel.score || 0);
+  });
+  return found.slice(0, NEARBY_HOTEL_MAX);
+}
+const HOTEL_KID_FEATURE_RE = /キッズ|ベビー|赤ちゃん|離乳|添い寝|子連れ|子ども|お子様|プール|ファミリー|おむつ|遊具|アスレチック|ウェルカム/;
+const HOTEL_VALUE_FEATURE_RE = /バイキング|ビュッフェ|飲み放題|食べ放題|無料|オールインクルーシブ/;
+function hotelCardFeatureLines(hotel, tags){
+  const feats = hotel.features || [];
+  const picked = feats.filter(function(f){ return HOTEL_KID_FEATURE_RE.test(f); });
+  if(picked.length < 2 && tags.indexOf("コスパ重視") >= 0){
+    feats.forEach(function(f){
+      if(picked.length < 2 && picked.indexOf(f) < 0 && HOTEL_VALUE_FEATURE_RE.test(f)) picked.push(f);
+    });
+  }
+  return picked.slice(0, 2);
+}
+function nearbyHotelCardHtml(n, idx){
+  const h = n.hotel;
+  let where = h.area ? "📍 " + h.area : "";
+  if(n.km !== null){
+    where += (where ? " ・ " : "📍 ") + (n.km < 1 ? "施設から1km以内" : "施設から約" + Math.round(n.km) + "km");
+  } else {
+    where += (where ? " ・ " : "📍 ") + "同じエリア";
+  }
+  const price = (h.priceRange && h.priceRange.indexOf("要確認") < 0) ? "💰 " + h.priceRange : "";
+  const feats = hotelCardFeatureLines(h, n.tags);
+  return '<div class="nearby-hotel-card" role="button" tabindex="0" data-act="nearby-hotel" data-idx="' + idx + '">' +
+    '<div class="hotel-card-labels">' + n.tags.map(function(t){ return '<span class="hotel-card-label">' + t + '</span>'; }).join("") + '</div>' +
+    '<div class="nearby-hotel-name">🏨 ' + h.name + '</div>' +
+    '<div class="nearby-hotel-meta">' + where + (price ? '<br>' + price : '') + '</div>' +
+    feats.map(function(f){ return '<div class="nearby-hotel-feat">' + f + '</div>'; }).join("") +
+    '<div class="nearby-hotel-cta">ホテル詳細を見る ›</div>' +
     '</div>';
 }
 function hotelDistanceLabel(spot, hotel){
@@ -18003,7 +18911,7 @@ function openDetail(spot, silent, backTarget){
   const isPlanned = isInAnyPlan(spot.name);
   const parkingLevel = parkingDetail.stars>=4 ? 4 : parkingDetail.stars>=3 ? 3 : parkingDetail.stars>=2 ? 2 : 1;
   const bookingInfo = getBookingInfo(spot);
-  const familyHotels = getFamilyHotels(spot);
+  const nearbyHotels = getNearbyHotels(spot); // 🏨 この近くに泊まるなら（近いホテル・同一エリアのホテル）
   const nearbyCombos = getNearbyCombos(spot);
   const stayTimeLabel = deriveStayTimeLabel(spot);
 
@@ -18159,28 +19067,12 @@ function openDetail(spot, silent, backTarget){
       ` : ""}
     </div>` : ""}
 
-    ${familyHotels.length>0 ? `
-    <div class="detail-section">
-      <h3>🏨 子連れで泊まるなら</h3>
-      <div class="hotel-section-intro">🧸 キッズスペース・子連れ歓迎などを重視して厳選</div>
-      <button type="button" class="hotel-toggle-btn" id="hotelToggleBtn">このエリアのおすすめホテルを見る（${familyHotels.length}件）</button>
-      <div class="hotel-list" id="hotelList" style="display:none;">
-        ${familyHotels.map((h, hIdx) => `
-          <div class="hotel-card">
-            <div class="hotel-card-label">${h.label}</div>
-            <div class="hotel-card-name">🏨 ${h.name}（${h.area}）</div>
-            <div class="hotel-card-features">
-              ${h.features.slice(0,6).map(f=>`<span class="hotel-feature-chip">${f}</span>`).join("")}
-            </div>
-            <div class="hotel-card-distance">${hotelDistanceLabel(spot, h)}</div>
-            ${h.note ? `<div class="hotel-card-note">${h.note}</div>` : ""}
-            <button type="button" class="hotel-book-toggle-btn" data-act="hotel-book-toggle" data-hotel-idx="${hIdx}">🏨 このホテルを予約する</button>
-            <div class="hotel-booking-options" id="hotelBookingOptions-${hIdx}" style="display:none;">
-              ${(VC_SID && VC_PID) ? `<div class="pr-label">[PR] 対象リンクからの予約で運営者に紹介料が入る場合があります</div>` : ""}
-              ${hotelBookingOptionsHtml(spot, h)}
-            </div>
-          </div>
-        `).join("")}
+    ${nearbyHotels.length>0 ? `
+    <div class="detail-section nearby-hotel-section">
+      <h3>🏨 この近くに泊まるなら</h3>
+      <div class="nearby-hotel-sub">遠方からのお出かけなら、周辺ホテルもチェック</div>
+      <div class="nearby-hotel-scroll${nearbyHotels.length===1 ? " single" : ""}">
+        ${nearbyHotels.map((n, i) => nearbyHotelCardHtml(n, i)).join("")}
       </div>
     </div>` : ""}
 
@@ -18328,52 +19220,19 @@ function openDetail(spot, silent, backTarget){
       a.addEventListener("click", ()=>trackEvent("ticket_click", {facility_name:spot.name, provider:a.dataset.provider}));
     });
   }
-  // 🏨 子連れで泊まるなら（アコーディオン開閉・GA4計測）
-  const hotelToggleBtn = sheet.querySelector("#hotelToggleBtn");
-  if(hotelToggleBtn){
-    hotelToggleBtn.onclick = ()=>{
-      const list = document.getElementById("hotelList");
-      const isOpen = list.style.display !== "none";
-      if(!isOpen){
-        trackEvent("hotel_section_open", {related_facility: spot.name});
-      }
-      list.style.display = isOpen ? "none" : "flex";
-      hotelToggleBtn.textContent = isOpen ? `このエリアのおすすめホテルを見る（${familyHotels.length}件）` : "おすすめホテルを閉じる ▲";
-      hotelToggleBtn.classList.toggle("open", !isOpen);
+  // 🏨 この近くに泊まるなら：カードのタップで既存のホテル一覧シート（予約リンク付き）を開く
+  sheet.querySelectorAll('[data-act="nearby-hotel"]').forEach(card=>{
+    const openHotel = ()=>{
+      const n = nearbyHotels[Number(card.dataset.idx)];
+      if(!n) return;
+      trackEvent("nearby_hotel_click", {hotel_name: n.hotel.name, hotel_area: n.hotel.area, related_facility: spot.name});
+      openHotelDetailFromSpot(n.areaKey, n.hotel.name, spot.name);
     };
-    sheet.querySelectorAll('[data-act="hotel-booking-click"]').forEach(a=>{
-      a.addEventListener("click", ()=>{
-        trackEvent("hotel_booking_click", {
-          hotel_name: a.dataset.hotelName,
-          hotel_area: a.dataset.hotelArea,
-          booking_site: a.dataset.bookingSite,
-          related_facility: spot.name
-        });
-        // 🆕 再訪分析用：既存のhotel_booking_clickとは別名で追加発火
-        trackEvent("hotel_link_click", {
-          link_type: "hotel_booking",
-          facility_name: spot.name,
-          hotel_name: a.dataset.hotelName
-        });
-      });
+    card.addEventListener("click", openHotel);
+    card.addEventListener("keydown", e=>{
+      if(e.key==="Enter" || e.key===" "){ e.preventDefault(); openHotel(); }
     });
-    // 🏨 各ホテルカードの「このホテルを予約する」→ 予約サイト選択UIの開閉（Phase32）
-    sheet.querySelectorAll('[data-act="hotel-book-toggle"]').forEach(btn=>{
-      btn.addEventListener("click", ()=>{
-        const idx = btn.dataset.hotelIdx;
-        const options = document.getElementById(`hotelBookingOptions-${idx}`);
-        if(!options) return;
-        const isOpen = options.style.display !== "none";
-        if(!isOpen){
-          const h = familyHotels[idx];
-          trackEvent("hotel_book_toggle_open", {hotel_name: h ? h.name : "", related_facility: spot.name});
-        }
-        options.style.display = isOpen ? "none" : "flex";
-        btn.textContent = isOpen ? "🏨 このホテルを予約する" : "予約サイトの選択を閉じる ▲";
-        btn.classList.toggle("open", !isOpen);
-      });
-    });
-  }
+  });
   // 🗺️ この近くで一緒に楽しむなら（クリックで既存の詳細表示機能を再利用）
   sheet.querySelectorAll('[data-act="nearby-combo"]').forEach(card=>{
     card.addEventListener("click", ()=>{
@@ -18659,6 +19518,94 @@ function getHotelReservationLinks(hotel){
     };
   });
 }
+// ------------------------------------------------------------------
+// 🗺️ ホテル → 周辺のお出かけ先：ホテルの周辺施設の選定
+// ・施設データ（SPOTS）は読むだけで一切変更しない。
+// ・距離が取れる場合（ホテルに緯度経度あり。施設は全件あり）：AROUND_SPOT_RADIUS_KM 以内を「周辺」とする。
+//   同じ市区町村の施設は AROUND_SPOT_SAME_CITY_MAX_KM まで許容する（広い市で極端に遠い施設を除くため上限あり）。
+// ・ホテルに緯度経度がない場合：ホテルのcityと施設のarea（市区町村部分）が一致する施設だけを候補にする。
+// ・並び順：①近さ（3km刻み）②同じ市区町村 ③対応年齢の広さ・ベビー情報 ④データの充実度 ⑤距離。
+// ・候補が0件なら空配列（セクション自体を出さない）。最大 AROUND_SPOT_MAX 件。
+// ・将来「ホテル→周辺→今日どこ行く？」へつなぐ場合は、この関数の戻り値（施設配列）を
+//   diagCandidateSpots() と同じ形の候補リストとして渡せる（診断ロジック自体は今回変更しない）。
+// ------------------------------------------------------------------
+const AROUND_SPOT_MAX = 5;
+const AROUND_SPOT_RADIUS_KM = 15;
+const AROUND_SPOT_SAME_CITY_MAX_KM = 20;
+const AROUND_AGE_ORDER = ["0-1歳", "2-3歳", "4-6歳", "低学年", "高学年"];
+function spotDataRichness(s){
+  return [s.price, s.access, s.baby, s.lunch, s.tip, s.desc, s.officialUrl, s.stayTime, s.duration, s.weather]
+    .filter(function(v){ return Array.isArray(v) ? v.length > 0 : !!v; }).length;
+}
+function getNearbySpotsForHotel(hotel, opts){
+  const max = (opts && opts.max) || AROUND_SPOT_MAX;
+  const hotelHasCoord = typeof hotel.lat === "number" && typeof hotel.lng === "number";
+  const cityKey = function(x){ return x ? baseMunicipality(x).replace(/^.+?郡/, "") : ""; }; // 「北安曇郡白馬村」と「白馬村」を同じ市区町村として扱う
+  const hotelCity = (hotel.city && hotel.city !== "要確認") ? cityKey(hotel.city) : "";
+  const found = [];
+  SPOTS.forEach(function(s){
+    const spotCity = cityKey((s.area || "").split("・")[0]);
+    const sameCity = !!hotelCity && !!spotCity && hotelCity === spotCity;
+    let km = null;
+    if(hotelHasCoord && typeof s.lat === "number" && typeof s.lng === "number"){
+      km = haversineKm(hotel.lat, hotel.lng, s.lat, s.lng);
+      if(!(km <= AROUND_SPOT_RADIUS_KM || (sameCity && km <= AROUND_SPOT_SAME_CITY_MAX_KM))) return;
+    } else if(!sameCity){
+      return;
+    }
+    found.push({spot: s, km: km, sameCity: sameCity});
+  });
+  found.sort(function(a, b){
+    const ba = a.km === null ? 999 : Math.floor(a.km / 3);
+    const bb = b.km === null ? 999 : Math.floor(b.km / 3);
+    if(ba !== bb) return ba - bb;
+    if(a.sameCity !== b.sameCity) return a.sameCity ? -1 : 1;
+    const ka = (a.spot.ages || []).length + (a.spot.baby ? 1 : 0);
+    const kb = (b.spot.ages || []).length + (b.spot.baby ? 1 : 0);
+    if(ka !== kb) return kb - ka;
+    const ra = spotDataRichness(a.spot), rb = spotDataRichness(b.spot);
+    if(ra !== rb) return rb - ra;
+    return (a.km === null ? 0 : a.km) - (b.km === null ? 0 : b.km);
+  });
+  return found.slice(0, max);
+}
+function aroundAgeLabel(spot){
+  const ages = (spot.ages || []).filter(function(a){ return AROUND_AGE_ORDER.indexOf(a) >= 0; })
+    .sort(function(a, b){ return AROUND_AGE_ORDER.indexOf(a) - AROUND_AGE_ORDER.indexOf(b); });
+  if(ages.length === 0) return "";
+  const contiguous = AROUND_AGE_ORDER.indexOf(ages[ages.length-1]) - AROUND_AGE_ORDER.indexOf(ages[0]) === ages.length - 1;
+  return (ages.length > 1 && contiguous) ? ages[0] + "〜" + ages[ages.length-1] : ages.join("・");
+}
+function aroundWeatherLabel(spot){
+  const w = spot.weather || [];
+  if(w.includes("晴れ") && w.includes("雨")) return "☀️☔ 晴れ・雨どちらもOK";
+  if(w.includes("晴れ")) return "☀️ 晴れの日向き";
+  if(w.includes("雨")) return "☔ 雨の日向き";
+  return "";
+}
+function aroundSpotCardHtml(item){
+  const s = item.spot;
+  const dist = item.km === null ? "同じエリア" : (item.km < 1 ? "ホテルから1km以内" : "ホテルから約" + Math.round(item.km) + "km");
+  const age = aroundAgeLabel(s), wl = aroundWeatherLabel(s);
+  return '<div class="around-spot-card" role="button" tabindex="0" data-act="around-spot" data-spot-name="' + escapeAttr(s.name) + '">' +
+    '<div class="around-spot-cat">' + genreInfo(s).label + '</div>' +
+    '<div class="nearby-hotel-name">' + s.name + '</div>' +
+    '<div class="nearby-hotel-meta">📍 ' + dist +
+      (age ? '<br>👶 対象：' + age : '') + (wl ? '<br>' + wl : '') + '</div>' +
+    (s.price ? '<div class="around-spot-price">💰 ' + s.price + '</div>' : '') +
+    '<div class="nearby-hotel-cta">施設詳細を見る ›</div>' +
+    '</div>';
+}
+function hotelAroundSectionHtml(hotel, sectionId){
+  const items = getNearbySpotsForHotel(hotel);
+  if(items.length === 0) return "";
+  return '<div class="hotel-around">' +
+    '<button type="button" class="hotel-toggle-btn hotel-around-toggle" data-act="hotel-around-toggle" data-target="' + sectionId + '" data-hotel-name="' + escapeAttr(hotel.name) + '" data-count="' + items.length + '">🗺️ このホテルの周辺で遊ぶなら（' + items.length + '件） ▾</button>' +
+    '<div class="hotel-around-body" id="' + sectionId + '" style="display:none;">' +
+      '<div class="nearby-hotel-sub">泊まったら、こんな場所もおすすめ</div>' +
+      '<div class="around-list">' + items.map(aroundSpotCardHtml).join("") + '</div>' +
+    '</div></div>';
+}
 function hotelSearchCardHtml(hotel, areaKey, idx){
   const links = getHotelReservationLinks(hotel);
   const tags = (hotel.tags && hotel.tags.length) ? hotel.tags : (hotel.label ? [hotel.label] : []);
@@ -18686,6 +19633,7 @@ function hotelSearchCardHtml(hotel, areaKey, idx){
       ${(hotel.features && hotel.features.length>0) ? `<div class="hotel-card-features">${hotel.features.slice(0,6).map(f=>`<span class="hotel-feature-chip">${f}</span>`).join("")}</div>` : ""}
       ${hotel.note ? `<div class="hotel-card-note">${hotel.note}</div>` : ""}
       ${bookingHtml}
+      ${hotelAroundSectionHtml(hotel, `hotelAround-${areaKey}-${idx}`)}
     </div>`;
 }
 function renderHotelSearchSheet(areaKey){
@@ -18753,13 +19701,38 @@ function renderHotelSearchSheet(areaKey){
       btn.classList.toggle("open", !isOpen);
     });
   });
+  // 🗺️ このホテルの周辺で遊ぶなら：開閉と、施設カード→既存の施設詳細
+  sheet.querySelectorAll('[data-act="hotel-around-toggle"]').forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const body = document.getElementById(btn.dataset.target);
+      if(!body) return;
+      const isOpen = body.style.display !== "none";
+      if(!isOpen) trackEvent("hotel_around_open", {hotel_name: btn.dataset.hotelName});
+      body.style.display = isOpen ? "none" : "block";
+      btn.textContent = isOpen ? `🗺️ このホテルの周辺で遊ぶなら（${btn.dataset.count}件） ▾` : "周辺の施設を閉じる ▲";
+      btn.classList.toggle("open", !isOpen);
+    });
+  });
+  sheet.querySelectorAll('[data-act="around-spot"]').forEach(card=>{
+    const openSpot = ()=>{
+      const spot = SPOTS.find(s=>s.name===card.dataset.spotName);
+      if(!spot) return;
+      const holder = card.closest(".hotel-card");
+      const nameEl = holder ? holder.querySelector(".hotel-card-name") : null;
+      trackEvent("hotel_around_spot_click", {facility_name: spot.name, hotel_name: nameEl ? nameEl.textContent.replace("🏨","").trim() : ""});
+      openDetail(spot); // 既存の施設詳細をそのまま開く（詳細シートはDOM末尾へ移動して最前面に出る）
+    };
+    card.addEventListener("click", openSpot);
+    card.addEventListener("keydown", e=>{ if(e.key==="Enter" || e.key===" "){ e.preventDefault(); openSpot(); } });
+  });
   sheet.querySelectorAll('[data-act="hotel-search-booking-click"]').forEach(a=>{
     a.addEventListener("click", ()=>{
       trackEvent("hotel_booking_click", {
         hotel_name: a.dataset.hotelName,
         hotel_area: a.dataset.hotelArea,
         booking_site: a.dataset.bookingSite,
-        source: "hotel_search"
+        source: "hotel_search",
+        ...(__hotelSheetFromSpot ? {related_facility: __hotelSheetFromSpot} : {})
       });
       // 🆕 再訪分析用：既存のhotel_booking_clickとは別名で追加発火
       trackEvent("hotel_link_click", {
@@ -18770,10 +19743,38 @@ function renderHotelSearchSheet(areaKey){
     });
   });
 }
+// 施設詳細の「この近くに泊まるなら」から開いた場合の施設名（予約クリックの流入元計測用）。メニューから開くときは空にする。
+let __hotelSheetFromSpot = null;
 function openHotelSearch(){
+  __hotelSheetFromSpot = null;
   trackEvent("hotel_search_open", {});
   renderHotelSearchSheet(null);
   openSheet("hotelSearchOverlay");
+}
+
+// 🏨 施設詳細 → 既存のホテル一覧シート（該当エリア）を重ねて開き、選んだホテルのカードへ移動して予約サイト選択を展開する。
+// 予約リンクは既存のbookingLinks／bookingをそのまま使う（新しい予約の仕組みは作らない）。
+function openHotelDetailFromSpot(areaKey, hotelName, spotName){
+  __hotelSheetFromSpot = spotName || null;
+  renderHotelSearchSheet(areaKey);
+  // 施設詳細（openDetailも同様にDOM末尾へ移動して最前面にしている）の上に重ねるため、末尾へ移動する
+  document.body.appendChild(document.getElementById("hotelSearchOverlay"));
+  openSheet("hotelSearchOverlay");
+  const sheet = document.getElementById("hotelSearchSheet");
+  const toggle = Array.from(sheet.querySelectorAll('[data-act="hotel-search-toggle"]'))
+    .find(b=>b.dataset.hotelName === hotelName);
+  if(!toggle) return;
+  const card = toggle.closest(".hotel-card");
+  const options = document.getElementById(toggle.dataset.optionsId);
+  if(options){
+    options.style.display = "flex";
+    toggle.textContent = "予約サイトの選択を閉じる ▲";
+    toggle.classList.add("open");
+  }
+  if(card){
+    card.classList.add("hotel-card-focus");
+    sheet.scrollTop += card.getBoundingClientRect().top - sheet.getBoundingClientRect().top - 12;
+  }
 }
 
 // 🆕 ハンバーガーメニュー下部「その他メニュー」の項目定義。
@@ -19030,6 +20031,223 @@ function renderAuditMode(){
   draw();
 }
 renderAuditMode();
+</script>
+
+<!-- 🌐 翻訳機能（完全に独立したモジュール）
+     ・方式：Google翻訳の「ウェブサイト翻訳ウィジェット」を、ボタンを押した時だけ読み込む。
+       現在のページのまま翻訳する方式で、URLの遷移・別ページ（translate.google.com/translate?u=…）への移動は一切しない。
+       APIキー不要。読み込みに失敗しても、通知を出すだけで本体は動き続ける。
+     ・このスクリプトは全体をtry/catchで囲み、既存のコードとは変数を共有しない（即時関数）。
+     ・ブラウザ標準の翻訳（Safari/Chromeの翻訳）も、<html lang="ja"> のままなので引き続き使える。 -->
+<script>
+(function(){
+  "use strict";
+  var MSG_FAIL = "この環境では翻訳機能を利用できません。ブラウザの翻訳機能をご利用ください。";
+  var LANGS = [
+    {code:"ja",    label:"日本語",   short:"翻訳"},
+    {code:"en",    label:"English",  short:"EN"},
+    {code:"ko",    label:"한국어",    short:"한국어"},
+    {code:"zh-CN", label:"简体中文",  short:"简体"},
+    {code:"zh-TW", label:"繁體中文",  short:"繁體"}
+  ];
+  var state = {lang:"ja", busy:false, loading:null, menuOpen:false};
+  var ui = {btn:null, menu:null, toast:null, toastTimer:null};
+
+  function log(){ try{ if(window.console && console.warn) console.warn.apply(console, arguments); }catch(e){} }
+  function isTranslated(){ return /translated-(ltr|rtl)/.test(document.documentElement.className || ""); }
+  function fireChange(el){
+    var ev;
+    try{ ev = new Event("change", {bubbles:true}); }
+    catch(e){ ev = document.createEvent("HTMLEvents"); ev.initEvent("change", true, true); }
+    el.dispatchEvent(ev);
+  }
+  function clearCookie(){
+    try{
+      var host = location.hostname, parts = host.split("."), exp = "; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+      document.cookie = "googtrans=" + exp;
+      document.cookie = "googtrans=" + exp + "; domain=" + host;
+      if(parts.length > 1) document.cookie = "googtrans=" + exp + "; domain=." + parts.slice(-2).join(".");
+    }catch(e){}
+  }
+
+  // 操作を邪魔しない通知（クリックを透過し、数秒で自動的に消える）
+  function toast(msg, ms){
+    try{
+      if(!ui.toast){
+        ui.toast = document.createElement("div");
+        ui.toast.className = "translate-toast";
+        ui.toast.setAttribute("role", "status");
+        ui.toast.setAttribute("aria-live", "polite");
+        document.body.appendChild(ui.toast);
+      }
+      ui.toast.textContent = msg;
+      ui.toast.className = "translate-toast show";
+      clearTimeout(ui.toastTimer);
+      ui.toastTimer = setTimeout(function(){ try{ ui.toast.className = "translate-toast"; }catch(e){} }, ms || 6500);
+    }catch(e){ log("[translate] toast failed", e); }
+  }
+
+  function currentLang(){ for(var i=0;i<LANGS.length;i++){ if(LANGS[i].code===state.lang) return LANGS[i]; } return LANGS[0]; }
+  function refreshUI(){
+    try{
+      var cur = currentLang();
+      ui.btn.textContent = state.busy ? "🌐 …" : "🌐 " + cur.short;
+      ui.btn.disabled = false;
+      var items = ui.menu.querySelectorAll(".translate-item");
+      for(var i=0;i<items.length;i++){
+        var on = items[i].getAttribute("data-lang") === state.lang;
+        items[i].className = "translate-item notranslate" + (on ? " active" : "");
+        items[i].querySelector(".translate-check").textContent = on ? "✓" : "";
+      }
+    }catch(e){ log("[translate] refreshUI failed", e); }
+  }
+  function setMenu(open){
+    try{
+      state.menuOpen = !!open;
+      ui.menu.className = "translate-menu notranslate" + (open ? " open" : "");
+      ui.btn.setAttribute("aria-expanded", open ? "true" : "false");
+    }catch(e){}
+  }
+
+  // Googleのウィジェットを1回だけ読み込む（失敗・タイムアウト・CSPブロック・オフラインはすべてrejectにする）
+  function loadWidget(){
+    if(state.loading) return state.loading;
+    state.loading = new Promise(function(resolve, reject){
+      var finished = false, script = null, holder = null, t0 = Date.now(), iv = null;
+      function fail(why){
+        if(finished) return; finished = true;
+        clearInterval(iv); state.loading = null;
+        try{ if(script && script.parentNode) script.parentNode.removeChild(script); }catch(e){}
+        try{ if(holder && holder.parentNode) holder.parentNode.removeChild(holder); }catch(e){}
+        try{ delete window.__odekakeTranslateInit; }catch(e){ window.__odekakeTranslateInit = undefined; }
+        reject(new Error(why));
+      }
+      try{
+        if(navigator.onLine === false){ fail("offline"); return; }
+        holder = document.createElement("div");
+        holder.id = "google_translate_element";
+        holder.className = "notranslate";
+        holder.setAttribute("translate", "no");
+        holder.style.cssText = "position:absolute;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;";
+        document.body.appendChild(holder);
+        window.__odekakeTranslateInit = function(){
+          try{
+            new window.google.translate.TranslateElement(
+              {pageLanguage:"ja", includedLanguages:"en,ko,zh-CN,zh-TW", autoDisplay:false},
+              "google_translate_element");
+          }catch(e){ fail("init"); }
+        };
+        script = document.createElement("script");
+        script.async = true;
+        script.src = "https://translate.google.com/translate_a/element.js?cb=__odekakeTranslateInit";
+        script.onerror = function(){ fail("load"); };
+        document.head.appendChild(script);
+        iv = setInterval(function(){
+          if(finished){ clearInterval(iv); return; }
+          var combo = document.querySelector("select.goog-te-combo");
+          if(combo){ finished = true; clearInterval(iv); resolve(combo); }
+          else if(Date.now() - t0 > 10000){ fail("timeout"); }
+        }, 200);
+      }catch(e){ fail("exception"); }
+    });
+    return state.loading;
+  }
+  function waitTranslated(){
+    return new Promise(function(resolve, reject){
+      var t0 = Date.now(), iv = setInterval(function(){
+        if(isTranslated()){ clearInterval(iv); resolve(); }
+        else if(Date.now() - t0 > 8000){ clearInterval(iv); reject(new Error("no-effect")); }
+      }, 250);
+    });
+  }
+  function translateTo(code){
+    return loadWidget().then(function(){
+      var combo = document.querySelector("select.goog-te-combo");
+      if(!combo) throw new Error("no-combo");
+      combo.value = code;
+      fireChange(combo);
+      return waitTranslated();
+    });
+  }
+  // 日本語へ戻す：まずページ内で元に戻し、戻らなかった場合だけ同じURLを再読み込みする（URL・ハッシュ・クエリは変わらない）
+  function restoreJapanese(){
+    clearCookie();
+    try{
+      var combo = document.querySelector("select.goog-te-combo");
+      if(combo){ combo.value = ""; fireChange(combo); }
+    }catch(e){ log("[translate] restore failed", e); }
+    setTimeout(function(){
+      try{ if(isTranslated()) location.reload(); }catch(e){}
+    }, 800);
+  }
+
+  function selectLang(code){
+    setMenu(false);
+    if(state.busy || code === state.lang) return;
+    if(code === "ja"){ state.lang = "ja"; refreshUI(); restoreJapanese(); return; }
+    var prev = state.lang;
+    state.busy = true; refreshUI();
+    translateTo(code).then(function(){
+      state.lang = code;
+    }).catch(function(err){
+      log("[translate] failed:", err && err.message);
+      state.lang = prev;
+      toast(MSG_FAIL);
+    }).then(function(){
+      state.busy = false; refreshUI();
+    });
+  }
+
+  function build(){
+    var header = document.querySelector("header.header-fixed");
+    if(!header || !document.body) return;
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.id = "translateBtn";
+    btn.className = "header-translate-btn notranslate";
+    btn.setAttribute("translate", "no");
+    btn.setAttribute("aria-label", "言語を選ぶ（翻訳）");
+    btn.setAttribute("aria-haspopup", "true");
+    btn.setAttribute("aria-expanded", "false");
+    header.appendChild(btn);
+
+    var menu = document.createElement("div");
+    menu.id = "translateMenu";
+    menu.className = "translate-menu notranslate";
+    menu.setAttribute("translate", "no");
+    var html = "";
+    for(var i=0;i<LANGS.length;i++){
+      html += '<button type="button" class="translate-item notranslate" data-lang="' + LANGS[i].code + '">' +
+              '<span>' + LANGS[i].label + '</span><span class="translate-check"></span></button>';
+    }
+    html += '<div class="translate-hint" translate="yes">うまく翻訳されない場合は、ブラウザ標準の翻訳機能もご利用ください。</div>';
+    menu.innerHTML = html;
+    document.body.appendChild(menu);
+    ui.btn = btn; ui.menu = menu;
+
+    btn.addEventListener("click", function(e){
+      try{ e.stopPropagation(); setMenu(!state.menuOpen); }catch(err){ log("[translate] click failed", err); }
+    });
+    menu.addEventListener("click", function(e){
+      try{
+        e.stopPropagation();
+        var t = e.target;
+        while(t && t !== menu && !(t.getAttribute && t.getAttribute("data-lang"))) t = t.parentNode;
+        if(t && t !== menu) selectLang(t.getAttribute("data-lang"));
+      }catch(err){ log("[translate] select failed", err); toast(MSG_FAIL); }
+    });
+    document.addEventListener("click", function(e){
+      try{ if(state.menuOpen && !menu.contains(e.target)) setMenu(false); }catch(err){}
+    });
+    document.addEventListener("keydown", function(e){
+      try{ if(state.menuOpen && (e.key === "Escape" || e.key === "Esc")) setMenu(false); }catch(err){}
+    });
+    refreshUI();
+  }
+
+  try{ build(); }
+  catch(e){ log("[translate] init failed (ignored):", e); }
+})();
 </script>
 
 </body>
