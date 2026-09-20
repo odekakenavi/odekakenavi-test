@@ -158,7 +158,7 @@
     position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom) + 72px); transform:translateX(-50%);
     width:max-content; max-width:min(92vw,420px); z-index:1001; pointer-events:none;
     background:rgba(43,38,32,.94); color:#fff; font-size:13px; line-height:1.6;
-    padding:10px 14px; border-radius:10px; opacity:0; visibility:hidden; transition:opacity .2s;
+    padding:10px 14px; border-radius:10px; opacity:0; visibility:hidden; transition:opacity .2s; white-space:pre-line;
   }
   .translate-toast.show{opacity:1; visibility:visible;}
   /* Googleの翻訳ウィジェットが出す上部バナー・ツールチップは非表示にし、ページ位置のずれを防ぐ */
@@ -20052,6 +20052,9 @@ renderAuditMode();
   ];
   var state = {lang:"ja", busy:false, loading:null, menuOpen:false};
   var ui = {btn:null, menu:null, toast:null, toastTimer:null};
+  // 原因調査用：翻訳に失敗した理由コードと、CSP（読み込み制限）でブロックされたURLを記録する
+  var diag = {reason:"", blocked:[]};
+  window.__translateDiag = diag;
 
   function log(){ try{ if(window.console && console.warn) console.warn.apply(console, arguments); }catch(e){} }
   function isTranslated(){ return /translated-(ltr|rtl)/.test(document.documentElement.className || ""); }
@@ -20181,18 +20184,30 @@ renderAuditMode();
     }, 800);
   }
 
+  function diagText(){
+    try{
+      var t = diag.reason ? "（原因コード: " + diag.reason : "";
+      if(diag.blocked.length){
+        var b = diag.blocked[0];
+        t += (t ? " / " : "（") + "ブロック: " + b.uri + " [" + b.dir + "]";
+      }
+      return t ? t + "）" : "";
+    }catch(e){ return ""; }
+  }
   function selectLang(code){
     setMenu(false);
     if(state.busy || code === state.lang) return;
     if(code === "ja"){ state.lang = "ja"; refreshUI(); restoreJapanese(); return; }
     var prev = state.lang;
     state.busy = true; refreshUI();
+    diag.reason = ""; diag.blocked = [];
     translateTo(code).then(function(){
       state.lang = code;
     }).catch(function(err){
-      log("[translate] failed:", err && err.message);
+      diag.reason = (err && err.message) || "unknown";
+      log("[translate] failed:", diag.reason, diag.blocked);
       state.lang = prev;
-      toast(MSG_FAIL);
+      toast(MSG_FAIL + "\n" + diagText(), 9000);
     }).then(function(){
       state.busy = false; refreshUI();
     });
@@ -20235,6 +20250,14 @@ renderAuditMode();
         while(t && t !== menu && !(t.getAttribute && t.getAttribute("data-lang"))) t = t.parentNode;
         if(t && t !== menu) selectLang(t.getAttribute("data-lang"));
       }catch(err){ log("[translate] select failed", err); toast(MSG_FAIL); }
+    });
+    // ブロックされた通信を記録（翻訳中のGoogle関連のみ）
+    document.addEventListener("securitypolicyviolation", function(e){
+      try{
+        if(state.busy && diag.blocked.length < 5){
+          diag.blocked.push({uri: String(e.blockedURI || "").slice(0, 80), dir: e.violatedDirective || e.effectiveDirective || ""});
+        }
+      }catch(err){}
     });
     document.addEventListener("click", function(e){
       try{ if(state.menuOpen && !menu.contains(e.target)) setMenu(false); }catch(err){}
