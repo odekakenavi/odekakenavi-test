@@ -1040,6 +1040,9 @@
     padding:3px 2px 4px; cursor:pointer; font-size:12px; color:var(--ink);
   }
   .calendar-day.empty{border:none; background:transparent; cursor:default;}
+  /* 0件のときの空状態（施設がありません）。既存の .empty / .mood-reset-btn の配色に合わせた最小限の装飾 */
+  .empty-title{font-size:16px; font-weight:700; color:var(--ink); margin-bottom:6px;}
+  .empty-reset-btn{margin-top:18px; border:1px solid var(--line); background:var(--paper); color:var(--ink); font-size:13px; font-weight:700; border-radius:999px; padding:9px 18px; cursor:pointer; font-family:inherit;}
   .calendar-day.today{border-color:var(--coral); border-width:2px;}
   .calendar-day.selected{background:#FCEFE7; border-color:var(--coral);}
   .calendar-day-num{font-weight:700;}
@@ -11629,7 +11632,11 @@ function render(){
     if(state.keyword.trim()){
       trackEvent("search_no_result", {});
     }
-    main.innerHTML = `<div class="empty">条件に合うスポットが見つかりません。<br>絞り込みを減らしてみてください。</div>`;
+    // 表示対象（matches を通った最終結果）が0件の空状態。元データ SPOTS が空かどうかではなく filtered.length で判定している。
+    main.innerHTML = `<div class="empty"><div class="empty-title">施設がありません</div><div>条件を変更して、もう一度検索してください。</div><button type="button" class="empty-reset-btn" id="emptyResetBtn">🔄 条件をリセット</button></div>`;
+    // リセットは、画面上部の「🔄 条件をリセット」と同じ処理（検索語・絞り込み・今日はどうする？をまとめて解除。お気に入り等の保存データは残る）を呼ぶ
+    const emptyResetBtn = document.getElementById("emptyResetBtn");
+    if(emptyResetBtn) emptyResetBtn.onclick = ()=>{ const b = document.getElementById("conditionResetBtn"); if(b) b.click(); };
     return;
   }
 
