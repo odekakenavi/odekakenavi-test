@@ -13349,7 +13349,7 @@ function dataFileUrl(key){ return dataFileUrls(key)[0] || ""; }
       d.textContent = "施設データを読み込めませんでした。通信状況を確認して、ページを再読み込みしてください。";
       var s = document.createElement("div");
       s.style.cssText = "margin-top:8px;font-size:12px;color:#6b6259;word-break:break-all";
-      s.textContent = "探した場所：" + tried.join(" ／ ");
+      s.textContent = "探した場所と結果：" + tried.join(" ／ ");
       d.appendChild(s);
       document.body.insertBefore(d, document.body.firstChild);
     }catch(e){}
@@ -13363,14 +13363,23 @@ function dataFileUrl(key){ return dataFileUrls(key)[0] || ""; }
   }
   function load(urls, i, lastErr){
     if(i >= urls.length) return Promise.reject(lastErr || new Error("施設データが見つかりません"));
-    tried.push(urls[i]);
+    var idx = tried.push(urls[i]) - 1;
+    function note(why){ tried[idx] = urls[i] + " → " + why; }
     return fetch(urls[i], { cache: "no-cache" })
-      .then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status + " " + urls[i]); return r.json(); })
-      .then(function(spots){
-        if(!Array.isArray(spots) || spots.length === 0) throw new Error("施設データの形式が不正です: " + urls[i]);
-        return spots;
+      .then(function(r){
+        if(!r.ok){ note("見つからない（HTTP " + r.status + "）"); throw new Error("HTTP " + r.status + " " + urls[i]); }
+        return r.text().then(function(txt){
+          var spots;
+          try{ spots = JSON.parse(txt); }
+          catch(e){ note("ファイルはあるが中身がJSONとして不正（" + txt.length + "文字。先頭：" + txt.slice(0, 20).replace(/\s+/g, " ") + "）"); throw e; }
+          if(!Array.isArray(spots) || spots.length === 0){ note("JSONだが施設の配列ではない／空"); throw new Error("形式が不正: " + urls[i]); }
+          return spots;
+        });
       })
-      .catch(function(err){ return load(urls, i + 1, err); });
+      .catch(function(err){
+        if(tried[idx] === urls[i]) note("読み込みエラー（" + (err && err.message ? err.message : err) + "）");
+        return load(urls, i + 1, err);
+      });
   }
   try{
     load(dataFileUrls("spots"), 0).then(start).catch(showLoadError);
