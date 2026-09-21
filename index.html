@@ -9,10 +9,11 @@
      「許可していない外部サイトへスクリプトを読み込む／データを送信する」動きは防げる。 -->
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
-  script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://aml.valuecommerce.com https://translate.google.com https://translate.googleapis.com https://www.gstatic.com;
-  style-src 'self' 'unsafe-inline' https://www.gstatic.com https://translate.googleapis.com;
+  script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://aml.valuecommerce.com https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://www.gstatic.com;
+  style-src 'self' 'unsafe-inline' https://www.gstatic.com https://translate.googleapis.com https://fonts.googleapis.com;
+  font-src 'self' https://fonts.gstatic.com https://www.gstatic.com;
   connect-src 'self' https://api.open-meteo.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://aml.valuecommerce.com https://ck.jp.ap.valuecommerce.com https://translate.googleapis.com https://translate-pa.googleapis.com;
-  img-src 'self' data: https://www.gstatic.com https://translate.google.com https://translate.googleapis.com https://www.google.com;
+  img-src 'self' data: https://www.gstatic.com https://fonts.gstatic.com https://translate.google.com https://translate.googleapis.com https://www.google.com;
   frame-src https://translate.google.com;
   frame-ancestors 'self';
   base-uri 'self';
@@ -20159,7 +20160,7 @@ renderAuditMode();
     return new Promise(function(resolve, reject){
       var t0 = Date.now(), iv = setInterval(function(){
         if(isTranslated()){ clearInterval(iv); resolve(); }
-        else if(Date.now() - t0 > 8000){ clearInterval(iv); reject(new Error("no-effect")); }
+        else if(Date.now() - t0 > 10000){ clearInterval(iv); reject(new Error("no-effect")); }
       }, 250);
     });
   }
@@ -20188,8 +20189,9 @@ renderAuditMode();
     try{
       var t = diag.reason ? "（原因コード: " + diag.reason : "";
       if(diag.blocked.length){
-        var b = diag.blocked[0];
-        t += (t ? " / " : "（") + "ブロック: " + b.uri + " [" + b.dir + "]";
+        var parts = [];
+        for(var i=0;i<diag.blocked.length && i<4;i++){ parts.push(diag.blocked[i].uri + " [" + diag.blocked[i].dir + "]"); }
+        t += (t ? " / " : "（") + "ブロック: " + parts.join(" , ");
       }
       return t ? t + "）" : "";
     }catch(e){ return ""; }
@@ -20254,8 +20256,11 @@ renderAuditMode();
     // ブロックされた通信を記録（翻訳中のGoogle関連のみ）
     document.addEventListener("securitypolicyviolation", function(e){
       try{
-        if(state.busy && diag.blocked.length < 5){
-          diag.blocked.push({uri: String(e.blockedURI || "").slice(0, 80), dir: e.violatedDirective || e.effectiveDirective || ""});
+        if(state.busy && diag.blocked.length < 8){
+          var u = String(e.blockedURI || "").replace(/^https?:\/\//, "").slice(0, 48);
+          var d = e.violatedDirective || e.effectiveDirective || "";
+          for(var i=0;i<diag.blocked.length;i++){ if(diag.blocked[i].uri === u && diag.blocked[i].dir === d) return; }
+          diag.blocked.push({uri: u, dir: d});
         }
       }catch(err){}
     });
