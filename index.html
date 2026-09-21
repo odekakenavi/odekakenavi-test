@@ -13321,27 +13321,36 @@ renderAuditMode();
      取得に失敗したときはアプリを起動せず、画面上部にお知らせを出す（データ無しで動かすと壊れるため）。-->
 <script>
 var DATA_SOURCES = {
-  spots: "data/spots.json"   // 施設（1施設＝1行のJSON配列）
+  // 施設（1施設＝1行のJSON配列）。先頭が正式な置き場所。見つからない時だけ、後ろの名前を順に試す
+  // （スマホのアップロードでは "data/spots.json" が "data_spots.json" という名前になってしまうことがあるため）
+  spots: ["data/spots.json", "data_spots.json", "spots.json"]
 };
 // 相対パスの基準は「今のページのURL」ではなく <head> で保存した起動時のベースパス（施設ページ・pushState後・サブパス公開でもずれない）
-function dataFileUrl(key){
-  var rel = DATA_SOURCES[key];
-  if(!rel) return "";
+function dataFileUrls(key){
+  var list = DATA_SOURCES[key];
+  if(!list) return [];
+  if(typeof list === "string") list = [list];
   var base = "";
   try{
     var p = window.__ODEKAKE_BASE_PATH__ || window.location.pathname;
     base = p.charAt(p.length - 1) === "/" ? p : p.replace(/[^\/]*$/, "");
   }catch(e){ base = ""; }
-  return base + rel;
+  return list.map(function(rel){ return base + rel; });
 }
+function dataFileUrl(key){ return dataFileUrls(key)[0] || ""; }
 (function(){
+  var tried = [];
   function showLoadError(detail){
-    try{ console.error("[おでかけナビ] 施設データを読み込めませんでした:", detail, "（file:// で開いている場合は簡易サーバー経由で開いてください）"); }catch(e){}
+    try{ console.error("[おでかけナビ] 施設データを読み込めませんでした:", detail, tried, "（file:// で開いている場合は簡易サーバー経由で開いてください）"); }catch(e){}
     try{
       var d = document.createElement("div");
       d.setAttribute("role", "alert");
       d.style.cssText = "margin:16px;padding:14px 16px;border:1px solid #e0c9a6;border-radius:10px;background:#FFFDF8;color:#2B2620;font:14px/1.7 sans-serif";
       d.textContent = "施設データを読み込めませんでした。通信状況を確認して、ページを再読み込みしてください。";
+      var s = document.createElement("div");
+      s.style.cssText = "margin-top:8px;font-size:12px;color:#6b6259;word-break:break-all";
+      s.textContent = "探した場所：" + tried.join(" ／ ");
+      d.appendChild(s);
       document.body.insertBefore(d, document.body.firstChild);
     }catch(e){}
   }
@@ -13352,14 +13361,19 @@ function dataFileUrl(key){
     s.text = src.text;
     document.body.appendChild(s);
   }
-  try{
-    fetch(dataFileUrl("spots"), { cache: "no-cache" })
-      .then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+  function load(urls, i, lastErr){
+    if(i >= urls.length) return Promise.reject(lastErr || new Error("施設データが見つかりません"));
+    tried.push(urls[i]);
+    return fetch(urls[i], { cache: "no-cache" })
+      .then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status + " " + urls[i]); return r.json(); })
       .then(function(spots){
-        if(!Array.isArray(spots) || spots.length === 0) throw new Error("施設データの形式が不正です");
-        start(spots);
+        if(!Array.isArray(spots) || spots.length === 0) throw new Error("施設データの形式が不正です: " + urls[i]);
+        return spots;
       })
-      .catch(showLoadError);
+      .catch(function(err){ return load(urls, i + 1, err); });
+  }
+  try{
+    load(dataFileUrls("spots"), 0).then(start).catch(showLoadError);
   }catch(e){ showLoadError(e); }
 })();
 </script>
