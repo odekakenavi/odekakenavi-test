@@ -120,18 +120,19 @@
   .hero-banner .hero-badge{
     position:absolute; left:10px; bottom:10px; z-index:1;
     line-height:1.15;
+    /* 写真の上でも読めるよう、白いパネルの上に文字を載せる */
+    background:rgba(255,253,248,.94);
+    border:2px solid #fff; border-radius:16px;
+    padding:6px 12px 8px;
+    box-shadow:0 3px 12px rgba(43,38,32,.30);
   }
   .hero-banner .hero-badge .hero-badge-title{
-    font-family:'Zen Maru Gothic',sans-serif; font-weight:900; font-size:20px; letter-spacing:.5px;
-    -webkit-text-stroke:3px #fff; paint-order:stroke fill;
-    text-shadow:0 2px 3px rgba(43,38,32,.25);
+    font-family:'Zen Maru Gothic',sans-serif; font-weight:900; font-size:22px; letter-spacing:.5px;
   }
   .hero-banner .hero-badge .hero-badge-title span:first-child{color:var(--coral);}
   .hero-banner .hero-badge .hero-badge-title span:last-child{color:var(--green);}
   .hero-banner .hero-badge .hero-badge-sub{
-    font-family:'Zen Maru Gothic',sans-serif; font-weight:700; font-size:11px; color:var(--ink);
-    -webkit-text-stroke:2px #fff; paint-order:stroke fill;
-    text-shadow:0 1px 2px rgba(43,38,32,.2);
+    font-family:'Zen Maru Gothic',sans-serif; font-weight:700; font-size:11.5px; color:var(--ink);
     margin-top:2px; display:inline-block;
     border-bottom:3px solid var(--yellow); border-radius:2px;
   }
