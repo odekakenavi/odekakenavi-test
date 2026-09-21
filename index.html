@@ -20054,7 +20054,7 @@ renderAuditMode();
   var state = {lang:"ja", busy:false, loading:null, menuOpen:false};
   var ui = {btn:null, menu:null, toast:null, toastTimer:null};
   // 原因調査用：翻訳に失敗した理由コードと、CSP（読み込み制限）でブロックされたURLを記録する
-  var diag = {reason:"", blocked:[]};
+  var diag = {reason:"", blocked:[], options:null};
   window.__translateDiag = diag;
 
   function log(){ try{ if(window.console && console.warn) console.warn.apply(console, arguments); }catch(e){} }
@@ -20156,21 +20156,45 @@ renderAuditMode();
     });
     return state.loading;
   }
-  function waitTranslated(){
+  // ウィジェットの言語一覧（選択肢）が読み込まれるまで待つ。選択肢が無い状態で値を入れても翻訳されないため
+  function waitOption(code){
     return new Promise(function(resolve, reject){
       var t0 = Date.now(), iv = setInterval(function(){
-        if(isTranslated()){ clearInterval(iv); resolve(); }
-        else if(Date.now() - t0 > 10000){ clearInterval(iv); reject(new Error("no-effect")); }
+        var c = document.querySelector("select.goog-te-combo");
+        if(c){
+          for(var i=0;i<c.options.length;i++){ if(c.options[i].value === code){ clearInterval(iv); resolve(c); return; } }
+        }
+        if(Date.now() - t0 > 7000){
+          clearInterval(iv);
+          diag.options = c ? c.options.length : -1;
+          reject(new Error("no-option"));
+        }
+      }, 200);
+    });
+  }
+  function pick(code){
+    var c = document.querySelector("select.goog-te-combo");
+    if(!c) return;
+    c.value = code;
+    fireChange(c);
+  }
+  // 翻訳が反映されるまで待つ（反映されない間は3秒ごとに再度指示する）
+  function waitTranslated(code){
+    return new Promise(function(resolve, reject){
+      var t0 = Date.now(), last = t0, iv = setInterval(function(){
+        if(isTranslated()){ clearInterval(iv); resolve(); return; }
+        var now = Date.now();
+        if(now - t0 > 12000){ clearInterval(iv); reject(new Error("no-effect")); return; }
+        if(now - last >= 3000){ last = now; try{ pick(code); }catch(e){} }
       }, 250);
     });
   }
   function translateTo(code){
     return loadWidget().then(function(){
-      var combo = document.querySelector("select.goog-te-combo");
-      if(!combo) throw new Error("no-combo");
-      combo.value = code;
-      fireChange(combo);
-      return waitTranslated();
+      return waitOption(code);
+    }).then(function(){
+      pick(code);
+      return waitTranslated(code);
     });
   }
   // 日本語へ戻す：まずページ内で元に戻し、戻らなかった場合だけ同じURLを再読み込みする（URL・ハッシュ・クエリは変わらない）
@@ -20188,6 +20212,7 @@ renderAuditMode();
   function diagText(){
     try{
       var t = diag.reason ? "（原因コード: " + diag.reason : "";
+      if(diag.options !== null && diag.options !== undefined) t += (t ? " / " : "（") + "言語選択肢数: " + diag.options;
       if(diag.blocked.length){
         var parts = [];
         for(var i=0;i<diag.blocked.length && i<4;i++){ parts.push(diag.blocked[i].uri + " [" + diag.blocked[i].dir + "]"); }
@@ -20202,7 +20227,7 @@ renderAuditMode();
     if(code === "ja"){ state.lang = "ja"; refreshUI(); restoreJapanese(); return; }
     var prev = state.lang;
     state.busy = true; refreshUI();
-    diag.reason = ""; diag.blocked = [];
+    diag.reason = ""; diag.blocked = []; diag.options = null;
     translateTo(code).then(function(){
       state.lang = code;
     }).catch(function(err){
