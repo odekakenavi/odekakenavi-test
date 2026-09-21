@@ -15,8 +15,10 @@
 //   ・既定では SLUG_OVERRIDES に登録済み（＝URL確定済み）の施設だけを対象にする。
 //     未登録の施設は URL が確定していないため、--include-unpinned を付けた時だけ含める。
 //   ・データは index.html の次の部分を取り出して読む（この名前・並びを変える時は、このツールも直すこと）:
-//       'const SPOTS = [' から 'function spotBySlug' まで（施設・URL用の表・slug生成）／GENRES／deriveCategory
-//     施設データを別ファイルへ移した時は、読み込み元をその .js に変える。
+//       'const SPOTS = ' から 'function spotBySlug' まで（施設・URL用の表・slug生成）／GENRES／deriveCategory
+//   ・施設データ(SPOTS)は data/spots.json に外部化済み。index.html 側は 'const SPOTS = window.__ODEKAKE_DATA__.spots;' の1行で、
+//     このツールは index.html と同じフォルダの data/spots.json を読んで、その1行の代わりに与える（--spots <パス> で場所を変えられる）。
+//     旧形式（index.html の中に 'const SPOTS = [' で直書き）でも従来どおり動く。
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -31,6 +33,7 @@ function opt(name, def) { const i = argv.indexOf('--' + name); return i >= 0 ? (
 const INDEX_PATH = opt('index', 'index.html');
 const OUT_DIR = opt('out', '_build');
 const COMPARE_DIR = opt('compare', null);
+const SPOTS_JSON_PATH = opt('spots', null); // 施設データ(data/spots.json)の場所。省略時は index.html と同じフォルダの data/spots.json
 const INCLUDE_UNPINNED = !!opt('include-unpinned', false);
 
 // ------------------------------------------------------------------ index.html からデータ部分を取り出す
@@ -57,7 +60,10 @@ function extractDecl(lines, name) {
 function loadApp(indexPath) {
   const html = fs.readFileSync(indexPath, 'utf8');
   const lines = extractMainScript(html).split('\n');
-  const sp = findLine(lines, 'const SPOTS = [');
+  // 施設データが外部化されているか（index.html 側が 'const SPOTS = window.__ODEKAKE_DATA__.spots;' か）を見分ける
+  const inlineAt = lines.findIndex(l => l.startsWith('const SPOTS = ['));
+  const external = inlineAt < 0;
+  const sp = external ? findLine(lines, 'const SPOTS = window.__ODEKAKE_DATA__') : inlineAt;
   const end = findLine(lines, 'function spotBySlug');
   let code = lines.slice(sp, end + 1).join('\n');
   code += '\n' + extractDecl(lines, 'GENRES');
@@ -65,6 +71,16 @@ function loadApp(indexPath) {
   code += '\nthis.__app = { SPOTS, SLUG_OVERRIDES, PREF_SLUG, DESIGNATED_CITIES, GENRES, spotSlug, baseMunicipality, deriveCategory };';
   const sandbox = {};
   vm.createContext(sandbox);
+  if (external) {
+    // ブラウザではローダーが data/spots.json を取得して window.__ODEKAKE_DATA__.spots に入れる。それと同じ状態をここで作る。
+    const jsonPath = SPOTS_JSON_PATH || path.join(path.dirname(path.resolve(indexPath)), 'data', 'spots.json');
+    if (!fs.existsSync(jsonPath)) throw new Error('施設データが見つかりません: ' + jsonPath + '（--spots で場所を指定できます）');
+    const text = fs.readFileSync(jsonPath, 'utf8');
+    sandbox.window = { __ODEKAKE_DATA__: {} };
+    sandbox.__spotsJson = text;
+    vm.runInContext('window.__ODEKAKE_DATA__.spots = JSON.parse(__spotsJson);', sandbox, { filename: jsonPath });
+    if (!Array.isArray(sandbox.window.__ODEKAKE_DATA__.spots) || !sandbox.window.__ODEKAKE_DATA__.spots.length) throw new Error('施設データが空、または配列ではありません: ' + jsonPath);
+  }
   vm.runInContext(code, sandbox, { filename: 'index.html(data)' });
   return sandbox.__app;
 }
