@@ -13322,8 +13322,8 @@ renderAuditMode();
 <script>
 var DATA_SOURCES = {
   // 施設（1施設＝1行のJSON配列）。先頭が正式な置き場所。見つからない時だけ、後ろの名前を順に試す
-  // （スマホのアップロードでは "data/spots.json" が "data_spots.json" という名前になってしまうことがあるため）
-  spots: ["data/spots.json", "data_spots.json", "spots.json"]
+  // （スマホのアップロードでは "data/spots.json" が "data_spots.json" や "data spots.json"（スペース入り）という名前になってしまうことがあるため）
+  spots: ["data/spots.json", "data_spots.json", "spots.json", "data spots.json"]
 };
 // 相対パスの基準は「今のページのURL」ではなく <head> で保存した起動時のベースパス（施設ページ・pushState後・サブパス公開でもずれない）
 function dataFileUrls(key){
@@ -13335,7 +13335,7 @@ function dataFileUrls(key){
     var p = window.__ODEKAKE_BASE_PATH__ || window.location.pathname;
     base = p.charAt(p.length - 1) === "/" ? p : p.replace(/[^\/]*$/, "");
   }catch(e){ base = ""; }
-  return list.map(function(rel){ return base + rel; });
+  return list.map(function(rel){ return base + encodeURI(rel); });
 }
 function dataFileUrl(key){ return dataFileUrls(key)[0] || ""; }
 (function(){
