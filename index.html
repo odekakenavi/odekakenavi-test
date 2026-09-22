@@ -164,6 +164,8 @@
   .translate-menu{
     position:fixed; right:6px; top:calc(env(safe-area-inset-top) + 60px); z-index:1000;
     min-width:190px; max-width:calc(100vw - 12px); display:none;
+    max-height:calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 80px);
+    overflow-y:auto; -webkit-overflow-scrolling:touch;
     background:var(--paper); border:1px solid var(--line); border-radius:12px;
     box-shadow:0 6px 20px rgba(43,38,32,.22); padding:6px;
   }
@@ -184,6 +186,7 @@
     padding:10px 14px; border-radius:10px; opacity:0; visibility:hidden; transition:opacity .2s; white-space:pre-line;
   }
   .translate-toast.show{opacity:1; visibility:visible;}
+  .translate-toast-link{pointer-events:auto; color:#fff; text-decoration:underline; font-weight:700; background:none; border:none; padding:0; margin:0; font-size:inherit; font-family:inherit; cursor:pointer;}
   /* Googleの翻訳ウィジェットが出す上部バナー・ツールチップは非表示にし、ページ位置のずれを防ぐ */
   body{top:0 !important;}
   body > .skiptranslate, .goog-te-banner-frame, .goog-te-balloon-frame, #goog-gt-tt, .goog-tooltip{display:none !important;}
@@ -522,7 +525,9 @@
   }
   .card-quick-btn.on{opacity:1; background:#FDEDE6; border-color:var(--coral);}
   .card-thumb{flex:0 0 auto; width:40px; height:40px; border-radius:10px; background:#F1EADA;
-    display:flex; align-items:center; justify-content:center; font-size:20px;}
+    display:flex; align-items:center; justify-content:center; font-size:20px; overflow:hidden; position:relative;}
+  .card-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .card-thumb-fallback{display:none; width:100%; height:100%; align-items:center; justify-content:center; font-size:20px;}
   .card-title-block{flex:1; min-width:0;}
   .card-meta{font-size:11px; color:var(--ink-soft); margin-top:2px;}
 
@@ -876,7 +881,9 @@
   }
   .detail-photo{width:100%; height:110px; border-radius:12px; margin:10px 0;
     background:linear-gradient(135deg,#CFE3E9,#FCE3B8); display:flex; align-items:center; justify-content:center;
-    font-size:34px;}
+    font-size:34px; object-fit:cover;}
+  .detail-photo-credit{font-size:10.5px; color:var(--ink-soft); text-align:right; margin:-6px 0 8px;}
+  .detail-photo-credit a{color:var(--ink-soft);}
   .detail-section{margin-top:16px;}
   .detail-section h3{font-size:13px; margin:0 0 8px; font-weight:700;}
   .detail-desc{font-size:13px; line-height:1.8; color:var(--ink);}
@@ -1397,6 +1404,7 @@
     <button class="footer-link-btn" id="termsOpenBtn">利用規約・プライバシーポリシー</button>
     <button class="footer-link-btn" id="faqOpenBtn">よくある質問（FAQ）</button>
     <button class="footer-link-btn" id="aboutOpenBtn">運営者・情報の作り方について</button>
+    <button class="footer-link-btn" id="browserOpenBtn">推奨ブラウザについて</button>
     <a class="footer-link-btn" id="reportLinkBtn" href="https://forms.gle/QaT9suknCA2LkUXr6" target="_blank" rel="noopener">情報の誤りを報告する</a>
   </div>
 </footer>
@@ -1427,6 +1435,11 @@
 <!-- 運営者・データ元について -->
 <div class="sheet-overlay" id="aboutOverlay">
   <div class="sheet" id="aboutSheet"></div>
+</div>
+
+<!-- 推奨ブラウザについて -->
+<div class="sheet-overlay" id="browserOverlay">
+  <div class="sheet" id="browserSheet"></div>
 </div>
 
 <!-- 詳細シート -->
@@ -2553,12 +2566,100 @@ function walkFromStationLabel(spot){
 // 実データとして spot.parkingDetail を個別登録すればそちらを優先し、
 // 未登録の施設は入場料の水準などから目安を自動算出する。
 // ------------------------------------------------------------------
-// 🏷 ジャンルごとの簡易アイコン（写真の代わりに使う軽量サムネイル）。GENRES のラベルと表記を揃える。
+// 🏷 ジャンルごとの簡易アイコン（イラストがさらに読み込めない場合の最終フォールバック）。GENRES のラベルと表記を揃える。
 function genreInfo(spot){
   const cat = deriveCategory(spot);
   const g = GENRES.find(x=>x.key===cat) || {label:"📍 その他のスポット"};
   const icon = g.label.split(" ")[0];
   return {icon, label:g.label};
+}
+// ------------------------------------------------------------------
+// 🎨 カテゴリーイラスト：deriveCategory() の戻り値（GENRESのkey）を、
+// 用意したオリジナルイラスト（15種＋汎用1種）のファイル名に変換するマッピング。
+// 類似ジャンルは同じイラストに統合している（例：キャンプ場→アスレチック系）。
+// 新しいジャンルを追加した場合、ここに1行足すだけでイラストが出るようになる。
+// ------------------------------------------------------------------
+const CATEGORY_ILLUST = {
+  "公園": "park",
+  "水族館": "aquarium",
+  "動物園": "zoo",
+  "遊園地・テーマパーク": "amusement_park",
+  "博物館・科学館": "museum",
+  "釣り堀・魚つかみ取り": "experience",
+  "室内遊び場": "indoor_playground",
+  "スケート・ボウリング": "indoor_playground",
+  "プール・水遊び": "pool",
+  "アスレチック・アウトドア": "athletic",
+  "キャンプ場・グランピング": "athletic",
+  "果物狩り・収穫体験": "fruit_picking",
+  "牧場": "ranch",
+  "温泉・スパ": "onsen",
+  "花の名所": "nature_flower"
+};
+// 「おでかけスポット」等、15種に含まれないジャンル用の汎用イラストは今回未作成。
+// 用意でき次第 CATEGORY_ILLUST_FALLBACK にファイル名（拡張子なし）を入れれば自動的に使われる。
+// 未設定の間は、この後のロジックが自動的に絵文字アイコンへフォールバックする。
+// CATEGORY_ILLUST_BASE + slug + サイズ用サフィックス で実ファイル名になる。
+// kind="thumb" → 正方形（一覧カードの40×40用）／kind="detail" → 横長バナー（詳細画面800×110用、
+// 欠け防止のため周囲をぼかし延伸したもの）。用意でき次第 CATEGORY_ILLUST_FALLBACK に
+// ファイル名（拡張子・サイズ接尾辞なし）を入れれば同様に両サイズとも自動で使われる。
+const CATEGORY_ILLUST_FALLBACK = "fallback"; // 15カテゴリーに当てはまらない施設（「おでかけスポット」等）用の汎用イラスト
+const CATEGORY_ILLUST_BASE = "images/categories/"; // 実際の設置パスに合わせて変更可（例：/images/categories/ 等）
+function categoryIllustUrl(spot, kind){
+  const cat = deriveCategory(spot);
+  const slug = CATEGORY_ILLUST[cat] || CATEGORY_ILLUST_FALLBACK;
+  if(!slug) return null;
+  return kind === "detail" ? `${CATEGORY_ILLUST_BASE}${slug}-wide.webp` : `${CATEGORY_ILLUST_BASE}${slug}.webp`;
+}
+function spotImageCreditHTML(spot){
+  if(!spot.imageCredit) return "";
+  const label = spot.imageSourceUrl
+    ? `<a href="${spot.imageSourceUrl}" target="_blank" rel="noopener noreferrer">${spot.imageCredit}</a>`
+    : spot.imageCredit;
+  return `<div class="detail-photo-credit">${label}</div>`;
+}
+// ------------------------------------------------------------------
+// 🖼 施設画像：spot.image（公式画像等のURL）があればそれを表示。
+// 未設定・読み込み失敗・URL不正の場合は①カテゴリーイラスト（15種のオリジナル
+// イラスト）→ ②それも読み込めない場合のみ絵文字アイコン、の2段フォールバック。
+// カテゴリー判定は deriveCategory() を再利用するため、600件超の既存施設にも
+// 個別のカテゴリー登録作業なしにそのまま適用される。
+// spot.imageType 等のフラグは使わず「画像URLの有無」だけで自動判定する
+// （imageを消せば自動でカテゴリーイラストに戻る＝運用の手間を最小化）。
+// ------------------------------------------------------------------
+// onerror="..." のようなHTML属性の中にHTML断片を安全に埋め込むためのエスケープ。
+// JS文字列リテラルとしての ' と、HTML属性の区切りとしての " の両方を無害化する。
+function escForOnerrorAttr(html){
+  return html.replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/"/g,"&quot;").replace(/\n/g,"");
+}
+// 一覧カードの小さなサムネイル（40×40）用
+function spotThumbHTML(spot){
+  const g = genreInfo(spot);
+  const illustUrl = categoryIllustUrl(spot, "thumb");
+  const fallbackChain = illustUrl
+    ? `<img src="${illustUrl}" alt="" loading="lazy" width="40" height="40" decoding="async"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <span class="card-thumb-fallback">${g.icon}</span>`
+    : g.icon;
+  if(!spot.image) return fallbackChain;
+  return `<img src="${spot.image}" alt="" loading="lazy" width="40" height="40" decoding="async"
+      onerror="this.outerHTML='${escForOnerrorAttr(fallbackChain)}';">`;
+}
+// 施設詳細画面のメイン画像用（クレジット表示つき）
+function spotDetailPhotoHTML(spot){
+  const g = genreInfo(spot);
+  const illustUrl = categoryIllustUrl(spot, "detail");
+  const credit = spotImageCreditHTML(spot);
+  const illustHTML = illustUrl
+    ? `<img class="detail-photo" src="${illustUrl}" alt="" loading="lazy" width="800" height="110" decoding="async"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="detail-photo" style="display:none;">${g.icon}</div>`
+    : `<div class="detail-photo">${g.icon}</div>`;
+  if(!spot.image){
+    return `${illustHTML}${credit}`;
+  }
+  return `<img class="detail-photo" src="${spot.image}" alt="${spot.name}" loading="lazy" width="800" height="110" decoding="async"
+      onerror="this.outerHTML='${escForOnerrorAttr(illustHTML)}';">${credit}`;
 }
 // 🌼「花の名所」ジャンルは中身が桜・ひまわり・紅葉など様々なため、
 // ジャンルバッジ自体は🌼で統一しつつ、施設名の横に具体的な花の絵文字を添えて見分けやすくする。
@@ -5315,14 +5416,28 @@ async function fetchWeatherForSpot(spot){
 //   "unknown"   … 通信・APIは正常だが、まだ先すぎて予報の対象外（＝天気を断定しない）
 //   "error"     … 通信失敗・APIエラーなどで予報そのものが取得できなかった
 //   "unavailable" … 施設の緯度経度が無い等、そもそも問い合わせできない
+// 今日から指定日までの日数（Asia/Tokyo基準・日付のみで比較）。today=0, 明日=1 ...
+function daysFromToday(dateIso){
+  const today = todayISODate();
+  const d1 = new Date(today + "T00:00:00+09:00");
+  const d2 = new Date(dateIso + "T00:00:00+09:00");
+  if(isNaN(d1.getTime()) || isNaN(d2.getTime())) return null;
+  return Math.round((d2 - d1) / 86400000);
+}
+// 🎒 持ち物の自動化で使う「予報を信頼してよい期間」の上限（今日を含めて11日分＝今日〜10日後）。
+// 11日後以降は、天気APIが値を返せたとしても持ち物判定には使わない（未来の天気を推測しないため）。
+const PACKING_WEATHER_HORIZON_DAYS = 10;
 async function fetchWeatherForDate(spot, dateIso){
   if(!spot || typeof spot.lat !== "number" || typeof spot.lng !== "number" || !dateIso){
     return { status:"unavailable" };
   }
-  const days = await fetchWeatherForSpot(spot);
-  if(!days) return { status:"error" };
   const today = todayISODate();
   const targetIso = dateIso < today ? today : dateIso; // 過去日は安全側で「今日」として扱う
+  const diff = daysFromToday(targetIso);
+  // 11日後以降は、そもそもAPIの値を持ち物判定に使わない（今日から10日以内だけ天気を反映する方針）。
+  if(diff==null || diff > PACKING_WEATHER_HORIZON_DAYS) return { status:"unknown" };
+  const days = await fetchWeatherForSpot(spot);
+  if(!days) return { status:"error" };
   const day = days.find(d=>d.date === targetIso);
   if(!day) return { status:"unknown" };
   return { status:"ok", day };
@@ -5345,7 +5460,7 @@ async function loadWeatherIntoDetail(spot){
   }
   bodyNow.innerHTML = `
     <div class="weather-forecast">
-      ${days.map(d => `
+      ${days.slice(0,3).map(d => `
         <div class="weather-day">
           <div class="weather-day-label">${d.label}</div>
           <div class="weather-day-icon">${d.icon}</div>
@@ -6336,6 +6451,36 @@ function renderAboutSheet(){
 document.getElementById("aboutOpenBtn").onclick = ()=>{
   renderAboutSheet();
   openSheet("aboutOverlay");
+};
+
+function renderBrowserSheet(){
+  const sheet = document.getElementById("browserSheet");
+  sheet.innerHTML = `
+    <button class="sheet-close" id="browserCloseBtn">×</button>
+    <div class="sheet-title">🌐 推奨ブラウザについて</div>
+    <div class="about-body">
+      <p>おでかけナビを快適にご利用いただくために、以下の環境を推奨しています。</p>
+
+      <h4>推奨ブラウザ</h4>
+      <p>スマートフォン・パソコンともに、最新版の Google Chrome・Safari・Microsoft Edge のいずれかでのご利用を推奨しています。現在地検索・地図表示・ブラウザ翻訳機能などが正しく動作しやすくなります。</p>
+
+      <h4>LINE・Instagram・X（旧Twitter）などアプリ内ブラウザについて</h4>
+      <p>SNSアプリ内の「アプリ内ブラウザ」でお使いの場合、現在地の取得や共有機能、表示のレイアウトが崩れるなど、一部の機能が正しく動作しないことがあります。画面右上（または下）のメニューから「ブラウザで開く」「Safariで開く」などを選び、標準のブラウザで開き直すことをおすすめします。</p>
+
+      <h4>古いバージョンのブラウザについて</h4>
+      <p>古いバージョンのブラウザや、サポートが終了しているブラウザでは、正しく表示・動作しない場合があります。お使いのブラウザは、可能な範囲で最新の状態に更新してご利用ください。</p>
+
+      <h4>うまく動作しない場合</h4>
+      <p>上記をお試しいただいても不具合が続く場合は、フッターの「情報の誤りを報告する」フォームより、お使いの端末・ブラウザ名と合わせてお知らせいただけると助かります。</p>
+    </div>
+    <button class="detail-close-bottom" id="browserCloseBtnBottom">戻る</button>
+  `;
+  document.getElementById("browserCloseBtn").onclick = ()=>closeSheetById("browserOverlay");
+  document.getElementById("browserCloseBtnBottom").onclick = ()=>closeSheetById("browserOverlay");
+}
+document.getElementById("browserOpenBtn").onclick = ()=>{
+  renderBrowserSheet();
+  openSheet("browserOverlay");
 };
 
 function renderFavSheet(){
@@ -9513,7 +9658,7 @@ function buildCardSummary(spot){
   card.innerHTML = `
     ${state.compareMode ? `<div class="compare-pick ${state.compareSet.has(spot.name)?'picked':''}">✓</div>` : ""}
     <div class="card-top-row">
-      <div class="card-thumb">${genre.icon}</div>
+      <div class="card-thumb">${spotThumbHTML(spot)}</div>
       <div class="card-title-block">
         <div class="card-name">${flowerEmoji(spot) ? flowerEmoji(spot)+" " : ""}${spot.name}</div>
         <div class="card-meta">${fullAreaLabel(spot)}　${genre.label}</div>
@@ -9925,7 +10070,7 @@ function openDetail(spot, silent, backTarget){
       <button class="sheet-close" id="detailCloseBtn">×</button>
     </div>
     <div class="detail-area">${fullAreaLabel(spot)}　${category}　${activityLabel}</div>
-    <div class="detail-photo">${genreInfo(spot).icon}</div>
+    ${spotDetailPhotoHTML(spot)}
     <div class="detail-desc">${spot.desc}</div>
     ${stayTimeLabel ? `<div class="detail-stay-time">${stayTimeLabel}</div>` : ""}
 
@@ -11879,13 +12024,19 @@ function dataFileUrl(key){ return dataFileUrls(key)[0] || ""; }
 <script>
 (function(){
   "use strict";
-  var MSG_FAIL = "この環境では翻訳機能を利用できません。ブラウザの翻訳機能をご利用ください。";
   var LANGS = [
     {code:"ja",    label:"日本語",   short:"翻訳"},
     {code:"en",    label:"English",  short:"EN"},
     {code:"ko",    label:"한국어",    short:"한국어"},
     {code:"zh-CN", label:"简体中文",  short:"简体"},
-    {code:"zh-TW", label:"繁體中文",  short:"繁體"}
+    {code:"zh-TW", label:"繁體中文",  short:"繁體"},
+    {code:"vi",    label:"Tiếng Việt", short:"VI"},
+    {code:"tl",    label:"Filipino", short:"FIL"},
+    {code:"ne",    label:"नेपाली",    short:"NE"},
+    {code:"id",    label:"Bahasa Indonesia", short:"ID"},
+    {code:"pt",    label:"Português", short:"PT"},
+    {code:"es",    label:"Español",  short:"ES"},
+    {code:"th",    label:"ไทย",      short:"TH"}
   ];
   var state = {lang:"ja", busy:false, loading:null, menuOpen:false};
   var ui = {btn:null, menu:null, toast:null, toastTimer:null};
@@ -11911,7 +12062,8 @@ function dataFileUrl(key){ return dataFileUrls(key)[0] || ""; }
   }
 
   // 操作を邪魔しない通知（クリックを透過し、数秒で自動的に消える）
-  function toast(msg, ms){
+  // isHTML=true の場合のみ innerHTML を使う。呼び出し側は固定の静的文字列のみを渡すこと（ユーザー入力は渡さない）。
+  function toast(msg, ms, isHTML){
     try{
       if(!ui.toast){
         ui.toast = document.createElement("div");
@@ -11920,11 +12072,15 @@ function dataFileUrl(key){ return dataFileUrls(key)[0] || ""; }
         ui.toast.setAttribute("aria-live", "polite");
         document.body.appendChild(ui.toast);
       }
-      ui.toast.textContent = msg;
+      if(isHTML){ ui.toast.innerHTML = msg; } else { ui.toast.textContent = msg; }
       ui.toast.className = "translate-toast show";
       clearTimeout(ui.toastTimer);
       ui.toastTimer = setTimeout(function(){ try{ ui.toast.className = "translate-toast"; }catch(e){} }, ms || 6500);
     }catch(e){ log("[translate] toast failed", e); }
+  }
+  // 翻訳に失敗した時だけ出す簡潔な案内（詳細な原因説明はしない。推奨ブラウザ案内シートへのリンクのみ）
+  function toastFail(){
+    toast('この環境では翻訳できませんでした。<button type="button" class="translate-toast-link" onclick="document.getElementById(&quot;browserOpenBtn&quot;).click();">推奨ブラウザについて</button>もご確認ください。', 9000, true);
   }
 
   function currentLang(){ for(var i=0;i<LANGS.length;i++){ if(LANGS[i].code===state.lang) return LANGS[i]; } return LANGS[0]; }
@@ -11973,7 +12129,7 @@ function dataFileUrl(key){ return dataFileUrls(key)[0] || ""; }
         window.__odekakeTranslateInit = function(){
           try{
             new window.google.translate.TranslateElement(
-              {pageLanguage:"ja", includedLanguages:"en,ko,zh-CN,zh-TW", autoDisplay:false},
+              {pageLanguage:"ja", includedLanguages:"en,ko,zh-CN,zh-TW,vi,tl,ne,id,pt,es,th", autoDisplay:false},
               "google_translate_element");
           }catch(e){ fail("init"); }
         };
@@ -12070,7 +12226,7 @@ function dataFileUrl(key){ return dataFileUrls(key)[0] || ""; }
       diag.reason = (err && err.message) || "unknown";
       log("[translate] failed:", diag.reason, diag.blocked);
       state.lang = prev;
-      toast(MSG_FAIL);
+      toastFail();
     }).then(function(){
       state.busy = false; refreshUI();
     });
@@ -12112,7 +12268,7 @@ function dataFileUrl(key){ return dataFileUrls(key)[0] || ""; }
         var t = e.target;
         while(t && t !== menu && !(t.getAttribute && t.getAttribute("data-lang"))) t = t.parentNode;
         if(t && t !== menu) selectLang(t.getAttribute("data-lang"));
-      }catch(err){ log("[translate] select failed", err); toast(MSG_FAIL); }
+      }catch(err){ log("[translate] select failed", err); toastFail(); }
     });
     // ブロックされた通信を記録（翻訳中のGoogle関連のみ）
     document.addEventListener("securitypolicyviolation", function(e){
