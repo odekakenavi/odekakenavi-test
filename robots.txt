@@ -1,3 +1,6 @@
+# おでかけナビ robots.txt
+# GitHub Pages 公開版（https://odekakenavi.github.io/odekake-navi/）
+
 User-agent: *
 Allow: /
 
