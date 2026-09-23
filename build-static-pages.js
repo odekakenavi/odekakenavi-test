@@ -1,510 +1,554 @@
 #!/usr/bin/env node
-// おでかけナビ 静的ページ生成ツール
-// index.html の施設データ(SPOTS)から、検索エンジン向けの静的ページ一式を作る。
-//   ・施設ページ  /{都道府県}/{市区町村}/{施設}/index.html
-//   ・地域ページ  /{都道府県}/index.html ・ /{都道府県}/{市区町村}/index.html
-//   ・季節ページ  /season/{spring|summer|autumn|winter}/index.html
-//   ・sitemap.xml ・_slug_manifest.json
-//
-// 使い方（リポジトリ直下で実行）:
-//   node tools/build-static-pages.js --out _build            … _build/ に生成（既存ファイルは触らない）
-//   node tools/build-static-pages.js --compare .              … 何も書き込まず、公開中のファイル(.)との違いだけ報告
-//   node tools/build-static-pages.js --index index.html --out _build --include-unpinned
-//
-// 方針:
-//   ・既定では SLUG_OVERRIDES に登録済み（＝URL確定済み）の施設だけを対象にする。
-//     未登録の施設は URL が確定していないため、--include-unpinned を付けた時だけ含める。
-//   ・データは index.html の次の部分を取り出して読む（この名前・並びを変える時は、このツールも直すこと）:
-//       'const SPOTS = ' から 'function spotBySlug' まで（施設・URL用の表・slug生成）／GENRES／deriveCategory
-//   ・施設データ(SPOTS)は data/spots.json に外部化済み。index.html 側は 'const SPOTS = window.__ODEKAKE_DATA__.spots;' の1行で、
-//     このツールは index.html と同じフォルダの data/spots.json を読んで、その1行の代わりに与える（--spots <パス> で場所を変えられる）。
-//     旧形式（index.html の中に 'const SPOTS = [' で直書き）でも従来どおり動く。
-'use strict';
-const fs = require('fs');
-const path = require('path');
-const vm = require('vm');
+/**
+ * tools/build-static-pages.js
+ * ------------------------------------------------------------------
+ * 施設個別ページ（SEO用の"本物の"静的HTML）を生成するツール。
+ *
+ * 【これまでの経緯・このツールの位置づけ】
+ * index.html には、施設ごとに独立したURL（例: /tokyo/taito/ueno/）で
+ * 開けるクライアントサイドのルーティングが既に実装済み（SLUG_OVERRIDES /
+ * spotSlug() / updateSeoTagsForSpot() など）。ただしこれはあくまで
+ * 「index.html をブラウザが読み込んでJSが実行された後に」タイトルや
+ * meta・構造化データを書き換える仕組みであり、GitHub Pages上に
+ * その施設のURLに対応する“実ファイル”が存在するわけではない
+ * （存在しないパスへの直接アクセスは 404.html → リダイレクト復元で
+ * index.html に戻ってきてから上記の仕組みが動く）。
+ *
+ * このツールは、選ばれた施設について「実ファイルとして存在する」
+ * 軽量な静的HTMLページを {slug}/index.html として書き出す。
+ * クローラーやJS非実行環境でも初回レスポンスの時点で内容が読める
+ * ようにするのが目的。index.html 側の挙動・既存機能は一切変更しない
+ * （このツールは新しいファイルを増やすだけで、index.html は読み取り専用
+ * として扱う）。
+ *
+ * 【データの正としての扱い】
+ * 施設情報は data/spots.json のみを正とする。ここで値を推測・生成する
+ * ことは一切しない。存在しない項目はページ上でも構造化データ上でも
+ * 省略する（index.html の buildSpotJsonLd と同じ方針）。
+ *
+ * 【現在のフェーズ：100施設（フェーズ2）】
+ * 600施設への一括展開はまだ実施しない。tools/facility-rollout-list.json に
+ * 列挙した施設名だけを対象にする。将来の展開時は、このファイルの中身を
+ * SLUG_OVERRIDES の全キー（＝現在668施設）に差し替えれば、
+ * そのまま同じロジックで全施設分を生成できる設計にしている。
+ *
+ * 【実行方法】
+ *   node tools/build-static-pages.js
+ * リポジトリのルート（index.html と同じ階層）から実行する想定。
+ * ------------------------------------------------------------------
+ */
+"use strict";
+const fs = require("fs");
+const path = require("path");
 
-const SITE = 'https://odekakenavi.github.io/odekake-navi/';
-const BASE = '/odekake-navi/';
+const ROOT = path.join(__dirname, "..");
+const SITE_ORIGIN = "https://odekakenavi.github.io";
+const APP_BASE_PATH = "/odekake-navi/"; // GitHub Pagesのプロジェクトサイトのベースパス
+const HOME_URL = SITE_ORIGIN + APP_BASE_PATH;
+const GA_MEASUREMENT_ID = "G-HMLTN7373E"; // index.htmlと同一のGA4測定ID（analyticsのdata sourceを分けないため）
 
-// ------------------------------------------------------------------ 引数
-const argv = process.argv.slice(2);
-function opt(name, def) { const i = argv.indexOf('--' + name); return i >= 0 ? (argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[i + 1] : true) : def; }
-const INDEX_PATH = opt('index', 'index.html');
-const OUT_DIR = opt('out', '_build');
-const COMPARE_DIR = opt('compare', null);
-const SPOTS_JSON_PATH = opt('spots', null); // 施設データ(data/spots.json)の場所。省略時は index.html と同じフォルダの data/spots.json
-const INCLUDE_UNPINNED = !!opt('include-unpinned', false);
-
-// ------------------------------------------------------------------ index.html からデータ部分を取り出す
-function extractMainScript(html) {
-  const re = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g;
-  let m, best = '';
-  while ((m = re.exec(html))) if (m[1].length > best.length) best = m[1];
-  return best;
-}
-function findLine(lines, prefix, from = 0) {
-  for (let i = from; i < lines.length; i++) if (lines[i].startsWith(prefix)) return i;
-  throw new Error('index.html に見つかりません: ' + prefix);
-}
-// 「const X = ...;」「function X(){...}」を、行頭の閉じ括弧までで切り出す
-function extractDecl(lines, name) {
-  let i = -1;
-  for (let k = 0; k < lines.length; k++) if (new RegExp('^(const|function)\\s+' + name + '\\b').test(lines[k])) { i = k; break; }
-  if (i < 0) throw new Error('宣言が見つかりません: ' + name);
-  if (/;\s*(\/\/.*)?$/.test(lines[i]) && !/[\[{(]\s*$/.test(lines[i])) return lines[i];
-  let j = i + 1;
-  while (j < lines.length && !/^[}\]]\)?;?\s*$/.test(lines[j])) j++;
-  return lines.slice(i, j + 1).join('\n');
-}
-function loadApp(indexPath) {
-  const html = fs.readFileSync(indexPath, 'utf8');
-  const lines = extractMainScript(html).split('\n');
-  // 施設データが外部化されているか（index.html 側が 'const SPOTS = window.__ODEKAKE_DATA__.spots;' か）を見分ける
-  const inlineAt = lines.findIndex(l => l.startsWith('const SPOTS = ['));
-  const external = inlineAt < 0;
-  const sp = external ? findLine(lines, 'const SPOTS = window.__ODEKAKE_DATA__') : inlineAt;
-  const end = findLine(lines, 'function spotBySlug');
-  let code = lines.slice(sp, end + 1).join('\n');
-  code += '\n' + extractDecl(lines, 'GENRES');
-  code += '\n' + extractDecl(lines, 'deriveCategory');
-  code += '\nthis.__app = { SPOTS, SLUG_OVERRIDES, PREF_SLUG, DESIGNATED_CITIES, GENRES, spotSlug, baseMunicipality, deriveCategory };';
-  const sandbox = {};
-  vm.createContext(sandbox);
-  if (external) {
-    // ブラウザではローダーが data/spots.json を取得して window.__ODEKAKE_DATA__.spots に入れる。それと同じ状態をここで作る。
-    const jsonPath = SPOTS_JSON_PATH || path.join(path.dirname(path.resolve(indexPath)), 'data', 'spots.json');
-    if (!fs.existsSync(jsonPath)) throw new Error('施設データが見つかりません: ' + jsonPath + '（--spots で場所を指定できます）');
-    const text = fs.readFileSync(jsonPath, 'utf8');
-    sandbox.window = { __ODEKAKE_DATA__: {} };
-    sandbox.__spotsJson = text;
-    vm.runInContext('window.__ODEKAKE_DATA__.spots = JSON.parse(__spotsJson);', sandbox, { filename: jsonPath });
-    if (!Array.isArray(sandbox.window.__ODEKAKE_DATA__.spots) || !sandbox.window.__ODEKAKE_DATA__.spots.length) throw new Error('施設データが空、または配列ではありません: ' + jsonPath);
-  }
-  vm.runInContext(code, sandbox, { filename: 'index.html(data)' });
-  return sandbox.__app;
-}
-
-// ------------------------------------------------------------------ 共通ヘルパー
-function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-// Python の json.dumps(ensure_ascii=False) と同じ書式（区切りは ", " と ": "）
-function pyJson(v) {
-  if (v === null) return 'null';
-  if (Array.isArray(v)) return '[' + v.map(pyJson).join(', ') + ']';
-  if (typeof v === 'object') return '{' + Object.keys(v).filter(k => v[k] !== undefined).map(k => JSON.stringify(k) + ': ' + pyJson(v[k])).join(', ') + '}';
-  return JSON.stringify(v);
-}
-const PREF_FULL = { '東京': '東京都', '神奈川': '神奈川県', '埼玉': '埼玉県', '千葉': '千葉県', '茨城': '茨城県', '栃木': '栃木県', '群馬': '群馬県', '山梨': '山梨県', '静岡': '静岡県', '福島': '福島県', '長野': '長野県' };
-const SEASONS = [
-  { key: '春', slug: 'spring', emoji: '🌸', period: '2/21〜5/20' },
-  { key: '夏', slug: 'summer', emoji: '☀️', period: '5/21〜8/20' },
-  { key: '秋', slug: 'autumn', emoji: '🍁', period: '8/21〜11/20' },
-  { key: '冬', slug: 'winter', emoji: '❄️', period: '11/21〜2/20' },
+// ▼▼▼ 今回のパイロット対象。tools/facility-rollout-list.json（施設名の配列）から読み込む。
+// このファイルを差し替えるだけで対象施設を増減できる（600施設展開時も同じ仕組みを使う）。
+// ファイルが無い場合は、最初の10施設（フェーズ1）にフォールバックする。 ▼▼▼
+const ROLLOUT_LIST_PATH = path.join(__dirname, "facility-rollout-list.json");
+const FALLBACK_10 = [
+  "上野動物園", "すみだ水族館", "よみうりランド", "国営昭和記念公園",
+  "はまぎん こども宇宙科学館", "鉄道博物館", "キッザニア東京",
+  "アンパンマンこどもミュージアム＆モール横浜", "東京都水の科学館", "国営ひたち海浜公園",
 ];
-// メタ説明は120文字を超えたら120文字で切って「…」を付ける（コードポイント数で数える）
-function clip(t, n) { const a = Array.from(t); return a.length > n ? a.slice(0, n).join('') + '…' : t; }
-const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0); // コードポイント順（JSの既定ソートと同じ）
+function loadRolloutList() {
+  try {
+    return JSON.parse(fs.readFileSync(ROLLOUT_LIST_PATH, "utf-8"));
+  } catch (e) {
+    console.warn("⚠ facility-rollout-list.json が読めないため、フェーズ1の10施設にフォールバックします。");
+    return FALLBACK_10;
+  }
+}
+const PILOT_FACILITY_NAMES = loadRolloutList();
 
-const CSS_FAC = String.raw`
-  body{font-family:"Noto Sans JP",sans-serif; background:#FBF7EF; color:#2B2620; margin:0; padding:0; line-height:1.7;}
-  .wrap{max-width:640px; margin:0 auto; padding:20px 18px 60px;}
-  header.site{padding:14px 18px; background:#3E8FB0;}
-  header.site a{color:#fff; text-decoration:none; font-weight:700;}
-  nav.breadcrumb{font-size:13px; color:#6b6258; margin:16px 0 10px;}
-  nav.breadcrumb a{color:#3E8FB0; text-decoration:none;}
-  h1{font-size:22px; margin:6px 0 4px;}
-  .genre-badge{display:inline-block; background:#E2603A; color:#fff; border-radius:20px; padding:3px 12px; font-size:13px; margin-bottom:10px;}
-  .area-line{color:#6b6258; font-size:14px; margin-bottom:14px;}
-  .desc{margin:14px 0;}
-  .tip{background:#FFFDF8; border:1px solid #eadfca; border-radius:10px; padding:12px 14px; font-size:14px; margin:14px 0;}
-  .detail-block{margin:22px 0;}
-  .detail-block h2{font-size:16px; border-left:4px solid #F4B740; padding-left:8px; margin-bottom:8px;}
-  table.hours-table{border-collapse:collapse; width:100%; font-size:14px;}
-  table.hours-table th, table.hours-table td{border:1px solid #eadfca; padding:4px 8px; text-align:left;}
-  ul{margin:6px 0; padding-left:20px;}
-  .cta{display:block; text-align:center; background:#3E8FB0; color:#fff !important; text-decoration:none; font-weight:700; padding:14px; border-radius:12px; margin:26px 0 10px;}
-  .cta:hover{opacity:.9;}
-  .maps-link{display:inline-block; margin-top:6px; color:#3E8FB0;}
-  footer{font-size:12px; color:#928a7c; text-align:center; padding:24px 18px 40px;}
-  footer a{color:#3E8FB0;}
-  .verified{font-size:12px; color:#928a7c; margin-top:24px;}
-`;
-const CSS_REGION = String.raw`
-  body{font-family:"Noto Sans JP",sans-serif; background:#FBF7EF; color:#2B2620; margin:0; padding:0; line-height:1.7;}
-  .wrap{max-width:640px; margin:0 auto; padding:20px 18px 60px;}
-  header.site{padding:14px 18px; background:#3E8FB0;}
-  header.site a{color:#fff; text-decoration:none; font-weight:700;}
-  nav.breadcrumb{font-size:13px; color:#6b6258; margin:16px 0 10px;}
-  nav.breadcrumb a{color:#3E8FB0; text-decoration:none;}
-  h1{font-size:21px; margin:6px 0 4px;}
-  .count-badge{display:inline-block; background:#E2603A; color:#fff; border-radius:20px; padding:3px 12px; font-size:13px; margin-bottom:14px;}
-  .intro{margin:10px 0 20px; font-size:14px; color:#4a443c;}
-  .section-title{font-size:16px; border-left:4px solid #F4B740; padding-left:8px; margin:26px 0 10px;}
-  .genre-badge-row{display:flex; flex-wrap:wrap; gap:8px;}
-  .genre-badge-item{background:#fff; border:1px solid #eadfca; border-radius:999px; padding:7px 14px; font-size:13px; font-weight:600;}
-  .link-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
-  .link-card{display:block; background:#fff; border:1px solid #eadfca; border-radius:10px; padding:12px 14px; text-decoration:none; color:#2B2620;}
-  .link-card .lc-name{font-weight:700; font-size:14px;}
-  .link-card .lc-count{font-size:12px; color:#928a7c; margin-top:2px;}
-  .facility-list{list-style:none; margin:0; padding:0;}
-  .facility-list li{margin-bottom:10px;}
-  .facility-list a{display:block; background:#fff; border:1px solid #eadfca; border-radius:10px; padding:12px 14px; text-decoration:none; color:#2B2620; font-size:14px; font-weight:600;}
-  .facility-list a .fa-area{display:block; font-weight:400; font-size:12px; color:#928a7c; margin-top:2px;}
-  .cta{display:block; text-align:center; background:#3E8FB0; color:#fff !important; text-decoration:none; font-weight:700; padding:14px; border-radius:12px; margin:26px 0 10px;}
-  footer{font-size:12px; color:#928a7c; text-align:center; padding:24px 18px 40px;}
-  footer a{color:#3E8FB0;}
-`;
-const CSS_SEASON = String.raw`
-  body{font-family:"Noto Sans JP",sans-serif; background:#FBF7EF; color:#2B2620; margin:0; padding:0; line-height:1.7;}
-  .wrap{max-width:640px; margin:0 auto; padding:20px 18px 60px;}
-  header.site{padding:14px 18px; background:#3E8FB0;}
-  header.site a{color:#fff; text-decoration:none; font-weight:700;}
-  nav.breadcrumb{font-size:13px; color:#6b6258; margin:16px 0 10px;}
-  nav.breadcrumb a{color:#3E8FB0; text-decoration:none;}
-  h1{font-size:22px; margin:6px 0 4px;}
-  .period-badge{display:inline-block; background:#F4B740; color:#2B2620; border-radius:20px; padding:3px 14px; font-size:13px; margin-bottom:6px; font-weight:700;}
-  .count-badge{display:inline-block; background:#E2603A; color:#fff; border-radius:20px; padding:3px 12px; font-size:13px; margin-bottom:14px; margin-left:6px;}
-  .intro{margin:10px 0 20px; font-size:14px; color:#4a443c;}
-  .season-nav{display:flex; gap:8px; margin:10px 0 22px; flex-wrap:wrap;}
-  .season-nav a{flex:1; min-width:70px; text-align:center; background:#fff; border:1px solid #eadfca; border-radius:10px; padding:8px 4px; text-decoration:none; color:#2B2620; font-size:13px; font-weight:700;}
-  .season-nav a.current{border-color:#E2603A; background:#FFF1E6;}
-  .region-block{margin:26px 0;}
-  .region-title{font-size:16px; border-left:4px solid #F4B740; padding-left:8px; margin-bottom:2px;}
-  .region-title a{color:#2B2620; text-decoration:none;}
-  .region-sub{font-size:12px; color:#928a7c; margin:0 0 10px 12px;}
-  .facility-list{list-style:none; margin:0; padding:0;}
-  .facility-list li{margin-bottom:10px;}
-  .facility-list a{display:block; background:#fff; border:1px solid #eadfca; border-radius:10px; padding:12px 14px; text-decoration:none; color:#2B2620; font-size:14px; font-weight:600;}
-  .facility-list a .fa-area{display:block; font-weight:400; font-size:12px; color:#928a7c; margin-top:2px;}
-  .cta{display:block; text-align:center; background:#3E8FB0; color:#fff !important; text-decoration:none; font-weight:700; padding:14px; border-radius:12px; margin:26px 0 10px;}
-  footer{font-size:12px; color:#928a7c; text-align:center; padding:24px 18px 40px;}
-  footer a{color:#3E8FB0;}
-`;
+// ------------------------------------------------------------------
+// index.html から SLUG_OVERRIDES（施設名→確定slug）を抽出する。
+// index.html を二重管理しないための措置（このツールの中に同じデータを
+// 手で書き写さない。常に index.html 側を正とする）。
+// ------------------------------------------------------------------
+function extractSlugOverrides(html) {
+  const m = html.match(/const SLUG_OVERRIDES = \{([\s\S]*?)\n\};/);
+  if (!m) throw new Error("SLUG_OVERRIDES block not found in index.html");
+  const body = m[1];
+  const re = /"((?:[^"\\]|\\.)*)":\s*"((?:[^"\\]|\\.)*)"/g;
+  const map = {};
+  let mm;
+  while ((mm = re.exec(body))) {
+    map[JSON.parse('"' + mm[1] + '"')] = JSON.parse('"' + mm[2] + '"');
+  }
+  return map;
+}
 
-const FOOTER = `<footer>
-  データ出典・運営者情報・免責事項は<a href="${BASE}">おでかけナビ トップページ</a>の「よくある質問」「運営者について」でご確認いただけます。<br>
-  © おでかけナビ
-</footer>
-</body>
-</html>
-`;
-function head(title, description, canonical, jsonlds, css, blankBeforeStyle = false) {
+// index.html の DESIGNATED_CITIES / baseMunicipality / fullPrefectureName と同じロジック
+const DESIGNATED_CITIES = ["横浜市", "川崎市", "さいたま市", "千葉市", "相模原市"];
+function baseMunicipality(area) {
+  if (!area) return area;
+  for (const dc of DESIGNATED_CITIES) {
+    if (area.indexOf(dc) === 0) {
+      const m = area.match(new RegExp("^" + dc + ".+?区"));
+      return m ? m[0] : dc;
+    }
+  }
+  if (area.indexOf("郡") !== -1) {
+    const m = area.match(/^.+?郡.+?(?:町|村)/);
+    if (m) return m[0];
+  }
+  const m = area.match(/^.+?(?:市|区|町|村)/);
+  return m ? m[0] : area;
+}
+function cleanCityDisplayName(jpName) {
+  const m = jpName.match(/^.+郡(.+)$/);
+  return m ? m[1] : jpName;
+}
+function fullPrefectureName(region) {
+  if (!region) return "";
+  if (region === "東京") return "東京都";
+  return region + "県";
+}
+function fullAreaLabel(spot) {
+  return fullPrefectureName(spot.region) + (spot.area || "");
+}
+function deriveCategory(spot) {
+  if (spot.genre) return spot.genre;
+  const text = (spot.name || "") + (spot.desc || "");
+  if (text.includes("水族館")) return "水族館";
+  if (text.includes("動物園")) return "動物園";
+  if (text.includes("博物館") || text.includes("科学館") || text.includes("技術館") || text.includes("ミュージアム")) return "博物館・科学館";
+  if (text.includes("牧場")) return "牧場";
+  if (text.includes("遊園地") || text.includes("テーマパーク")) return "遊園地・テーマパーク";
+  if (text.includes("公園")) return "公園";
+  return "おでかけスポット";
+}
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[c]));
+}
+// data/spots.json の parkingDetail は施設によって「文字列」または
+// 「{note, priceLabel, ratingLabel, ...} のオブジェクト」の2パターンがある。
+// String(object) は "[object Object]" になってしまうため、両方を正しく処理する。
+function formatParkingDetail(pd) {
+  if (!pd) return "";
+  if (typeof pd === "string") return "（" + esc(pd) + "）";
+  if (typeof pd === "object") {
+    const text = pd.note || pd.ratingLabel || pd.priceLabel || "";
+    return text ? "（" + esc(text) + "）" : "";
+  }
+  return "";
+}
+// 季節（春/夏/秋/冬）→ 既存の /season/xxx/ ページのslug
+const SEASON_SLUG = { "春": "spring", "夏": "summer", "秋": "autumn", "冬": "winter" };
+
+// ------------------------------------------------------------------
+// メイン処理
+// ------------------------------------------------------------------
+function main() {
+  const html = fs.readFileSync(path.join(ROOT, "index.html"), "utf-8");
+  const slugOverrides = extractSlugOverrides(html);
+  const spots = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "spots.json"), "utf-8"));
+  const hotelsData = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "hotels.json"), "utf-8"));
+
+  const byName = new Map(spots.map((s) => [s.name, s]));
+
+  // ホテルをフラットな配列にしておく（index.html の hotelFlatList() と同じ考え方）
+  const hotelFlat = [];
+  Object.keys(hotelsData.familyHotels || {}).forEach((areaKey) => {
+    (hotelsData.familyHotels[areaKey] || []).forEach((h) => hotelFlat.push({ hotel: h, areaKey }));
+  });
+
+  // 全施設のうち、slug確定済み（SLUG_OVERRIDES登録済み）のものだけを
+  // 「周辺のお出かけスポット」の候補にする＝リンク先が必ず実在するURLになる
+  const slugSpots = spots
+    .filter((s) => slugOverrides[s.name])
+    .map((s) => ({ spot: s, slug: slugOverrides[s.name] }));
+
+  const results = [];
+
+  PILOT_FACILITY_NAMES.forEach((name) => {
+    const spot = byName.get(name);
+    if (!spot) {
+      console.error("⚠ spots.json に見つかりません:", name);
+      return;
+    }
+    const slug = slugOverrides[name];
+    if (!slug) {
+      console.error("⚠ SLUG_OVERRIDES に見つかりません:", name);
+      return;
+    }
+    const page = buildPage(spot, slug, { slugSpots, hotelFlat });
+    const outDir = path.join(ROOT, slug);
+    fs.mkdirSync(outDir, { recursive: true });
+    fs.writeFileSync(path.join(outDir, "index.html"), page.html, "utf-8");
+    results.push(page.meta);
+    console.log("✓ generated:", slug + "/index.html");
+  });
+
+  fs.writeFileSync(
+    path.join(ROOT, "tools", "pilot-report.json"),
+    JSON.stringify(results, null, 2),
+    "utf-8"
+  );
+  console.log("\n生成件数:", results.length, "/ 対象:", PILOT_FACILITY_NAMES.length);
+  console.log("レポート: tools/pilot-report.json に出力しました。");
+}
+
+// ------------------------------------------------------------------
+// 1施設分のページを組み立てる
+// ------------------------------------------------------------------
+function buildPage(spot, slug, ctx) {
+  const canonicalHref = HOME_URL + slug + "/";
+  const title = `${spot.name}｜子連れお出かけ情報｜おでかけナビ`;
+  // index.html buildSpotMetaDescription() と同一の組み立てロジック
+  let description = `${spot.name}（${fullAreaLabel(spot)}）の子連れお出かけ情報。`;
+  if (spot.desc) description += spot.desc;
+  if (description.length > 120) description = description.slice(0, 120) + "…";
+
+  const category = deriveCategory(spot);
+  const [prefSlug, citySlug] = slug.split("/");
+  const rawCityLabel = (spot.area || "").split("・")[0] || spot.area || "";
+  const cityLabel = cleanCityDisplayName(baseMunicipality(rawCityLabel));
+  const prefLabel = fullPrefectureName(spot.region);
+  const prefHref = HOME_URL + prefSlug + "/";
+  const cityHref = HOME_URL + prefSlug + "/" + citySlug + "/";
+
+  // ---- 構造化データ：BreadcrumbList（index.html setBreadcrumbJsonLdForSpot と同一方針）----
+  const breadcrumbItems = [
+    { name: "おでかけナビ", url: HOME_URL },
+    { name: prefLabel, url: prefHref },
+    { name: cityLabel, url: cityHref },
+    { name: spot.name, url: canonicalHref },
+  ];
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: breadcrumbItems.map((it, i) => ({
+      "@type": "ListItem", position: i + 1, name: it.name, item: it.url,
+    })),
+  };
+
+  // ---- 構造化データ：TouristAttraction（index.html buildSpotJsonLd と同一方針。無い項目は省略）----
+  const spotLd = { "@context": "https://schema.org", "@type": "TouristAttraction", name: spot.name, url: canonicalHref };
+  if (spot.desc) spotLd.description = spot.desc;
+  if (spot.region || cityLabel) {
+    spotLd.address = { "@type": "PostalAddress" };
+    if (spot.region) spotLd.address.addressRegion = prefLabel;
+    if (cityLabel) spotLd.address.addressLocality = cityLabel;
+    spotLd.address.addressCountry = "JP";
+  }
+  if (typeof spot.lat === "number" && typeof spot.lng === "number") {
+    spotLd.geo = { "@type": "GeoCoordinates", latitude: spot.lat, longitude: spot.lng };
+  }
+  if (spot.officialUrl) spotLd.sameAs = spot.officialUrl;
+
+  // ---- 年齢層の表示 ----
+  const AGE_LABELS = { "0-1歳": "0〜1歳", "2-3歳": "2〜3歳", "4-6歳": "4〜6歳（未就学児）", "低学年": "小学校低学年", "高学年": "小学校高学年" };
+  const ageLabels = (spot.ages || []).map((a) => AGE_LABELS[a] || a);
+
+  // ---- 所要時間 ----
+  let stayTimeText = "";
+  if (spot.stayTime) {
+    const toH = (m) => (m % 60 === 0 ? m / 60 + "時間" : Math.floor(m / 60) + "時間" + (m % 60) + "分");
+    stayTimeText = `目安 ${toH(spot.stayTime.minMinutes)}〜${toH(spot.stayTime.maxMinutes)}`;
+  } else if (spot.duration && spot.duration.length) {
+    stayTimeText = spot.duration.join("・") + "が目安";
+  }
+
+  // ---- 雨の日との相性 ----
+  let rainText = "";
+  if (spot.weather && spot.weather.length) {
+    rainText = spot.weather.includes("雨")
+      ? "雨の日でも楽しみやすい（屋内中心、または屋根のあるエリアが多い）"
+      : "晴れの日向き（屋外中心の施設）";
+  }
+
+  // ---- 営業時間 ----
+  const DAY_LABELS = { mon: "月", tue: "火", wed: "水", thu: "木", fri: "金", sat: "土", sun: "日", holiday: "祝" };
+  let businessHoursRows = "";
+  if (spot.businessHours) {
+    businessHoursRows = Object.keys(DAY_LABELS)
+      .filter((k) => spot.businessHours[k])
+      .map((k) => `<tr><th>${DAY_LABELS[k]}</th><td>${esc(spot.businessHours[k])}</td></tr>`)
+      .join("");
+  }
+
+  // ---- 混雑の目安 ----
+  let congestionRows = "";
+  if (spot.congestion) {
+    const CONG_LABELS = { weekdayAM: "平日午前", weekdayPM: "平日午後", holidayAM: "土日祝午前", holidayPM: "土日祝午後" };
+    congestionRows = Object.keys(CONG_LABELS)
+      .filter((k) => spot.congestion[k])
+      .map((k) => `<tr><th>${CONG_LABELS[k]}</th><td>${esc(spot.congestion[k])}</td></tr>`)
+      .join("");
+  }
+
+  // ---- 周辺のお出かけスポット（実在するURLだけ。半径15km以内・近い順に最大4件）----
+  const nearbySpots = ctx.slugSpots
+    .filter((x) => x.spot.name !== spot.name && typeof x.spot.lat === "number" && typeof spot.lat === "number")
+    .map((x) => ({ ...x, km: haversineKm(spot.lat, spot.lng, x.spot.lat, x.spot.lng) }))
+    .filter((x) => x.km <= 15)
+    .sort((a, b) => a.km - b.km)
+    .slice(0, 4);
+
+  // ---- 周辺ホテル（半径10km以内・近い順に最大3件。個別URLが無いためリンクはせずテキスト情報として掲載）----
+  const nearbyHotels = ctx.hotelFlat
+    .filter((x) => typeof x.hotel.lat === "number" && typeof spot.lat === "number")
+    .map((x) => ({ ...x, km: haversineKm(spot.lat, spot.lng, x.hotel.lat, x.hotel.lng) }))
+    .filter((x) => x.km <= 10)
+    .sort((a, b) => a.km - b.km)
+    .slice(0, 3);
+
+  // ---- 季節ページへのリンク（seasonsフィールドがある場合のみ）----
+  const seasonLinks = (spot.seasons || [])
+    .map((s) => SEASON_SLUG[s])
+    .filter(Boolean)
+    .map((s) => ({ label: { spring: "春のおでかけ", summer: "夏のおでかけ", autumn: "秋のおでかけ", winter: "冬のおでかけ" }[s], href: HOME_URL + "season/" + s + "/" }));
+
+  const appOpenHref = HOME_URL + "?spot=" + encodeURIComponent(spot.name);
+
+  const html = renderHtml({
+    spot, slug, canonicalHref, title, description, category,
+    prefLabel, prefHref, cityLabel, cityHref, appOpenHref,
+    breadcrumbLd, spotLd, ageLabels, stayTimeText, rainText,
+    businessHoursRows, congestionRows, nearbySpots, nearbyHotels, seasonLinks,
+  });
+
+  return {
+    html,
+    meta: {
+      name: spot.name, slug, url: canonicalHref, title, description,
+      category, region: spot.region, area: spot.area,
+      nearbySpotCount: nearbySpots.length, nearbyHotelCount: nearbyHotels.length,
+      fieldsShown: Object.keys(spot),
+    },
+  };
+}
+
+function renderHtml(d) {
+  const s = d.spot;
   return `<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${esc(title)}</title>
-<meta name="description" content="${esc(description)}">
-<link rel="canonical" href="${canonical}">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>${esc(d.title)}</title>
+<meta name="description" content="${esc(d.description)}">
+<link rel="canonical" href="${esc(d.canonicalHref)}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="おでかけナビ">
-<meta property="og:title" content="${esc(title)}">
-<meta property="og:description" content="${esc(description)}">
-<meta property="og:url" content="${canonical}">
+<meta property="og:title" content="${esc(d.title)}">
+<meta property="og:description" content="${esc(d.description)}">
+<meta property="og:url" content="${esc(d.canonicalHref)}">
+<meta property="og:image" content="${HOME_URL}og-image.png">
 <meta property="og:locale" content="ja_JP">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="${esc(title)}">
-<meta name="twitter:description" content="${esc(description)}">
-${jsonlds.map(j => `<script type="application/ld+json">${pyJson(j)}</script>`).join('\n')}
-${blankBeforeStyle ? '\n' : ''}<style>${css}</style>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(d.title)}">
+<meta name="twitter:description" content="${esc(d.description)}">
+<meta name="twitter:image" content="${HOME_URL}og-image.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 192 192%27%3E%3Crect width=%27192%27 height=%27192%27 rx=%2740%27 fill=%27%233E8FB0%27/%3E%3Ccircle cx=%2760%27 cy=%2750%27 r=%2222%27 fill=%27%23F4B740%27/%3E%3Cpath d=%27M20 140 Q40 100 96 100 Q152 100 172 140 Z%27 fill=%27%23FFFDF8%27/%3E%3Ccircle cx=%2760%27 cy=%27150%27 r=%2214%27 fill=%27%232B2620%27/%3E%3Ccircle cx=%27132%27 cy=%27150%27 r=%2214%27 fill=%27%232B2620%27/%3E%3Crect x=%2740%27 y=%27112%27 width=%27112%27 height=%2732%27 rx=%2710%27 fill=%27%23E2603A%27/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<script type="application/ld+json">${JSON.stringify(d.breadcrumbLd)}</script>
+<script type="application/ld+json">${JSON.stringify(d.spotLd)}</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '${GA_MEASUREMENT_ID}', { 'anonymize_ip': true, 'allow_google_signals': false });
+</script>
+<style>
+  :root{ --cream:#FBF7EF; --paper:#FFFDF8; --ink:#2B2620; --ink-soft:#6b6259; --sun:#3E8FB0; --coral:#E2603A; --line:#E7DFCF; --yellow:#F4B740; --green:#4F7942; }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--cream); color:var(--ink); font-family:'Noto Sans JP',sans-serif; line-height:1.7; -webkit-font-smoothing:antialiased;}
+  h1,h2,.mark{font-family:'Zen Maru Gothic',sans-serif;}
+  a{color:var(--sun);}
+  .wrap{max-width:720px; margin:0 auto; padding:0 16px 48px;}
+  header.site-header{background:var(--paper); border-bottom:1px solid var(--line); padding:10px 16px;}
+  header.site-header a{color:var(--ink); text-decoration:none; font-family:'Zen Maru Gothic',sans-serif; font-weight:900; font-size:15px;}
+  nav.breadcrumb{font-size:12px; color:var(--ink-soft); padding:12px 0 4px; overflow-x:auto; white-space:nowrap;}
+  nav.breadcrumb a{color:var(--ink-soft); text-decoration:none;}
+  nav.breadcrumb a:hover{text-decoration:underline;}
+  .badge-row{display:flex; gap:6px; flex-wrap:wrap; margin:6px 0 14px;}
+  .badge{display:inline-block; background:#fff; border:1px solid var(--line); border-radius:999px; padding:4px 12px; font-size:12px; color:var(--ink-soft);}
+  h1{font-size:24px; margin:4px 0 2px; line-height:1.35;}
+  .lead{color:var(--ink-soft); font-size:14px; margin-bottom:18px;}
+  .card{background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:16px 18px; margin-bottom:14px;}
+  .card h2{font-size:16px; margin:0 0 8px; display:flex; align-items:center; gap:6px;}
+  .card p{margin:0 0 8px; font-size:14px;}
+  .card p:last-child{margin-bottom:0;}
+  .age-list{display:flex; flex-wrap:wrap; gap:6px; margin:0;}
+  .age-chip{background:#FFF4E6; border:1px solid #F0DDB8; color:#8a5a17; border-radius:8px; padding:4px 10px; font-size:12.5px;}
+  table.info-table{width:100%; border-collapse:collapse; font-size:13px;}
+  table.info-table th{text-align:left; color:var(--ink-soft); font-weight:500; width:4.2em; padding:4px 8px 4px 0; vertical-align:top;}
+  table.info-table td{padding:4px 0; vertical-align:top;}
+  .cta-btn{display:block; text-align:center; background:var(--coral); color:#fff; text-decoration:none; font-weight:700; padding:14px; border-radius:14px; font-size:15px; margin:20px 0;}
+  .cta-btn:hover{opacity:.92;}
+  .cta-sub{text-align:center; font-size:12px; color:var(--ink-soft); margin-top:-14px; margin-bottom:20px;}
+  .nearby-item{display:block; padding:10px 0; border-bottom:1px solid var(--line); text-decoration:none; color:var(--ink);}
+  .nearby-item:last-child{border-bottom:none;}
+  .nearby-item .nm{font-weight:700; font-size:14px;}
+  .nearby-item .meta{font-size:12px; color:var(--ink-soft);}
+  .hotel-item{padding:10px 0; border-bottom:1px solid var(--line);}
+  .hotel-item:last-child{border-bottom:none;}
+  .hotel-item .nm{font-weight:700; font-size:14px;}
+  .hotel-item .meta{font-size:12px; color:var(--ink-soft);}
+  .link-list{display:flex; flex-wrap:wrap; gap:8px; font-size:13px;}
+  .link-list a{background:#fff; border:1px solid var(--line); border-radius:999px; padding:6px 12px; text-decoration:none;}
+  #geoBtn{background:#fff; border:1px solid var(--line); border-radius:10px; padding:8px 14px; font-size:13px; color:var(--ink); cursor:pointer;}
+  #geoResult{font-size:13px; margin-top:8px; color:var(--ink-soft);}
+  footer.site-footer{text-align:center; font-size:12px; color:var(--ink-soft); padding:24px 16px 40px;}
+  footer.site-footer a{color:var(--ink-soft);}
+  .verified{font-size:11.5px; color:var(--ink-soft); margin-top:2px;}
+</style>
 </head>
 <body>
-<header class="site"><a href="${BASE}">🧭 おでかけナビ</a></header>
+<header class="site-header"><a href="${HOME_URL}">🧭 おでかけナビ</a></header>
 <div class="wrap">
-`;
-}
-const breadcrumbLd = items => ({ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: items.map((it, i) => Object.assign({ '@type': 'ListItem', position: i + 1, name: it[0] }, it[1] ? { item: it[1] } : {})) });
-const itemListLd = (name, items) => ({ '@context': 'https://schema.org', '@type': 'ItemList', name, numberOfItems: items.length, itemListElement: items.map((it, i) => ({ '@type': 'ListItem', position: i + 1, name: it[0], url: it[1] })) });
+  <nav class="breadcrumb" aria-label="パンくずリスト">
+    <a href="${HOME_URL}">おでかけナビ</a> &rsaquo;
+    <a href="${d.prefHref}">${esc(d.prefLabel)}</a> &rsaquo;
+    <a href="${d.cityHref}">${esc(d.cityLabel)}</a> &rsaquo;
+    ${esc(s.name)}
+  </nav>
 
-// 表示用の市区町村名：郡は省く（「足柄下郡箱根町」→「箱根町」）
-function cityDisplay(base) { return base.indexOf('郡') !== -1 ? base.replace(/^.+?郡/, '') : base; }
-// ------------------------------------------------------------------ 施設データの整理
-function prepare(app) {
-  const rows = [];
-  app.SPOTS.forEach(spot => {
-    const pinned = Object.prototype.hasOwnProperty.call(app.SLUG_OVERRIDES, spot.name);
-    if (!pinned && !INCLUDE_UNPINNED) return;
-    const slug = app.spotSlug(spot);
-    const [prefSlug, citySlug] = slug.split('/');
-    rows.push({
-      spot, slug, prefSlug, citySlug,
-      prefFull: PREF_FULL[spot.region] || spot.region,
-      city: cityDisplay(app.baseMunicipality(spot.area)),
-      genre: app.deriveCategory(spot),
-      explicitGenre: spot.genre || null,
+  <div class="badge-row">
+    <span class="badge">${esc(d.category)}</span>
+    <span class="badge">📍 ${esc(d.prefLabel)}${esc(s.area || "")}</span>
+  </div>
+  <h1>${esc(s.name)}</h1>
+  <p class="lead">${esc(d.prefLabel)}${esc(s.area || "")}にある${esc(d.category)}。子連れでのお出かけ情報をまとめました。</p>
+
+  ${s.desc || s.tip ? `<div class="card">
+    <h2>📝 おすすめポイント</h2>
+    ${s.desc ? `<p>${esc(s.desc)}</p>` : ""}
+    ${s.tip ? `<p>💡 ${esc(s.tip)}</p>` : ""}
+  </div>` : ""}
+
+  ${d.ageLabels.length ? `<div class="card">
+    <h2>👶 対象年齢の目安</h2>
+    <div class="age-list">${d.ageLabels.map((a) => `<span class="age-chip">${esc(a)}</span>`).join("")}</div>
+  </div>` : ""}
+
+  <div class="card">
+    <h2>ℹ️ 基本情報</h2>
+    <table class="info-table">
+      ${d.stayTimeText ? `<tr><th>所要時間</th><td>${esc(d.stayTimeText)}</td></tr>` : ""}
+      ${d.rainText ? `<tr><th>天候</th><td>${esc(d.rainText)}</td></tr>` : ""}
+      ${s.price ? `<tr><th>料金</th><td>${esc(s.price)}</td></tr>` : ""}
+      ${s.parking ? `<tr><th>駐車場</th><td>${s.parking === "yes" ? "あり" : s.parking === "no" ? "なし（周辺のコインパーキング等をご確認ください）" : esc(s.parking)}${formatParkingDetail(s.parkingDetail)}</td></tr>` : ""}
+      ${s.baby ? `<tr><th>赤ちゃん・ベビーカー</th><td>${esc(s.baby)}</td></tr>` : ""}
+      ${s.access ? `<tr><th>アクセス</th><td>${esc(s.access)}</td></tr>` : ""}
+      ${s.lunch ? `<tr><th>食事</th><td>${esc(s.lunch)}</td></tr>` : ""}
+    </table>
+  </div>
+
+  ${d.businessHoursRows ? `<div class="card">
+    <h2>🕘 営業時間</h2>
+    <table class="info-table">${d.businessHoursRows}</table>
+    ${s.closedDays && s.closedDays.length ? `<p style="margin-top:8px;">定休日：${s.closedDays.map(esc).join("／")}</p>` : ""}
+    ${s.businessHoursNote ? `<p>${esc(s.businessHoursNote)}</p>` : ""}
+  </div>` : (s.closedDays && s.closedDays.length ? `<div class="card"><h2>🕘 定休日</h2><p>${s.closedDays.map(esc).join("／")}</p></div>` : "")}
+
+  ${d.congestionRows ? `<div class="card">
+    <h2>👥 混雑の目安</h2>
+    <table class="info-table">${d.congestionRows}</table>
+  </div>` : ""}
+
+  <div class="card">
+    <h2>📍 現在地からの距離</h2>
+    <button id="geoBtn" type="button">現在地からの距離を計算する</button>
+    <div id="geoResult"></div>
+  </div>
+
+  ${s.officialUrl ? `<div class="card">
+    <h2>🔗 公式サイト</h2>
+    <p><a href="${esc(s.officialUrl)}" target="_blank" rel="noopener">${esc(s.officialUrl)}</a></p>
+    ${s.verifiedAt ? `<p class="verified">最終確認：${esc(s.verifiedAt)}</p>` : ""}
+  </div>` : (s.verifiedAt ? `<p class="verified" style="margin:-6px 0 14px;">情報の最終確認：${esc(s.verifiedAt)}</p>` : "")}
+
+  ${(s.bookingLinks && Object.keys(s.bookingLinks).length) ? `<div class="card">
+    <h2>🎫 チケット・予約情報</h2>
+    <div class="link-list">
+      ${Object.entries(s.bookingLinks).map(([site, url]) => {
+        const label = site === "asoview" ? "アソビュー" : site === "jalan" ? "じゃらん" : site;
+        return `<a href="${esc(url)}" target="_blank" rel="nofollow noopener">${esc(label)}で見る</a>`;
+      }).join("")}
+    </div>
+  </div>` : ""}
+
+  <a class="cta-btn" href="${d.appOpenHref}">🧭 アプリ版で開く（お気に入り・行った記録・プランに追加できます）</a>
+  <p class="cta-sub">アプリ版では天気・年齢・エリアなど他の条件からも探せます</p>
+
+  ${d.nearbySpots.length ? `<div class="card">
+    <h2>🚗 周辺のお出かけスポット</h2>
+    ${d.nearbySpots.map((n) => `<a class="nearby-item" href="${HOME_URL}${n.slug}/">
+      <div class="nm">${esc(n.spot.name)}</div>
+      <div class="meta">${esc(n.spot.area || "")} ・ 約${Math.round(n.km)}km</div>
+    </a>`).join("")}
+  </div>` : ""}
+
+  ${d.nearbyHotels.length ? `<div class="card">
+    <h2>🏨 周辺のファミリー向けホテル</h2>
+    ${d.nearbyHotels.map((n) => `<div class="hotel-item">
+      <div class="nm">${esc(n.hotel.name)}</div>
+      <div class="meta">${esc(n.hotel.area || "")} ・ 約${Math.round(n.km)}km${n.hotel.priceRange && n.hotel.priceRange.indexOf("要確認") < 0 ? " ・ " + esc(n.hotel.priceRange) : ""}</div>
+    </div>`).join("")}
+    <p style="font-size:12px; color:var(--ink-soft); margin-top:6px;">ホテルの詳細・空室検索は<a href="${HOME_URL}">トップページ</a>のホテル検索からご覧いただけます。</p>
+  </div>` : ""}
+
+  <div class="card">
+    <h2>🗺 関連ページ</h2>
+    <div class="link-list">
+      <a href="${HOME_URL}">トップページ</a>
+      <a href="${d.prefHref}">${esc(d.prefLabel)}のおでかけスポット</a>
+      <a href="${d.cityHref}">${esc(d.cityLabel)}のおでかけスポット</a>
+      ${d.seasonLinks.map((l) => `<a href="${l.href}">${esc(l.label)}</a>`).join("")}
+    </div>
+  </div>
+</div>
+<footer class="site-footer">
+  <p>© おでかけナビ ｜ <a href="${HOME_URL}">トップページへ戻る</a></p>
+</footer>
+<script>
+(function(){
+  var btn = document.getElementById('geoBtn');
+  var out = document.getElementById('geoResult');
+  var lat = ${JSON.stringify(typeof s.lat === "number" ? s.lat : null)};
+  var lng = ${JSON.stringify(typeof s.lng === "number" ? s.lng : null)};
+  if(!btn) return;
+  btn.addEventListener('click', function(){
+    if(lat === null || lng === null){ out.textContent = 'この施設の位置情報が未登録のため計算できません。'; return; }
+    if(!navigator.geolocation){ out.textContent = 'お使いの環境では現在地を取得できません。'; return; }
+    out.textContent = '取得中…';
+    navigator.geolocation.getCurrentPosition(function(pos){
+      var R = 6371;
+      var dLat = (lat - pos.coords.latitude) * Math.PI/180;
+      var dLng = (lng - pos.coords.longitude) * Math.PI/180;
+      var a = Math.sin(dLat/2)**2 + Math.cos(pos.coords.latitude*Math.PI/180)*Math.cos(lat*Math.PI/180)*Math.sin(dLng/2)**2;
+      var km = R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      out.textContent = '現在地から約 ' + km.toFixed(1) + ' km です。';
+    }, function(){
+      out.textContent = '現在地を取得できませんでした（位置情報の利用を許可してください）。';
     });
   });
-  return rows;
-}
-
-// ------------------------------------------------------------------ 施設ページ
-const WD = [['mon', '月'], ['tue', '火'], ['wed', '水'], ['thu', '木'], ['fri', '金'], ['sat', '土'], ['sun', '日'], ['holiday', '祝']];
-function minutesLabel(m) { const h = Math.floor(m / 60), r = m % 60; return h && r ? `${h}時間${r}分` : h ? `${h}時間` : `${r}分`; }
-function facilityPage(row) {
-  const s = row.spot;
-  const url = SITE + row.slug + '/';
-  const title = `${s.name}｜子連れお出かけ情報｜おでかけナビ`;
-  const description = clip(`${s.name}（${row.prefFull}${s.area}）の子連れお出かけ情報。${s.desc}`, 120);
-  const ld1 = breadcrumbLd([['おでかけナビ', SITE], [row.prefFull, `${SITE}${row.prefSlug}/`], [row.city, `${SITE}${row.prefSlug}/${row.citySlug}/`], [s.name, url]]);
-  const ld2 = { '@context': 'https://schema.org', '@type': 'TouristAttraction', name: s.name, description, url,
-    address: { '@type': 'PostalAddress', addressRegion: row.prefFull, addressLocality: s.area },
-    geo: { '@type': 'GeoCoordinates', latitude: s.lat, longitude: s.lng },
-    sameAs: s.officialUrl || undefined };
-  let h = head(title, description, url, [ld1, ld2], CSS_FAC);
-  h += `<nav class="breadcrumb">
-  <a href="${BASE}">おでかけナビ</a> ／ <a href="${BASE}${row.prefSlug}/">${esc(row.prefFull)}</a> ／ <a href="${BASE}${row.prefSlug}/${row.citySlug}/">${esc(row.city)}</a> ／ ${esc(s.name)}
-</nav>
-<h1>${esc(s.name)}</h1>
-<div class="genre-badge">${esc(row.genre)}</div>
-<div class="area-line">📍 ${esc(row.prefFull)}${esc(s.area)}</div>
-<div class="desc">${esc(s.desc)}</div>
+})();
+</script>
+</body>
+</html>
 `;
-  if (s.tip) h += `<div class="tip">💡 ${esc(s.tip)}</div>\n`;
-  const block = (title, inner) => `\n<div class="detail-block">\n  <h2>${title}</h2>\n  ${inner}\n</div>`;
-  const parts = [];
-  parts.push(block('💰 料金', `<p>${esc(s.price)}</p>`));
-  parts.push(block('🅿️ 駐車場', `<p>${s.parking === 'yes' ? 'あり' : 'なし（周辺のコインパーキング等をご検討ください）'}</p>`));
-  const q = encodeURIComponent(`${s.name} ${s.area}`);
-  parts.push(block('🚃 アクセス', `<p>${esc(s.access)}</p>\n  <a class="maps-link" href="https://www.google.com/maps/search/?api=1&amp;query=${q}" target="_blank" rel="noopener nofollow">📍 Googleマップで見る</a>`));
-  parts.push(block('👶 対象年齢の目安', `<p>${esc((s.ages || []).join('、'))}</p>`));
-  parts.push(block('⏱️ おすすめ滞在時間', `<p>${s.stayTime ? `目安 ${minutesLabel(s.stayTime.minMinutes)}〜${minutesLabel(s.stayTime.maxMinutes)}` : '情報なし'}</p>`));
-  parts.push(block('☔ 天気との相性', `<p>${esc((s.weather || []).join('、'))}</p>`));
-  parts.push(block('👨‍👩‍👧 子連れ向け情報', `<p>${esc(s.baby)}</p>`));
-  let hours;
-  if (s.businessHours) hours = `<table class="hours-table">${WD.map(([k, l]) => `<tr><th>${l}</th><td>${esc(s.businessHours[k] || '')}</td></tr>`).join('')}</table>`;
-  else if (s.businessHoursNote && s.__noteOK) hours = `<p>${esc(s.businessHoursNote)}</p>`;
-  else hours = '<p>情報なし（公式サイト等でご確認ください）</p>';
-  parts.push(block('🕐 営業時間', hours));
-  parts.push(block('🚫 定休日', s.closedDays && s.closedDays.length ? `<ul>${s.closedDays.map(d => `<li>${esc(d)}</li>`).join('')}</ul>` : '<p>情報なし</p>'));
-  parts.push(block('🔗 公式サイト', s.officialUrl ? `<p><a href="${esc(s.officialUrl)}" target="_blank" rel="noopener nofollow">公式サイトを見る</a></p>` : '<p>公式サイト情報なし（施設名で検索してご確認ください）</p>'));
-  h += parts.join('');
-  const BK = { asoview: 'あそびゅー！', jalan: 'じゃらん' };
-  const bl = s.bookingLinks ? Object.keys(s.bookingLinks).filter(k => BK[k] && s.bookingLinks[k]) : [];
-  const booking = bl.length ? `<div class="detail-block"><h2>🎟️ 予約情報</h2><ul>${bl.map(k => `<li><a href="${esc(s.bookingLinks[k])}" target="_blank" rel="noopener nofollow">${BK[k]}で見る</a></li>`).join('')}</ul></div>` : '';
-  h += '\n' + booking;
-  const verified = s.verifiedAt ? `<div class="verified">✅ 情報確認日：${esc(s.verifiedAt)}</div>` : '';
-  h += `\n\n<a class="cta" href="${BASE}?spot=${encodeURIComponent(s.name)}">🧭 天気・行き方・混雑状況をおでかけナビアプリで見る</a>\n\n${verified}\n</div>\n` + FOOTER;
-  return h;
 }
 
-// ------------------------------------------------------------------ 地域ページ・季節ページ
-const A = (href, inner) => `<a href="${href}">${inner}</a>`;
-const li = r => `<li><a href="${BASE}${r.slug}/">${esc(r.spot.name)}<span class="fa-area">${esc(r.spot.area)}</span></a></li>`;
-const card = (href, name, count) => `<a class="link-card" href="${href}"><span class="lc-name">${esc(name)}</span><span class="lc-count">${count}件</span></a>`;
-const byCountDesc = (arr, first) => arr.map((x, i) => [x, i]).sort((a, b) => (b[0].count - a[0].count) || (first ? first(a[0], b[0]) : 0) || (a[1] - b[1])).map(x => x[0]);
-
-function buildRegions(app, rows) {
-  const designated = app.DESIGNATED_CITIES;
-  const prefs = new Map();   // prefSlug -> {short, full, rows, cities:Map, parents:Map, seasons}
-  rows.forEach(r => {
-    const base = app.baseMunicipality(r.spot.area);
-    const D = designated.find(d => base === d || base.indexOf(d) === 0);
-    let p = prefs.get(r.prefSlug);
-    if (!p) { p = { slug: r.prefSlug, short: r.spot.region, full: r.prefFull, rows: [], cities: new Map(), parents: new Map(), rawCities: new Map() }; prefs.set(r.prefSlug, p); }
-    p.rows.push(r);
-    // 施設ページの上位リンク先＝slugの2番目
-    const raw = p.rawCities.get(r.citySlug) || { slug: r.citySlug, name: r.city, count: 0 };
-    raw.count++; p.rawCities.set(r.citySlug, raw);
-    if (D) {
-      const parentSlug = r.citySlug.replace(/-city$/, '').split('-')[0];
-      let par = p.parents.get(parentSlug);
-      if (!par) { par = { slug: parentSlug, name: D, count: 0, wards: new Map(), direct: [] }; p.parents.set(parentSlug, par); }
-      par.count++;
-      if (base === D) { par.direct.push(r); par.directSlug = r.citySlug; }
-      else {
-        let w = par.wards.get(r.citySlug);
-        if (!w) { w = { slug: r.citySlug, name: base, count: 0, rows: [], parent: par }; par.wards.set(r.citySlug, w); p.cities.set(r.citySlug, w); }
-        w.count++; w.rows.push(r);
-      }
-    } else {
-      let c = p.cities.get(r.citySlug);
-      if (!c) { c = { slug: r.citySlug, name: r.city, count: 0, rows: [], parent: null }; p.cities.set(r.citySlug, c); }
-      c.count++; c.rows.push(r);
-    }
-  });
-  return prefs;
-}
-
-function prefPage(p) {
-  const url = `${SITE}${p.slug}/`;
-  const rawList = byCountDesc([...p.rawCities.values()]);
-  const top = rawList.slice(0, 4).map(c => c.name).join('・');
-  // 一覧に出すのは、政令指定都市を親（市）にまとめた単位
-  const parents = byCountDesc([...p.parents.values()]);
-  const normals = byCountDesc([...p.cities.values()].filter(c => !c.parent));
-  const cards = parents.concat(normals);
-  const title = `${p.full}の子連れお出かけスポット｜おでかけナビ`;
-  const description = `${p.full}内の子連れお出かけスポットを市区町村ごとにまとめています。現在${p.rows.length}件のスポットを掲載。${top}など。`;
-  const ld1 = breadcrumbLd([['おでかけナビ', SITE], [p.full]]);
-  const ld2 = itemListLd(`${p.full}の市区町村一覧`, cards.map(c => [c.name, `${SITE}${p.slug}/${c.slug}/`]));
-  let h = head(title, description, url, [ld1, ld2], CSS_REGION, true);
-  h += `<nav class="breadcrumb"><a href="${SITE}">おでかけナビ</a> ／ ${esc(p.full)}</nav>
-<h1>📍${esc(p.full)}のお出かけ特集</h1>
-<div class="count-badge">登録スポット数：${p.rows.length}件</div>
-<p class="intro">${esc(p.full.replace(/[都道府県]$/, ''))}${p.full.endsWith('都') ? '都' : '県'}内の子連れお出かけスポットを市区町村ごとにまとめています。現在${p.rows.length}件を掲載。エリアは${top}など${p.rawCities.size}市区町村に分かれています。</p>
-`;
-  // 人気カテゴリ（施設データに genre が明示されているものだけ数える）
-  const gc = new Map();
-  p.rows.forEach(r => { if (r.explicitGenre) gc.set(r.explicitGenre, (gc.get(r.explicitGenre) || 0) + 1); });
-  const gorder = p.genres;
-  // 同数の時は、データに最初に現れた順（gc は最初に現れた順に並ぶ）
-  const gl = [...gc.entries()].map(([k, n], i) => ({ key: k, count: n, first: i, idx: gorder.findIndex(g => g.key === k) })).sort((a, b) => (b.count - a.count) || (a.first - b.first)).slice(0, 3);
-  if (gl.length) h += `<div class="section-title">🏷️ 人気カテゴリ</div><div class="genre-badge-row">${gl.map(g => `<span class="genre-badge-item">${gorder[g.idx].label.split(' ')[0]}${esc(g.key)}（${g.count}件）</span>`).join('')}</div>`;
-  h += `<div class="section-title">📍 市区町村から探す</div><div class="link-grid">${cards.map(c => card(`${BASE}${p.slug}/${c.slug}/`, c.name, c.count)).join('')}</div>\n`;
-  const sl = SEASONS.map(se => ({ se, n: p.rows.filter(r => (r.spot.seasons || []).includes(se.key)).length })).filter(x => x.n > 0);
-  if (sl.length) h += `<div class="section-title">季節から探す</div><div class="link-grid">${sl.map(x => card(`${BASE}season/${x.se.slug}/#region-${p.slug}`, `${x.se.emoji} ${x.se.key}のお出かけ`, x.n)).join('')}</div>`;
-  h += `\n<a class="cta" href="${BASE}?region=${p.short}">🧭 おでかけナビで検索・絞り込みして探す</a>\n</div>\n` + FOOTER;
-  return h;
-}
-
-// 市区町村ページ（ふつうの市・政令市の区）と、政令市の親ページ
-function cityPage(p, c) {
-  const url = `${SITE}${p.slug}/${c.slug}/`;
-  const list = c.rows.slice().sort((a, b) => cmp(a.spot.name, b.spot.name));
-  const title = `${c.name}の子連れお出かけスポット｜おでかけナビ`;
-  const description = `${c.name}内の子連れお出かけスポット一覧。現在${list.length}件を掲載。施設ごとの詳しい情報（料金・駐車場・アクセス等）も見られます。`;
-  const crumbs = [['おでかけナビ', SITE], [p.full, `${SITE}${p.slug}/`]];
-  if (c.parent) crumbs.push([c.parent.name, `${SITE}${p.slug}/${c.parent.slug}/`]);
-  crumbs.push([c.name]);
-  const ld1 = breadcrumbLd(crumbs);
-  const ld2 = itemListLd(`${c.name}の子連れお出かけスポット一覧`, list.map(r => [r.spot.name, `${SITE}${r.slug}/`]));
-  let h = head(title, description, url, [ld1, ld2], CSS_REGION, true);
-  h += `<nav class="breadcrumb">${crumbs.map((x, i) => i === crumbs.length - 1 ? esc(x[0]) : A(x[1], esc(x[0]))).join(' ／ ')}</nav>
-<h1>${esc(c.name)}の子連れお出かけスポット</h1>
-<div class="count-badge">登録スポット数：${list.length}件</div>
-<p class="intro">${esc(c.name)}で「おでかけナビ」に登録されている子連れお出かけスポット一覧です。</p>
-
-<div class="section-title">🏞️ 施設一覧</div><ul class="facility-list">${list.map(li).join('')}</ul>
-<a class="cta" href="${BASE}">🧭 おでかけナビで検索・絞り込みして探す</a>
-</div>
-` + FOOTER;
-  return h;
-}
-function parentPage(p, par) {
-  const url = `${SITE}${p.slug}/${par.slug}/`;
-  const direct = par.direct.slice().sort((a, b) => cmp(a.spot.name, b.spot.name));
-  const wards = [...par.wards.values()].sort((a, b) => cmp(a.slug, b.slug));
-  const all = wards.flatMap(w => w.rows).concat(direct).sort((a, b) => cmp(a.spot.name, b.spot.name));
-  const title = `${par.name}の子連れお出かけスポット｜おでかけナビ`;
-  const description = `${par.name}内の子連れお出かけスポットを区ごとにまとめています。現在${par.count}件のスポットを掲載。`;
-  const crumbs = [['おでかけナビ', SITE], [p.full, `${SITE}${p.slug}/`], [par.name]];
-  const ld1 = breadcrumbLd(crumbs);
-  const ld2 = itemListLd(`${par.name}の区・施設一覧`, wards.map(w => [w.name, `${SITE}${p.slug}/${w.slug}/`]).concat(direct.map(r => [r.spot.name, `${SITE}${r.slug}/`])));
-  let h = head(title, description, url, [ld1, ld2], CSS_REGION, true);
-  h += `<nav class="breadcrumb">${A(SITE, 'おでかけナビ')} ／ ${A(`${SITE}${p.slug}/`, esc(p.full))} ／ ${esc(par.name)}</nav>
-<h1>${esc(par.name)}の子連れお出かけスポット</h1>
-<div class="count-badge">登録スポット数：${par.count}件</div>
-<p class="intro">${esc(par.name)}内で「おでかけナビ」に登録されている子連れお出かけスポットです。</p>
-<div class="section-title">📍 区から探す</div><div class="link-grid">${wards.map(w => card(`${BASE}${p.slug}/${w.slug}/`, w.name, w.count)).join('')}</div>
-`;
-  h += (direct.length ? `<div class="section-title">🏞️ 施設一覧</div><ul class="facility-list">${direct.map(li).join('')}</ul>` : '');
-  h += `\n<a class="cta" href="${BASE}">🧭 おでかけナビで検索・絞り込みして探す</a>\n</div>\n` + FOOTER;
-  return h;
-}
-
-function seasonPage(se, rows, prefs) {
-  const url = `${SITE}season/${se.slug}/`;
-  const inSeason = rows.filter(r => (r.spot.seasons || []).includes(se.key));
-  const blocks = [...prefs.values()].map(p => ({ p, list: inSeason.filter(r => r.prefSlug === p.slug).sort((a, b) => cmp(a.spot.name, b.spot.name)) }))
-    .filter(b => b.list.length)
-    // 同数の時は、その季節の施設がデータに最初に現れた都県の順
-    .map(b => Object.assign(b, { count: b.list.length, ord: inSeason.findIndex(r => r.prefSlug === b.p.slug) }))
-    .sort((a, b) => (b.count - a.count) || (a.ord - b.ord));
-  const flat = blocks.flatMap(b => b.list);
-  const title = `${se.key}のおすすめ子連れお出かけスポット｜おでかけナビ`;
-  const description = `${se.key}（${se.period}）におすすめの子連れお出かけスポットを${flat.length}件掲載。施設データに登録されている季節情報をもとに選んでいます。`;
-  const ld1 = breadcrumbLd([['おでかけナビ', SITE], [`${se.key}のお出かけ`]]);
-  const ld2 = itemListLd(`${se.key}のおすすめ子連れお出かけスポット一覧`, flat.map(r => [r.spot.name, `${SITE}${r.slug}/`]));
-  let h = head(title, description, url, [ld1, ld2], CSS_SEASON, true);
-  h += `<nav class="breadcrumb"><a href="${SITE}">おでかけナビ</a> ／ ${se.key}のお出かけ</nav>
-<div class="period-badge">${se.period}</div>
-<div class="count-badge">${flat.length}件掲載</div>
-<h1>${se.emoji} ${se.key}のおすすめ子連れお出かけスポット</h1>
-<p class="intro">「おでかけナビ」に登録されているスポットの中から、${se.key}（${se.period}）におすすめの子連れお出かけスポットをまとめました。都道府県ごとに探せます。</p>
-<div class="season-nav">${SEASONS.map(x => `<a class="season-nav-item${x === se ? ' current' : ''}" href="${BASE}season/${x.slug}/">${x.emoji} ${x.key}</a>`).join('')}</div>
-${blocks.map(b => `<div class="region-block" id="region-${b.p.slug}"><div class="region-title"><a href="${BASE}${b.p.slug}/">${esc(b.p.full)}</a>（${b.count}件）</div><div class="region-sub">この地域のスポット一覧は<a href="${BASE}${b.p.slug}/">${esc(b.p.full)}のページ</a>でも見られます</div><ul class="facility-list">${b.list.map(li).join('')}</ul></div>`).join('')}
-<a class="cta" href="${BASE}">🧭 おでかけナビで検索・絞り込みして探す</a>
-</div>
-` + FOOTER;
-  return h;
-}
-
-function sitemapXml(prefs, rows) {
-  const ent = (rel, cf, pr) => `<url>\n<loc>${SITE}${rel}</loc>\n<changefreq>${cf}</changefreq>\n<priority>${pr}</priority>\n</url>\n`;
-  let x = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
-  x += ent('', 'daily', '1.0');
-  SEASONS.slice().sort((a, b) => cmp(a.slug, b.slug)).forEach(se => { x += ent(`season/${se.slug}/`, 'weekly', '0.9'); });
-  [...prefs.values()].sort((a, b) => cmp(a.slug, b.slug)).forEach(p => {
-    x += ent(`${p.slug}/`, 'weekly', '0.9');
-    const slugs = new Set([...p.cities.keys(), ...p.parents.keys(), ...[...p.parents.values()].filter(x => x.direct.length).map(x => x.directSlug)]);
-    [...slugs].sort(cmp).forEach(s => { x += ent(`${p.slug}/${s}/`, 'weekly', '0.8'); });
-  });
-  rows.forEach(r => { x += ent(`${r.slug}/`, 'monthly', '0.7'); });
-  return x + '</urlset>\n';
-}
-
-// ------------------------------------------------------------------ 生成の本体
-function main() {
-  const app = loadApp(INDEX_PATH);
-  const rows = prepare(app);
-  const files = new Map(); // 相対パス -> 内容
-  rows.forEach(r => files.set(`${r.slug}/index.html`, facilityPage(r)));
-  const prefs = buildRegions(app, rows);
-  prefs.forEach(p => {
-    p.genres = app.GENRES;
-    files.set(`${p.slug}/index.html`, prefPage(p));
-    p.cities.forEach(c => files.set(`${p.slug}/${c.slug}/index.html`, cityPage(p, c)));
-    p.parents.forEach(par => {
-      files.set(`${p.slug}/${par.slug}/index.html`, parentPage(p, par));
-      // 区の指定がない施設（例：横浜市みなとみらい）は、専用の一覧ページを別に持つ
-      if (par.direct.length) files.set(`${p.slug}/${par.directSlug}/index.html`, cityPage(p, { slug: par.directSlug, name: `${par.name}（区指定なしのスポット）`, rows: par.direct, parent: null }));
-    });
-  });
-  SEASONS.forEach(se => files.set(`season/${se.slug}/index.html`, seasonPage(se, rows, prefs)));
-  files.set('sitemap.xml', sitemapXml(prefs, rows));
-  files.set('_slug_manifest.json', JSON.stringify(rows.map(r => ({ name: r.spot.name, slug: r.slug })), null, 1));
-  return { app, rows, files };
-}
-module.exports = { main };
-function walkIndexPages(root) {
-  const out = [];
-  (function rec(dir, rel) {
-    for (const d of fs.readdirSync(dir, { withFileTypes: true })) {
-      if (d.isDirectory()) { if (d.name === '.git' || d.name === 'node_modules' || d.name === 'experiences' || d.name === 'tools') continue; rec(path.join(dir, d.name), rel ? rel + '/' + d.name : d.name); }
-      else if (d.name === 'index.html' && rel) out.push(rel + '/index.html');
-    }
-  })(root, '');
-  return out;
-}
-if (require.main === module) {
-  const { app, rows, files } = main();
-  // 念のための点検：slugの重複・固定表にあるのにデータに無い施設
-  const seen = new Set();
-  rows.forEach(r => { if (seen.has(r.slug)) console.error('警告: slug重複 ' + r.slug); seen.add(r.slug); });
-  const names = new Set(app.SPOTS.map(s => s.name));
-  Object.keys(app.SLUG_OVERRIDES).forEach(n => { if (!names.has(n)) console.error('警告: SLUG_OVERRIDES にあるが SPOTS に無い施設: ' + n); });
-  const unpinned = app.SPOTS.filter(s => !Object.prototype.hasOwnProperty.call(app.SLUG_OVERRIDES, s.name));
-  if (unpinned.length && !INCLUDE_UNPINNED) console.log(`注意: URL未確定（SLUG_OVERRIDES に未登録）の ${unpinned.length} 施設は生成対象から外しています。`);
-
-  if (COMPARE_DIR) {
-    // 公開中のファイルと比較するだけ（何も書き込まない）
-    let same = 0; const diff = [], missing = [];
-    for (const [rel, body] of files) {
-      const p = path.join(COMPARE_DIR, rel);
-      if (!fs.existsSync(p)) { missing.push(rel); continue; }
-      (fs.readFileSync(p, 'utf8') === body ? (same++, null) : diff.push(rel));
-    }
-    const gen = new Set([...files.keys()]);
-    const onlyPublished = walkIndexPages(COMPARE_DIR).filter(r => !gen.has(r));
-    console.log(`生成 ${files.size} ファイル: 公開中と同一 ${same}／内容が違う ${diff.length}／公開中に無い ${missing.length}／生成されなかった公開中ページ ${onlyPublished.length}`);
-    diff.slice(0, 20).forEach(r => console.log('  違い: ' + r));
-    if (diff.length > 20) console.log(`  …ほか ${diff.length - 20} 件`);
-    missing.slice(0, 20).forEach(r => console.log('  新規: ' + r));
-    onlyPublished.forEach(r => console.log('  生成されず: ' + r));
-  } else {
-    fs.mkdirSync(OUT_DIR, { recursive: true });
-    for (const [rel, body] of files) { const p = path.join(OUT_DIR, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body); }
-    console.log(`${files.size} ファイルを ${OUT_DIR}/ に生成しました`);
-  }
-}
+main();
