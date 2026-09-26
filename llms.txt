@@ -1,0 +1,43 @@
+# おでかけナビ
+
+> 子どもと楽しめるお出かけスポット（動物園・水族館・公園・遊園地・温泉・室内遊び場・果物狩りなど）を、年齢・天気・料金・距離・行き方から探せる日本語の情報サイトです。関東1都6県（東京・神奈川・埼玉・千葉・茨城・栃木・群馬）と、山梨・静岡・福島・長野の700件以上を掲載しています。
+
+各施設ページには、料金、駐車場、アクセス、対象年齢の目安、おすすめ滞在時間、天気との相性、子連れ向けの情報、営業時間、定休日、公式サイトへのリンクが載っています。施設ページは、都道府県ページ・市区町村ページからたどれます。
+
+## 主なページ
+
+- [トップページ（検索・「今日どこ行く？」）](https://odekakenavi.github.io/odekake-navi/): 年齢・天気・料金・距離などで絞り込んで探せるアプリ本体。気分を3問答えると、その日のおすすめが出ます
+- [サイトマップ](https://odekakenavi.github.io/odekake-navi/sitemap.xml): すべての施設・地域ページのURL一覧
+
+## 都道府県から探す
+
+- [東京都](https://odekakenavi.github.io/odekake-navi/tokyo/)
+- [神奈川県](https://odekakenavi.github.io/odekake-navi/kanagawa/)
+- [埼玉県](https://odekakenavi.github.io/odekake-navi/saitama/)
+- [千葉県](https://odekakenavi.github.io/odekake-navi/chiba/)
+- [茨城県](https://odekakenavi.github.io/odekake-navi/ibaraki/)
+- [栃木県](https://odekakenavi.github.io/odekake-navi/tochigi/)
+- [群馬県](https://odekakenavi.github.io/odekake-navi/gunma/)
+- [山梨県](https://odekakenavi.github.io/odekake-navi/yamanashi/)
+- [静岡県](https://odekakenavi.github.io/odekake-navi/shizuoka/)
+- [長野県](https://odekakenavi.github.io/odekake-navi/nagano/)
+- [福島県](https://odekakenavi.github.io/odekake-navi/fukushima/)
+
+## 季節から探す
+
+- [春のおすすめ](https://odekakenavi.github.io/odekake-navi/season/spring/)
+- [夏のおすすめ](https://odekakenavi.github.io/odekake-navi/season/summer/)
+- [秋のおすすめ](https://odekakenavi.github.io/odekake-navi/season/autumn/)
+- [冬のおすすめ](https://odekakenavi.github.io/odekake-navi/season/winter/)
+
+## URLの構成
+
+- 都道府県ページ: `/{都道府県}/`
+- 市区町村ページ: `/{都道府県}/{市区町村}/`
+- 施設ページ: `/{都道府県}/{市区町村}/{施設}/`
+
+## 情報を引用・紹介する際のお願い
+
+- 料金・営業時間・休園日・駐車場・混雑・所要時間はすべて目安です。変更されている場合があるため、訪問前に各施設の公式サイトで最新情報をご確認ください。
+- 施設ページに「情報確認日」が載っている場合は、その日付時点の情報です。
+- 距離は直線距離からの概算で、実際の道路事情により前後します。

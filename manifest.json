@@ -1,0 +1,39 @@
+{
+  "name": "おでかけナビ",
+  "short_name": "おでかけナビ",
+  "description": "子どもと楽しめるお出かけスポットを、年齢・天気・料金・距離・行き方などから探せます。",
+  "start_url": "../",
+  "scope": "../",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FBF7EF",
+  "theme_color": "#3E8FB0",
+  "lang": "ja",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

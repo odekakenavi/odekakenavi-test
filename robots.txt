@@ -1,7 +1,53 @@
 # おでかけナビ robots.txt
 # GitHub Pages 公開版（https://odekakenavi.github.io/odekake-navi/）
+#
+# すべてのクローラーにサイト全体の巡回を許可します。
+# 検索エンジン・AI検索・AIアシスタントに紹介・引用してもらうため、主なボットは明示的に許可しています。
+# （特定のボットを拒否したい場合は、そのUser-agentの「Allow: /」を「Disallow: /」に変えてください）
 
 User-agent: *
+Allow: /
+
+# --- 検索エンジン ---
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+# --- AI検索・AIアシスタント（ユーザーの質問への回答・引用のための巡回）---
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+# --- AIの学習・AI機能向けのクローラー ---
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
 Allow: /
 
 Sitemap: https://odekakenavi.github.io/odekake-navi/sitemap.xml
