@@ -313,6 +313,8 @@ function facilityPage(row) {
   parts.push(block('⏱️ おすすめ滞在時間', `<p>${s.stayTime ? `目安 ${minutesLabel(s.stayTime.minMinutes)}〜${minutesLabel(s.stayTime.maxMinutes)}` : '情報なし'}</p>`));
   parts.push(block('☔ 天気との相性', `<p>${esc((s.weather || []).join('、'))}</p>`));
   parts.push(block('👨‍👩‍👧 子連れ向け情報', `<p>${esc(s.baby)}</p>`));
+  // 子ども用トイレ・便座：公式サイト等で確認できた施設だけ（spots.json の kidsToilet / kidsToiletNote）。データがない施設には何も出さない。
+  if (s.kidsToilet && s.kidsToiletNote) parts.push(block('🚻 子ども用トイレ・便座', `<p>${esc(s.kidsToiletNote)}</p>`));
   let hours;
   if (s.businessHours) hours = `<table class="hours-table">${WD.map(([k, l]) => `<tr><th>${l}</th><td>${esc(s.businessHours[k] || '')}</td></tr>`).join('')}</table>`;
   else if (s.businessHoursNote && s.__noteOK) hours = `<p>${esc(s.businessHoursNote)}</p>`;
