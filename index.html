@@ -936,14 +936,14 @@ function openDetail(spot,silent,backTarget){if(backTarget!==void 0){__detailBack
       <h1 class="detail-name">${flowerEmoji(spot)?flowerEmoji(spot)+" ":""}${spot.name}</h1>
       <button class="sheet-close" id="detailCloseBtn">\xD7</button>
     </div>
-    <div class="detail-area">${fullAreaLabel(spot)}\u3000${category}\u3000${activityLabel}</div>\n    ${visitedBadgeHtml(spot)}\n    ${detailTopActionsHtml(spot,isFav)}\n    <div class="detail-desc">${spot.desc}</div>\n    ${kidsPointHtml(spot)}\n    ${todayGoHtml(spot)}\n    ${familyCostHtml(spot)}\n    ${facilityIconsHtml(spot)}\n    ${detailActionGridHtml(spot,bookingInfo)}\n    <div class="action-row" style="margin-top:10px;">
+    <div class="detail-area">${fullAreaLabel(spot)}\u3000${category}\u3000${activityLabel}</div>\n    ${spotDetailPhotoHTML(spot)}\n    ${visitedBadgeHtml(spot)}\n    ${detailTopActionsHtml(spot,isFav)}\n    <div class="detail-desc">${spot.desc}</div>\n    ${kidsPointHtml(spot)}\n    ${todayGoHtml(spot)}\n    ${familyCostHtml(spot)}\n    ${facilityIconsHtml(spot)}\n    ${detailActionGridHtml(spot,bookingInfo)}\n    <div class="action-row" style="margin-top:10px;">
       
       <button class="abtn ${isPlanned?"on":""}" data-act="plan">\u{1F5D3} ${isPlanned?"\u30D7\u30E9\u30F3\u8FFD\u52A0\u6E08\u307F":"\u30D7\u30E9\u30F3\u306B\u8FFD\u52A0"}</button>
       <button class="abtn" data-act="share">\u{1F5BC}\uFE0F \u753B\u50CF\u3067\u5171\u6709</button>
       <button class="abtn" data-act="copylink">\u{1F517} \u30EA\u30F3\u30AF\u3092\u30B3\u30D4\u30FC</button>
       <button class="abtn ${isExcluded?"on excluded":""}" data-act="exclude">\u{1F6AB} \u9664\u5916</button>
       <button class="abtn ${isCompared?"on compared":""}" data-act="compare">\u2696\uFE0F \u6BD4\u8F03\u306B${isCompared?"\u8FFD\u52A0\u6E08\u307F":"\u8FFD\u52A0"}</button>
-    </div>\n    <div class="detail-more-title">\u{1F4CB} \u8A73\u7D30\u60C5\u5831</div>\n    ${spotDetailPhotoHTML(spot)}\n    ${stayTimeLabel?`<div class="detail-stay-time">${stayTimeLabel}</div>`:""}\n    ${kidsHighlightHtml(spot)}
+    </div>\n    <div class="detail-more-title">\u{1F4CB} \u8A73\u7D30\u60C5\u5831</div>\n    ${stayTimeLabel?`<div class="detail-stay-time">${stayTimeLabel}</div>`:""}\n    ${kidsHighlightHtml(spot)}
     <div class="detail-section">
       <h3>\u2614 \u4ECA\u65E5\u884C\u304D\u3084\u3059\u3044\uFF1F</h3>
       <div class="detail-eval">
