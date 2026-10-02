@@ -187,9 +187,21 @@ input[type=text]{text-overflow:ellipsis}
 
 
 .wx-svg{display:block;width:1em;height:1em}
-.weather-day-icon .wx-svg{width:44px;height:44px;margin:0 auto}
+.weather-day-icon .wx-svg{width:34px;height:34px;margin:0 auto}
 
-.wdh-i .wx-svg{width:22px;height:22px}
+.wdh-i .wx-svg{width:18px;height:18px}
+/* 天気カードをコンパクト化（縦長を解消） */
+.weather-forecast{align-items:stretch}
+.weather-day{padding:8px 4px 7px;display:flex;flex-direction:column;align-items:center}
+.weather-day-label{margin-bottom:1px}
+.weather-day-icon{line-height:1;margin:2px 0 1px}
+.weather-day-cond{font-size:11.5px;line-height:1.3;margin-top:1px}
+.weather-day-temp{display:flex;justify-content:center;align-items:baseline;gap:4px;margin-top:3px;font-size:13px;line-height:1.3;white-space:nowrap}
+.weather-day-temp .wdt-k{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.weather-day-temp .wdt-row+.wdt-row::before{content:"/";color:var(--ink-soft);font-weight:400;margin-right:4px}
+.weather-day-halves{margin-top:5px;padding-top:5px;gap:3px;width:100%}
+.weather-day-half{gap:3px;font-size:11.5px;line-height:1.2}
+.wdh-l{font-size:10.5px}
 .ticket-inline-label .pr-label{margin:0 0 0 auto;padding:1px 8px}
 #fEventChips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;overflow:visible}
 #fEventChips .chip{width:100%;box-sizing:border-box;min-width:0;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.35}
@@ -498,7 +510,7 @@ function wxIcon(i,label){const k=typeof i==="string"?i.replace(/[\uFE0E\uFE0F]/g
 function wxDisp(d){d=d||{};if(typeof d.pop==="number"&&d.pop<30&&d.code!=null&&[51,53,55,56,57,61,63,65,66,67,71,73,75,77,80,81,82,85,86,95,96,99].indexOf(d.code)>=0){const f=weatherCodeInfo(3);return{icon:f.icon,cond:f.label}}return{icon:d.icon,cond:d.cond}}
 function weatherPopRound(p){return typeof p==="number"&&isFinite(p)?Math.round(p/10)*10:null}
 function weatherPopClass(p){const r=weatherPopRound(p);if(r==null)return"pop-low";return r>=50?"pop-high":r>=30?"pop-mid":"pop-low"}
-function weatherHalvesNote(days){return days&&days[0]&&days[0].am&&days[0].pm?"午前は6〜12時、午後は12〜18時の予報です。「1日の降水」は夜間も含めた1日全体の値のため、午前・午後の値より高くなることがあります。":""}
+function weatherHalvesNote(days){return days&&days[0]&&days[0].am&&days[0].pm?"午前は6〜12時、午後は12〜18時の予報です。":""}
 function weatherHalvesHtml(d){if(!d||!d.am||!d.pm)return"";const row=function(l,h){return'<div class="weather-day-half"><span class="wdh-l">'+l+'</span><span class="wdh-i">'+wxIcon(wxDisp(h).icon,wxDisp(h).cond)+'</span><span class="wdh-p '+weatherPopClass(h.pop)+'">'+'<span class="wdp-k">降水</span>'+(h.pop!=null?weatherPopRound(h.pop)+"%":"--")+"</span></div>"};return'<div class="weather-day-halves">'+row("午前",d.am)+row("午後",d.pm)+"</div>"}
 function weatherApiHalf(hours,from,to,mid){const hs=(hours||[]).map(function(x){const hh=x.h!=null?Number(x.h):parseInt(String(x.time||"").slice(11,13),10);const code=x.c!=null?x.c:x.condition&&x.condition.code;const r=Number(x.r!=null?x.r:x.chance_of_rain);const sn=Number(x.s!=null?x.s:x.chance_of_snow);return{hh:hh,code:code,pop:Math.max(isFinite(r)?r:0,isFinite(sn)?sn:0)}}).filter(function(x){return isFinite(x.hh)&&x.hh>=from&&x.hh<to});if(!hs.length)return null;let top=hs[0];hs.forEach(function(x){if(x.pop>top.pop)top=x});const pop=top.pop;let rep=top;if(pop<50){rep=hs.find(function(x){return x.hh===mid})||hs[0]}const wmo=WEATHERAPI_TO_WMO[rep.code];const info=weatherCodeInfo(wmo);return{icon:info.icon,cond:info.label,code:wmo==null?null:wmo,pop:Math.round(pop)}}
 function parseWeatherApiResponse(json){const fd=json&&json.forecast&&json.forecast.forecastday;if(!Array.isArray(fd)||fd.length===0)return null;return fd.map((f,i)=>{const dy=f.day||{};const wc=dy.condition&&dy.condition.code!=null?WEATHERAPI_TO_WMO[dy.condition.code]:void 0;const info=weatherCodeInfo(wc);const rain=typeof dy.daily_chance_of_rain==="number"?dy.daily_chance_of_rain:null;const snow=typeof dy.daily_chance_of_snow==="number"?dy.daily_chance_of_snow:null;const pop=rain==null&&snow==null?null:Math.round(Math.max(rain||0,snow||0));const am=weatherApiHalf(f.hour,6,12,9);const pm=weatherApiHalf(f.hour,12,18,15);const day={label:WEATHER_DAY_LABELS[i]||f.date,icon:info.icon,cond:info.label,code:wc==null?null:wc,date:f.date||null,tempMax:typeof dy.maxtemp_c==="number"?Math.round(dy.maxtemp_c):null,tempMin:typeof dy.mintemp_c==="number"?Math.round(dy.mintemp_c):null,pop};if(am&&pm){day.am=am;day.pm=pm}return day})}
@@ -510,7 +522,7 @@ async function fetchWeatherForSpot(spot){if(!WEATHER_API.enabled)return null;if(
           <div class="weather-day-icon">${wxIcon(wxDisp(d).icon)}</div>
           <div class="weather-day-cond">${wxDisp(d).cond}</div>
           <div class="weather-day-temp"><span class="wdt-row"><span class="wdt-k">最高</span><span class="hi">${d.tempMax!=null?d.tempMax+"\u2103":"--"}</span></span><span class="wdt-row"><span class="wdt-k">最低</span><span class="lo">${d.tempMin!=null?d.tempMin+"\u2103":"--"}</span></span></div>
-          <div class="weather-day-pop ${weatherPopClass(d.pop)}"><span class="wdp-k">1日の降水</span>${d.pop!=null?weatherPopRound(d.pop)+"%":"--"}</div>${weatherHalvesHtml(d)}
+          ${weatherHalvesHtml(d)}
         </div>
       `).join("")}
     </div>
