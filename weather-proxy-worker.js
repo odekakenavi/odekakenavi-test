@@ -8,7 +8,7 @@
 // 呼び出し: GET https://<worker>.workers.dev/?lat=35.68&lng=139.76
 
 const JAPAN_BOUNDS = { latMin: 24, latMax: 46, lngMin: 122, lngMax: 146 };
-const EDGE_CACHE_SECONDS = 3 * 60 * 60;
+const EDGE_CACHE_SECONDS = 6 * 60 * 60;
 
 function corsHeaders(origin) {
   return {
