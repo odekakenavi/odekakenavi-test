@@ -1,0 +1,83 @@
+{
+  "_readme": "公式ページで確認できた年パスだけ。price=年パス1人分、perVisitYen=同じ区分の1回の入園料。未確認の施設は入れていません。この _readme 行は取り込み時に無視されます。",
+  "上野動物園": {
+    "price": 2400,
+    "perVisitYen": 600,
+    "label": "年間パスポート（一般・高校生以上）",
+    "note": "購入日から1年間有効。購入は園の券売所のみ。払い戻し・再発行なし。",
+    "confirmedAt": "2026-10",
+    "url": "https://www.tokyo-zoo.net/annual_pass/"
+  },
+  "多摩動物公園": {
+    "price": 2400,
+    "perVisitYen": 600,
+    "label": "年間パスポート（一般・高校生以上）",
+    "note": "多摩動物公園でのみ有効・販売。他園とは共通ではありません。",
+    "confirmedAt": "2026-10",
+    "url": "https://www.tokyo-zoo.net/annual_pass/"
+  },
+  "井の頭自然文化園": {
+    "price": 1600,
+    "perVisitYen": 400,
+    "label": "年間パスポート（一般・高校生以上）",
+    "note": "井の頭自然文化園でのみ有効・販売。他園とは共通ではありません。",
+    "confirmedAt": "2026-10",
+    "url": "https://www.tokyo-zoo.net/annual_pass/"
+  },
+  "よこはま動物園ズーラシア": {
+    "price": 2000,
+    "perVisitYen": 800,
+    "label": "よこはま動物園・金沢動物園 共通年間パスポート（18歳以上）",
+    "note": "購入日から1年間有効。ズーラシアと金沢動物園の両方に入園できます。",
+    "confirmedAt": "2026-10",
+    "url": "https://www.hama-midorinokyokai.or.jp/zoo/zoorasia/fee.php"
+  },
+  "国営昭和記念公園": {
+    "price": 4500,
+    "perVisitYen": 450,
+    "label": "年間パスポート（大人・高校生以上）",
+    "note": "発行日から1年間、本人のみ。入園料を取る全国の国営公園にも入園できます。駐車料金は普通車900円が800円になります（年パス自体に駐車券は含まれません）。",
+    "confirmedAt": "2026-10",
+    "url": "https://www.showakinen-koen.jp/park-information/price/"
+  },
+  "新江ノ島水族館": {
+    "price": 5600,
+    "perVisitYen": 2800,
+    "label": "年間パスポート（大人・カード会員証）",
+    "note": "デジタル会員証は5,300円。繁忙期の入場事前予約制の時間帯はデジタル会員証を使えません。カード会員証は臨時休館日以外すべて利用可。",
+    "confirmedAt": "2026-10",
+    "url": "https://www.enosui.com/member.php"
+  },
+  "国営ひたち海浜公園": {
+    "price": 4500,
+    "perVisitYen": 450,
+    "label": "年間パスポート（大人・入園のみ）",
+    "note": "購入日から1年間有効。春のネモフィラ・秋のコキアの季節料金期間も追加なしで入園できます。駐車券付きは別料金です。入園料を取る全国の国営公園でも使えます。",
+    "confirmedAt": "2026-10",
+    "url": "https://hitachikaihin.jp/guide/ticket/"
+  },
+  "鴨川シーワールド": {
+    "price": 9000,
+    "perVisitYen": 3300,
+    "label": "ONE YEAR PASS（大人・高校生以上・新規）",
+    "note": "大人のみの販売です。更新は7,500円。小人・幼児は年パスがなく、ドルフィンドリームクラブ（大人12,500円・小人7,500円・幼児5,000円）になります。",
+    "confirmedAt": "2026-10",
+    "url": "https://www.kamogawa-seaworld.jp/price_ticket/annual_passport/"
+  },
+  "すみだ水族館": {
+    "price": 6000,
+    "perVisitYen": 2700,
+    "label": "年間パスポート（大人）",
+    "note": "スマートフォンで入場できるデジタル年パスがおすすめと公式が案内しています。障がい者手帳をお持ちの方は年会費が半額です。",
+    "confirmedAt": "2026-10",
+    "url": "https://www.sumida-aquarium.com/about/price/"
+  },
+  "東京ドイツ村": {
+    "price": 5000,
+    "perVisitYen": 2000,
+    "label": "年間パスポート（入園パスポート・大人）",
+    "note": "1回の料金は、通常期の入園料1,000円と駐車料金1,000円（乗用車）の合計です。年パスの人が同乗していれば、その車の駐車料金はかかりません。イルミネーション期間は入園料も駐車料金も上がるため、より早く元が取れます。小人（4歳〜小学生）2,500円、シニア（65歳以上）4,500円。",
+    "confirmedAt": "2026-10",
+    "url": "https://t-doitsumura.co.jp/hour-fee/"
+  }
+}

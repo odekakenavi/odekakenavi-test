@@ -35,6 +35,7 @@ const OUT_DIR = opt('out', '_build');
 const COMPARE_DIR = opt('compare', null);
 const SPOTS_JSON_PATH = opt('spots', null); // 施設データ(data/spots.json)の場所。省略時は index.html と同じフォルダの data/spots.json
 const INCLUDE_UNPINNED = !!opt('include-unpinned', false);
+const KEEP_SITEMAP = opt('keep-sitemap', null); // 既存の sitemap.xml のうち、このツールが作らないURL（特集ページ・エリアまとめなど）を残して合流させる
 
 // ------------------------------------------------------------------ index.html からデータ部分を取り出す
 function extractMainScript(html) {
@@ -57,7 +58,7 @@ function extractDecl(lines, name) {
   while (j < lines.length && !/^[}\]]\)?;?\s*$/.test(lines[j])) j++;
   return lines.slice(i, j + 1).join('\n');
 }
-function loadApp(indexPath) {
+function loadAppLegacy(indexPath) {
   const html = fs.readFileSync(indexPath, 'utf8');
   const lines = extractMainScript(html).split('\n');
   // 施設データが外部化されているか（index.html 側が 'const SPOTS = window.__ODEKAKE_DATA__.spots;' か）を見分ける
@@ -85,6 +86,49 @@ function loadApp(indexPath) {
   return sandbox.__app;
 }
 
+// index.html が圧縮（宣言が同じ行に連結）されている形式でも読めるようにした版。
+// 'const SPOTS' から 'function spotBySlug' まで／GENRES／deriveCategory を、行ではなく文字列として切り出す。
+function loadApp(indexPath) {
+  const html = fs.readFileSync(indexPath, 'utf8');
+  const main = extractMainScript(html);
+  let start = main.search(/const SPOTS\s*=\s*window\.__ODEKAKE_DATA__/);
+  const external = start >= 0;
+  if (!external) start = main.search(/const SPOTS\s*=\s*\[/);
+  if (start < 0) throw new Error('index.html に見つかりません: const SPOTS');
+  const endRe = /function spotBySlug\s*\([^)]*\)\s*\{[^}]*\}/g;
+  endRe.lastIndex = start;
+  const endM = endRe.exec(main);
+  if (!endM) throw new Error('index.html に見つかりません: function spotBySlug');
+  const region = main.slice(start, endM.index + endM[0].length);
+  const gm = main.match(/const GENRES\s*=\s*\[[\s\S]*?\];/);
+  if (!gm) throw new Error('宣言が見つかりません: GENRES');
+  const dm = main.match(/function deriveCategory\s*\([^)]*\)\s*\{[^{}]*\}/);
+  if (!dm) throw new Error('宣言が見つかりません: deriveCategory');
+  // 施設データの読み込み直後に、index.html 側で deriveRainLevel などを包み直す行があるため、この環境では空の関数を先に用意しておく
+  let code = 'var deriveRainLevel = function(){}, deriveWalletLevel = function(){}, deriveActivityLevel = function(){};\n';
+  code += region + '\n' + gm[0] + '\n' + dm[0];
+  code += '\nthis.__app = { SPOTS, SLUG_OVERRIDES, PREF_SLUG, DESIGNATED_CITIES, GENRES, spotSlug, baseMunicipality, deriveCategory };';
+  const sandbox = {};
+  vm.createContext(sandbox);
+  if (external) {
+    const jsonPath = SPOTS_JSON_PATH || path.join(path.dirname(path.resolve(indexPath)), 'data', 'spots.json');
+    if (!fs.existsSync(jsonPath)) throw new Error('施設データが見つかりません: ' + jsonPath + '（--spots で場所を指定できます）');
+    sandbox.window = { __ODEKAKE_DATA__: {} };
+    sandbox.__spotsJson = fs.readFileSync(jsonPath, 'utf8');
+    vm.runInContext('window.__ODEKAKE_DATA__.spots = JSON.parse(__spotsJson);', sandbox, { filename: jsonPath });
+    if (!Array.isArray(sandbox.window.__ODEKAKE_DATA__.spots) || !sandbox.window.__ODEKAKE_DATA__.spots.length) throw new Error('施設データが空、または配列ではありません: ' + jsonPath);
+  }
+  vm.runInContext(code, sandbox, { filename: 'index.html(data)' });
+  return sandbox.__app;
+}
+function loadAppAny(indexPath) {
+  try { return loadApp(indexPath); }
+  catch (e) {
+    try { return loadAppLegacy(indexPath); }
+    catch (e2) { throw e; }
+  }
+}
+
 // ------------------------------------------------------------------ 共通ヘルパー
 function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 // Python の json.dumps(ensure_ascii=False) と同じ書式（区切りは ", " と ": "）
@@ -96,7 +140,7 @@ function pyJson(v) {
 }
 const PREF_FULL = { '東京': '東京都', '神奈川': '神奈川県', '埼玉': '埼玉県', '千葉': '千葉県', '茨城': '茨城県', '栃木': '栃木県', '群馬': '群馬県', '山梨': '山梨県', '静岡': '静岡県', '福島': '福島県', '長野': '長野県' };
 // 目的別ページ（/purpose/xxx/）が実在するジャンルだけを対象にする。ここに無いジャンルは今までどおりリンクなしのバッジのまま。
-const PURPOSE_PAGE_SLUGS = { '動物園': 'zoo', '水族館': 'aquarium', '室内遊び場': 'indoor', '公園': 'park', '博物館・科学館': 'museum', '遊園地・テーマパーク': 'amusement', '果物狩り・収穫体験': 'fruit-picking', '温泉・スパ': 'onsen', '牧場': 'ranch', 'アスレチック・アウトドア': 'athletic' };
+const PURPOSE_PAGE_SLUGS = { '動物園': 'zoo', '水族館': 'aquarium', '室内遊び場': 'indoor', '公園': 'park', '博物館・科学館': 'museum', '遊園地・テーマパーク': 'amusement', '果物狩り・収穫体験': 'fruit-picking', '温泉・スパ': 'onsen', '牧場': 'ranch', 'アスレチック・アウトドア': 'athletic', 'ものづくり体験': 'craft', 'プール・水遊び': 'pool', '花の名所': 'flower', 'おでかけスポット': 'other' };
 // 施設ページ→各特集ページへの関連リンク判定（index.html側の deriveRainLevel / parsePriceYen と同じロジック）
 const INDOOR_HINTS = ["水族館","博物館","科学館","ミュージアム","タワー","プラネタリウム","屋内","ドーム","美術館","動物園（屋内","防災館","アリーナ"];
 const OUTDOOR_HINTS = ["公園","牧場","サファリ","ハイキング","登山","海岸","ビーチ","キャンプ","動物園","植物園","古墳","城址","展望","湖","滝","高原"];
@@ -291,7 +335,7 @@ function facilityPage(row) {
   const ld1 = breadcrumbLd([['おでかけナビ', SITE], [row.prefFull, `${SITE}${row.prefSlug}/`], [row.city, `${SITE}${row.prefSlug}/${row.citySlug}/`], [s.name, url]]);
   const ld2 = { '@context': 'https://schema.org', '@type': 'TouristAttraction', name: s.name, description, url,
     address: { '@type': 'PostalAddress', addressRegion: row.prefFull, addressLocality: s.area },
-    geo: { '@type': 'GeoCoordinates', latitude: s.lat, longitude: s.lng },
+    geo: (typeof s.lat === 'number' && typeof s.lng === 'number') ? { '@type': 'GeoCoordinates', latitude: s.lat, longitude: s.lng } : undefined, // 座標が未確認の施設には geo を出さない
     sameAs: s.officialUrl || undefined };
   let h = head(title, description, url, [ld1, ld2], CSS_FAC);
   h += `<nav class="breadcrumb">
@@ -397,7 +441,7 @@ function prefPage(p) {
   // 同数の時は、データに最初に現れた順（gc は最初に現れた順に並ぶ）
   const gl = [...gc.entries()].map(([k, n], i) => ({ key: k, count: n, first: i, idx: gorder.findIndex(g => g.key === k) })).sort((a, b) => (b.count - a.count) || (a.first - b.first)).slice(0, 3);
   if (gl.length) h += `<h2 class="section-title">🏷️ 人気カテゴリ</h2><div class="genre-badge-row">${gl.map(g => {
-    const label = `${gorder[g.idx].label.split(' ')[0]}${esc(g.key)}（${g.count}件）`;
+    const label = `${g.idx >= 0 ? gorder[g.idx].label.split(' ')[0] : '📍'}${esc(g.key)}（${g.count}件）`; // 一覧から外したジャンルは📍で表示
     const pslug = PURPOSE_PAGE_SLUGS[g.key];
     return pslug ? `<a class="genre-badge-item" href="${BASE}purpose/${pslug}/">${label}</a>` : `<span class="genre-badge-item">${label}</span>`;
   }).join('')}</div>`;
@@ -498,7 +542,7 @@ function sitemapXml(prefs, rows) {
 
 // ------------------------------------------------------------------ 生成の本体
 function main() {
-  const app = loadApp(INDEX_PATH);
+  const app = loadAppAny(INDEX_PATH);
   const rows = prepare(app);
   const files = new Map(); // 相対パス -> 内容
   rows.forEach(r => files.set(`${r.slug}/index.html`, facilityPage(r)));
@@ -514,7 +558,15 @@ function main() {
     });
   });
   SEASONS.forEach(se => files.set(`season/${se.slug}/index.html`, seasonPage(se, rows, prefs)));
-  files.set('sitemap.xml', sitemapXml(prefs, rows));
+  let sm = sitemapXml(prefs, rows);
+  if (KEEP_SITEMAP && KEEP_SITEMAP !== true && fs.existsSync(KEEP_SITEMAP)) {
+    const have = new Set([...sm.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => decodeURI(m[1])));
+    const old = fs.readFileSync(KEEP_SITEMAP, 'utf8');
+    const extra = [...old.matchAll(/<url>[\s\S]*?<\/url>\n?/g)].map(m => m[0]).filter(u => { const l = (u.match(/<loc>([^<]+)<\/loc>/) || [])[1]; return l && !have.has(decodeURI(l)); });
+    if (extra.length) sm = sm.replace('</urlset>', extra.join('') + '</urlset>');
+    console.log(`既存sitemapから、このツールが作らないURLを ${extra.length} 件残しました`);
+  }
+  files.set('sitemap.xml', sm);
   files.set('_slug_manifest.json', JSON.stringify(rows.map(r => ({ name: r.spot.name, slug: r.slug })), null, 1));
   return { app, rows, files };
 }
