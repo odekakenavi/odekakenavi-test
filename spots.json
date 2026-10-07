@@ -4183,8 +4183,8 @@
     "name": "茨城県自然博物館",
     "slug": "ibaraki/bando/ibaraki-nature-museum",
     "area": "坂東市",
-    "lat": 36.048,
-    "lng": 139.889,
+    "lat": 36.004937,
+    "lng": 139.916313,
     "ages": [
       "0-1歳",
       "2-3歳",
@@ -7455,8 +7455,8 @@
     "name": "都立小金井公園",
     "slug": "tokyo/koganei/koganei-park",
     "area": "小金井市",
-    "lat": 35.708,
-    "lng": 139.507,
+    "lat": 35.715822,
+    "lng": 139.512614,
     "ages": [
       "0-1歳",
       "2-3歳",
@@ -10125,8 +10125,8 @@
     "name": "赤塚公園",
     "slug": "tokyo/itabashi/akatsuka-park",
     "area": "板橋区",
-    "lat": 35.771,
-    "lng": 139.644,
+    "lat": 35.784917,
+    "lng": 139.6565,
     "ages": [
       "0-1歳",
       "2-3歳",
@@ -18319,8 +18319,8 @@
     "name": "さいたま市岩槻人形博物館",
     "slug": "saitama/saitama-iwatsuki/ningyo-muse",
     "area": "さいたま市岩槻区本町",
-    "lat": 35.943,
-    "lng": 139.687,
+    "lat": 35.950833,
+    "lng": 139.7,
     "ages": [
       "4-6歳",
       "低学年",
@@ -29554,10 +29554,10 @@
   {
     "region": "静岡",
     "name": "野守公園",
-    "slug": "shizuoka/shimada/野守公園",
+    "slug": "shizuoka/shimada/nomoripark",
     "area": "島田市川根町家山",
-    "lat": 35.0231,
-    "lng": 138.1133,
+    "lat": 34.938187,
+    "lng": 138.068813,
     "ages": [
       "0-1歳",
       "2-3歳",
